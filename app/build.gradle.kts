@@ -104,9 +104,19 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Markdown
-    implementation(libs.markwon.core)
-    implementation(libs.markwon.html)
-    implementation(libs.markwon.image)
-    implementation(libs.markwon.ext.tables)
-    implementation(libs.markwon.syntax.highlight)
+    implementation(libs.markwon.core) {
+        exclude(group = 'org.jetbrains', module = 'annotations-java5')
+    }
+    implementation(libs.markwon.html) {
+        exclude(group = 'org.jetbrains', module = 'annotations-java5')
+    }
+    implementation(libs.markwon.image) {
+        exclude(group = 'org.jetbrains', module = 'annotations-java5')
+    }
+    implementation(libs.markwon.ext.tables) {
+        exclude(group = 'org.jetbrains', module = 'annotations-java5')
+    }
+    implementation(libs.markwon.syntax.highlight) {
+        exclude(group = 'org.jetbrains', module = 'annotations-java5')
+    }
 }
