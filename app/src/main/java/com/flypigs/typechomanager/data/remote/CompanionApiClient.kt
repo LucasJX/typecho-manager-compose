@@ -37,7 +37,7 @@ class CompanionApiClient @Inject constructor(
      * @param page           1-based page number
      * @param pageSize       items per page
      * @param mime           optional MIME filter (e.g. "image/")
-     * @return               Pair of (items, totalPages)
+     * @return               Triple of (items, totalPages, totalSize)
      */
     suspend fun listMedia(
         companionBase: String,
@@ -46,7 +46,7 @@ class CompanionApiClient @Inject constructor(
         page: Int = 1,
         pageSize: Int = 20,
         mime: String? = null
-    ): Pair<List<Attachment>, Int> = withContext(Dispatchers.IO) {
+    ): Triple<List<Attachment>, Int, Long> = withContext(Dispatchers.IO) {
         val url = "${companionBase.trimEnd('/')}/companion-api.php"
         val formBody = buildString {
             append("action=list_media")
@@ -72,7 +72,7 @@ class CompanionApiClient @Inject constructor(
             val dto = json.decodeFromString<ListMediaResponse>(body)
             val totalPages = if (dto.total <= pageSize) 1 else
                 (dto.total + pageSize - 1) / pageSize
-            Pair(dto.items.map { it.toAttachment() }, totalPages)
+            Triple(dto.items.map { it.toAttachment() }, totalPages, dto.total_size)
         }
     }
 
@@ -166,7 +166,8 @@ class CompanionApiClient @Inject constructor(
     @Serializable
     private data class ListMediaResponse(
         val items: List<AttachmentDto> = emptyList(),
-        val total: Int = 0
+        val total: Int = 0,
+        val total_size: Long = 0
     )
 
     @Serializable

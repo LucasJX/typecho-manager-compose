@@ -15,6 +15,7 @@ import javax.inject.Inject
 data class AttachmentsUiState(
     val attachments: List<Attachment> = emptyList(),
     val total: Int = 0,
+    val totalSize: Long = 0,
     val page: Int = 1,
     val totalPages: Int = 1,
     val isLoading: Boolean = false,
@@ -51,7 +52,7 @@ class AttachmentsViewModel @Inject constructor(
                 val companionBase = config.blogUrl.ifEmpty {
                     config.endpoint.substringBefore("/index.php")
                 }.trimEnd('/')
-                val (items, totalPages) = apiClient.listMedia(
+                val (items, totalPages, totalSize) = apiClient.listMedia(
                     companionBase = companionBase,
                     username = config.username,
                     password = config.password,
@@ -61,6 +62,7 @@ class AttachmentsViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     attachments = items,
                     total = items.size,
+                    totalSize = totalSize,
                     page = 1,
                     totalPages = totalPages,
                     isLoading = false
@@ -89,7 +91,7 @@ class AttachmentsViewModel @Inject constructor(
                 val companionBase = config.blogUrl.ifEmpty {
                     config.endpoint.substringBefore("/index.php")
                 }.trimEnd('/')
-                val (newItems, totalPages) = apiClient.listMedia(
+                val (newItems, totalPages, _) = apiClient.listMedia(
                     companionBase = companionBase,
                     username = config.username,
                     password = config.password,
@@ -126,7 +128,8 @@ class AttachmentsViewModel @Inject constructor(
                 val updated = _uiState.value.attachments.filter { it.cid != cid }
                 _uiState.value = _uiState.value.copy(
                     attachments = updated,
-                    total = updated.size
+                    total = updated.size,
+                    totalSize = updated.sumOf { it.size }
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -147,7 +150,7 @@ class AttachmentsViewModel @Inject constructor(
                 val companionBase = config.blogUrl.ifEmpty {
                     config.endpoint.substringBefore("/index.php")
                 }.trimEnd('/')
-                val (items, totalPages) = apiClient.listMedia(
+                val (items, totalPages, totalSize) = apiClient.listMedia(
                     companionBase = companionBase,
                     username = config.username,
                     password = config.password,
@@ -157,6 +160,7 @@ class AttachmentsViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     attachments = items,
                     total = items.size,
+                    totalSize = totalSize,
                     page = 1,
                     totalPages = totalPages,
                     isRefreshing = false

@@ -3,6 +3,7 @@ package com.flypigs.typechomanager.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flypigs.typechomanager.data.local.ConfigDataStore
+import com.flypigs.typechomanager.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,11 +20,16 @@ data class SettingsUiState(
     val username: String = "",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val isDark: Boolean = false,
+    val postCount: Int = 0,
+    val draftCount: Int = 0,
+    val categoryCount: Int = 0,
+    val isLoadingStats: Boolean = false,
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val configDataStore: ConfigDataStore,
+    private val postRepository: PostRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -31,6 +37,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         loadConfig()
+        loadStats()
     }
 
     fun loadConfig() {
@@ -51,6 +58,28 @@ class SettingsViewModel @Inject constructor(
                 themeMode = themeMode,
                 isDark = themeMode == ThemeMode.DARK,
             )
+        }
+    }
+
+    private fun loadStats() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingStats = true)
+            try {
+                val posts = postRepository.getRecentPosts()
+                val categories = try {
+                    postRepository.getCategories()
+                } catch (_: Exception) {
+                    emptyList()
+                }
+                _uiState.value = _uiState.value.copy(
+                    postCount = posts.count { it.status == "publish" },
+                    draftCount = posts.count { it.status == "draft" },
+                    categoryCount = categories.size,
+                    isLoadingStats = false,
+                )
+            } catch (_: Exception) {
+                _uiState.value = _uiState.value.copy(isLoadingStats = false)
+            }
         }
     }
 
