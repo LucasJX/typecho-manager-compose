@@ -17,7 +17,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.BuildConfig
@@ -76,7 +76,7 @@ fun SettingsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text("设置") },
+                title = { Text("设置", fontWeight = FontWeight.Bold) },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -98,7 +98,12 @@ fun SettingsScreen(
             item {
                 ListItem(
                     headlineContent = { Text(uiState.blogName.ifEmpty { "未命名博客" }) },
-                    supportingContent = { Text(uiState.blogUrl.ifEmpty { "未配置" }) },
+                    supportingContent = {
+                        Text(
+                            uiState.blogUrl.ifEmpty { "未配置" },
+                            maxLines = 2
+                        )
+                    },
                     leadingContent = {
                         Icon(Icons.Default.Web, contentDescription = null)
                     },
@@ -125,22 +130,17 @@ fun SettingsScreen(
                 )
             }
             item {
-                ListItem(
-                    headlineContent = { Text("退出登录") },
-                    leadingContent = {
+                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    TextButton(
+                        onClick = { showLogoutDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Icon(
                             Icons.Default.ExitToApp,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(end = 8.dp)
                         )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    tonalElevation = 0.dp,
-                )
-                // Wrap the whole ListItem in a clickable via the trailing icon approach
-                // Actually, use a TextButton for clarity
-                Box(modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)) {
-                    TextButton(onClick = { showLogoutDialog = true }) {
                         Text("退出登录", color = MaterialTheme.colorScheme.error)
                     }
                 }
@@ -244,7 +244,7 @@ fun SettingsScreen(
             item {
                 ListItem(
                     headlineContent = { Text("版本") },
-                    supportingContent = { Text(BuildConfig.VERSION_NAME) },
+                    supportingContent = { Text("v${BuildConfig.VERSION_NAME}") },
                     leadingContent = {
                         Icon(Icons.Default.Info, contentDescription = null)
                     },

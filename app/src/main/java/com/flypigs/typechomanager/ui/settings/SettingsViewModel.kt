@@ -39,7 +39,13 @@ class SettingsViewModel @Inject constructor(
             val themeMode = configDataStore.getThemeMode()
             _uiState.value = _uiState.value.copy(
                 blogName = config.blogName ?: "",
-                blogUrl = config.blogUrl.ifEmpty { config.endpoint },
+                blogUrl = config.blogUrl.ifEmpty {
+                    // Derive blog URL from XML-RPC endpoint
+                    config.endpoint
+                        .substringBefore("/index.php")
+                        .substringBefore("/xmlrpc")
+                        .trimEnd('/')
+                },
                 endpoint = config.endpoint,
                 username = config.username,
                 themeMode = themeMode,
