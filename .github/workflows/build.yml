@@ -34,10 +34,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace --no-daemon 2>&1 | tee /tmp/build.log; EXIT_CODE=$?; if [ $EXIT_CODE -ne 0 ]; then echo "::error::Build failed with exit code $EXIT_CODE"; cat /tmp/build.log | tail -50; exit $EXIT_CODE; fi
-
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --stacktrace --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -45,26 +42,9 @@ jobs:
           name: debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      - name: Upload Release APK
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
-
-  release:
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-apk
-
       - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: '*.apk'
+          files: app/build/outputs/apk/debug/*.apk
           generate_release_notes: true
