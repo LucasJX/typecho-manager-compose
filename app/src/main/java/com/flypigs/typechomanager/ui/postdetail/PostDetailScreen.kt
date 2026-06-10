@@ -33,12 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
-import coil.ImageLoader
-import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.data.repository.PostRepository
 import java.text.SimpleDateFormat
@@ -160,7 +157,6 @@ fun PostDetailScreen(
 
 @Composable
 private fun HtmlContent(html: String, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
     val textColor = MaterialTheme.colorScheme.onSurface
     val linkColor = MaterialTheme.colorScheme.primary
 
@@ -180,27 +176,6 @@ private fun HtmlContent(html: String, modifier: Modifier = Modifier) {
             val imageGetter = HtmlCompat.ImageGetter { source ->
                 val drawable = android.graphics.drawable.ColorDrawable(AndroidColor.LTGRAY)
                 drawable.setBounds(0, 0, 400, 300)
-                // Load image asynchronously via Coil
-                val request = ImageRequest.Builder(context)
-                    .data(source)
-                    .target { result ->
-                        val bitmap = (result as? android.graphics.drawable.BitmapDrawable)?.bitmap
-                        if (bitmap != null) {
-                            val ratio = bitmap.width.toFloat() / bitmap.height.toFloat()
-                            val width = 800
-                            val height = (width / ratio).toInt()
-                            val scaled = android.graphics.drawable.BitmapDrawable(
-                                context.resources,
-                                android.graphics.Bitmap.createScaledBitmap(bitmap, width, height, true)
-                            )
-                            scaled.setBounds(0, 0, width, height)
-                            textView.text = HtmlCompat.fromHtml(
-                                html, HtmlCompat.FROM_HTML_MODE_COMPACT, scaled, null
-                            )
-                        }
-                    }
-                    .build()
-                ImageLoader(context).enqueue(request)
                 drawable
             }
             textView.text = HtmlCompat.fromHtml(
