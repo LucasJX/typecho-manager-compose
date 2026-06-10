@@ -710,6 +710,6 @@ fun formatTimestamp(timestamp: Long): String {
     if (timestamp <= 0L) return ""
     return try {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        sdf.format(Date(timestamp * 1000))
+        sdf.format(Date(timestamp))
     } catch (_: Exception) { "" }
 }
