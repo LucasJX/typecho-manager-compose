@@ -102,6 +102,12 @@ fun NavGraph(
                     },
                     onPostClick = { cid ->
                         navController.navigate(Screen.PostDetail.createRoute(cid))
+                    },
+                    onNavigateToPosts = {
+                        navController.navigate(Screen.Posts.route)
+                    },
+                    onNavigateToAttachments = {
+                        navController.navigate(Screen.Attachments.route)
                     }
                 )
             }
