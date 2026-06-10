@@ -1,5 +1,6 @@
-import android.widget.Toast
 package com.flypigs.typechomanager.ui.attachments
+
+import android.widget.Toast
 
 import android.content.ClipData
 import android.content.ClipboardManager
