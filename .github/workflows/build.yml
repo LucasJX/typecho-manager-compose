@@ -34,7 +34,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          set +e
+          OUTPUT=$(./gradlew assembleDebug 2>&1)
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::error::Gradle build failed (exit code $EXIT_CODE)"
+            echo "$OUTPUT" | grep -iE "error:|fail|what went wrong|build failed" | head -20
+            echo "---"
+            echo "$OUTPUT" | tail -30
+            exit $EXIT_CODE
+          fi
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
