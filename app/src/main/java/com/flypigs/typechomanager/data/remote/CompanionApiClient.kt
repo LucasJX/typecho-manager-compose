@@ -185,7 +185,7 @@ class CompanionApiClient @Inject constructor(
         fun toAttachment() = Attachment(
             cid = cid,
             title = title,
-            created = created,
+            created = created * 1000, // Typecho stores seconds, Date() needs millis
             name = name,
             path = path,
             size = size,
