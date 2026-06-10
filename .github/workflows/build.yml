@@ -4,8 +4,21 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradlew'
+      - '.github/workflows/**'
   pull_request:
     branches: [main]
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradlew'
 
 jobs:
   build:
