@@ -1,6 +1,5 @@
 package com.flypigs.typechomanager.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -9,97 +8,87 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    onPrimary = Neutral99,
-    primaryContainer = PurpleContainer90,
-    onPrimaryContainer = Purple10,
-    secondary = Teal40,
-    onSecondary = Neutral99,
-    secondaryContainer = Teal90,
-    onSecondaryContainer = Neutral10,
-    tertiary = Amber40,
-    onTertiary = Neutral99,
-    tertiaryContainer = Amber90,
-    onTertiaryContainer = Neutral10,
-    error = Red40,
-    onError = Neutral99,
-    errorContainer = Red90,
-    onErrorContainer = Neutral10,
-    background = Neutral99,
-    onBackground = Neutral10,
-    surface = Neutral99,
-    onSurface = Neutral10,
-    surfaceVariant = NeutralVariant90,
-    onSurfaceVariant = NeutralVariant30,
-    outline = NeutralVariant50,
-    outlineVariant = NeutralVariant80,
+// Material 3 Expressive 调色板
+private val LightColors = lightColorScheme(
+    primary = Color(0xFF7C8CFF),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFE8EAFF),
+    onPrimaryContainer = Color(0xFF001551),
+    secondary = Color(0xFF5CC8FF),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFD6EDFF),
+    onSecondaryContainer = Color(0xFF001E33),
+    tertiary = Color(0xFF7C5CCC),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFEDE0FF),
+    onTertiaryContainer = Color(0xFF20005C),
+    error = Color(0xFFFF5252),
+    onError = Color.White,
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF410002),
+    background = Color(0xFFF8F9FF),
+    onBackground = Color(0xFF1A1C20),
+    surface = Color.White,
+    onSurface = Color(0xFF1A1C20),
+    surfaceVariant = Color(0xFFE7E8F0),
+    onSurfaceVariant = Color(0xFF444650),
+    outline = Color(0xFF747680),
+    outlineVariant = Color(0xFFC4C6D0),
+    inverseSurface = Color(0xFF2F3038),
+    inverseOnSurface = Color(0xFFEFF0F8),
+    inversePrimary = Color(0xFFB8C3FF),
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    onPrimary = Purple20,
-    primaryContainer = Purple30,
-    onPrimaryContainer = Purple90,
-    secondary = Teal80,
-    onSecondary = Neutral10,
-    secondaryContainer = Teal40,
-    onSecondaryContainer = Neutral90,
-    tertiary = Amber80,
-    onTertiary = Neutral10,
-    tertiaryContainer = Amber40,
-    onTertiaryContainer = Neutral90,
-    error = Red80,
-    onError = Neutral10,
-    errorContainer = Red40,
-    onErrorContainer = Neutral90,
-    background = Neutral10,
-    onBackground = Neutral90,
-    surface = Neutral10,
-    onSurface = Neutral90,
-    surfaceVariant = NeutralVariant30,
-    onSurfaceVariant = NeutralVariant80,
-    outline = NeutralVariant50,
-    outlineVariant = NeutralVariant30,
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFFB8C3FF),
+    onPrimary = Color(0xFF002579),
+    primaryContainer = Color(0xFF0039A8),
+    onPrimaryContainer = Color(0xFFE8EAFF),
+    secondary = Color(0xFF8ED4FF),
+    onSecondary = Color(0xFF003550),
+    secondaryContainer = Color(0xFF004C73),
+    onSecondaryContainer = Color(0xFFD6EDFF),
+    tertiary = Color(0xFFD4BBFF),
+    onTertiary = Color(0xFF370090),
+    tertiaryContainer = Color(0xFF5200B8),
+    onTertiaryContainer = Color(0xFFEDE0FF),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color(0xFF121318),
+    onBackground = Color(0xFFE2E2EC),
+    surface = Color(0xFF1A1C20),
+    onSurface = Color(0xFFE2E2EC),
+    surfaceVariant = Color(0xFF444650),
+    onSurfaceVariant = Color(0xFFC4C6D0),
+    outline = Color(0xFF8E9099),
+    outlineVariant = Color(0xFF444650),
+    inverseSurface = Color(0xFFE2E2EC),
+    inverseOnSurface = Color(0xFF2F3038),
+    inversePrimary = Color(0xFF0050E0),
 )
 
 @Composable
 fun TypechoManagerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        // Dynamic color is available on Android 12+ (API 31+)
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context)
-            else dynamicLightColorScheme(context)
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    // Tint the status bar to match the theme surface.
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.surface.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-        }
+        darkTheme -> DarkColors
+        else -> LightColors
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography,
-        shapes = AppShapes,
-        content = content,
+        content = content
     )
 }
