@@ -14,6 +14,7 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 data class SettingsUiState(
     val blogName: String = "",
+    val blogUrl: String = "",
     val endpoint: String = "",
     val username: String = "",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -38,6 +39,7 @@ class SettingsViewModel @Inject constructor(
             val themeMode = configDataStore.getThemeMode()
             _uiState.value = _uiState.value.copy(
                 blogName = config.blogName ?: "",
+                blogUrl = config.blogUrl.ifEmpty { config.endpoint },
                 endpoint = config.endpoint,
                 username = config.username,
                 themeMode = themeMode,

@@ -78,6 +78,7 @@ class SetupViewModel @Inject constructor(
                     username = state.username,
                     password = state.password,
                     blogName = "",
+                    blogUrl = state.endpoint.trimEnd('/'),
                 )
                 configDataStore.saveConfig(config)
 

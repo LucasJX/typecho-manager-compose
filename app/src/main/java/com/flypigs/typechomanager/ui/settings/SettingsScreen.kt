@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.flypigs.typechomanager.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,7 +98,7 @@ fun SettingsScreen(
             item {
                 ListItem(
                     headlineContent = { Text(uiState.blogName.ifEmpty { "未命名博客" }) },
-                    supportingContent = { Text(uiState.endpoint.ifEmpty { "未配置" }) },
+                    supportingContent = { Text(uiState.blogUrl.ifEmpty { "未配置" }) },
                     leadingContent = {
                         Icon(Icons.Default.Web, contentDescription = null)
                     },
@@ -243,7 +244,7 @@ fun SettingsScreen(
             item {
                 ListItem(
                     headlineContent = { Text("版本") },
-                    supportingContent = { Text("1.0.0") },
+                    supportingContent = { Text(BuildConfig.VERSION_NAME) },
                     leadingContent = {
                         Icon(Icons.Default.Info, contentDescription = null)
                     },
