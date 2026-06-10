@@ -385,10 +385,7 @@ fun AttachmentCard(
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(
-                onClick = {},
-                onLongClick = { showMenu = true }
-            ),
+            .clickable { },
         shape = RoundedCornerShape(12.dp)
     ) {
         Box {
