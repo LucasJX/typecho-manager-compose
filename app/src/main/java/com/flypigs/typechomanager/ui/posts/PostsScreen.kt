@@ -185,7 +185,7 @@ fun PostsScreen(
                             FilterChip(
                                 selected = selectedFilter == null,
                                 onClick = { selectedFilter = null },
-                                label = { Text("全部 $publishedCount") },
+                                label = { Text("全部 ${allPosts.size}") },
                                 shape = DesignSystem.Chip.Corner,
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary

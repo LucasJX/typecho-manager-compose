@@ -16,9 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.CheckCircle
+
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
@@ -198,7 +198,7 @@ fun SettingsScreen(
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
                         SettingsItem(
-                            icon = Icons.Default.AttachMoney,
+                            icon = Icons.Default.Attachment,
                             title = "附件数",
                             subtitle = "${uiState.attachmentCount} 个"
                         )

@@ -80,6 +80,10 @@ class ConfigDataStore(private val dataStore: DataStore<Preferences>) {
      * Read the stored theme mode. Defaults to [ThemeMode.SYSTEM].
      */
     suspend fun getThemeMode(): ThemeMode {
+        return getThemeModeFlow().first()
+    }
+
+    fun getThemeModeFlow(): kotlinx.coroutines.flow.Flow<ThemeMode> {
         return dataStore.data.map { prefs ->
             val raw = prefs[Keys.THEME_MODE] ?: "SYSTEM"
             try {
@@ -87,7 +91,7 @@ class ConfigDataStore(private val dataStore: DataStore<Preferences>) {
             } catch (_: IllegalArgumentException) {
                 ThemeMode.SYSTEM
             }
-        }.first()
+        }
     }
 
     /**

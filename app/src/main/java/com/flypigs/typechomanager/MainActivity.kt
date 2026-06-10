@@ -16,7 +16,9 @@ import com.flypigs.typechomanager.ui.settings.ThemeMode
 import com.flypigs.typechomanager.ui.theme.TypechoManagerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,20 +35,18 @@ class MainActivity : ComponentActivity() {
     lateinit var configDataStore: ConfigDataStore
 
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
-    private val themeMode = _themeMode.asStateFlow()
+    private lateinit var themeMode: kotlinx.coroutines.flow.StateFlow<ThemeMode>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Load theme preference
-        lifecycleScope.launch {
-            val mode = configDataStore.getThemeMode()
-            _themeMode.value = mode
-        }
+        // Observe theme preference in real-time
+        themeMode = configDataStore.getThemeModeFlow()
+            .stateIn(lifecycleScope, SharingStarted.Eagerly, ThemeMode.SYSTEM)
 
         setContent {
-            val currentTheme by themeMode.collectAsState()
+            val currentTheme by themeMode.collectAsState(ThemeMode.SYSTEM)
             val darkTheme = when (currentTheme) {
                 ThemeMode.DARK -> true
                 ThemeMode.LIGHT -> false
