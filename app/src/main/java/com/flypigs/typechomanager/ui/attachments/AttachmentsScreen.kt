@@ -196,8 +196,8 @@ fun AttachmentsScreen(
                     items(filteredAttachments, key = { it.cid }) { attachment ->
                         AttachmentCard(
                             attachment = attachment,
-                            onDelete = { cid ->
-                                viewModel.deleteAttachment(cid)
+                            onDelete = { att ->
+                                viewModel.deleteAttachment(att.cid)
                             },
                             onCopyUrl = { url ->
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -262,7 +262,7 @@ private fun StatItem(label: String, value: String) {
 @Composable
 private fun AttachmentCard(
     attachment: Attachment,
-    onDelete: (Int) -> Unit,
+    onDelete: (Attachment) -> Unit,
     onCopyUrl: (String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -380,7 +380,7 @@ private fun AttachmentCard(
                 TextButton(
                     onClick = {
                         showDeleteDialog = false
-                        onDelete(attachment.cid)
+                        onDelete(attachment)
                     }
                 ) {
                     Text("删除", color = MaterialTheme.colorScheme.error)

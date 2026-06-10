@@ -102,7 +102,7 @@ fun PostsScreen(
     val filteredPosts = allPosts.filter { post ->
         val matchesSearch = searchQuery.isEmpty() || 
             post.title.contains(searchQuery, ignoreCase = true) ||
-            post.description.contains(searchQuery, ignoreCase = true)
+            post.text.contains(searchQuery, ignoreCase = true)
         val matchesFilter = selectedFilter == null || post.status == selectedFilter
         matchesSearch && matchesFilter
     }
@@ -297,7 +297,7 @@ private fun PostCard(
                 
                 // 摘要
                 Text(
-                    text = stripHtml(post.description).take(100),
+                    text = stripHtml(post.text).take(100),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,

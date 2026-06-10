@@ -61,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -433,7 +434,7 @@ private fun PostCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = stripHtml(post.description).take(80),
+                    text = stripHtml(post.text).take(80),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -448,9 +449,9 @@ private fun PostCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (post.category.isNotEmpty()) {
+                    if (post.categories.isNotEmpty()) {
                         Text(
-                            text = " · ${post.category}",
+                            text = " · ${post.categories.first()}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
