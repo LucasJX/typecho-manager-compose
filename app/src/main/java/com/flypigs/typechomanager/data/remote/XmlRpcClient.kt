@@ -167,8 +167,7 @@ class XmlRpcClient @Inject constructor(
      * to the stored hash. If we send a raw '+', the server-side URL-decoder
      * turns it into a space, causing authentication to fail.
      */
-    private fun encodePassword(password: String): String =
-        URLEncoder.encode(password, "UTF-8")
+    private fun encodePassword(password: String): String = password
 
     // ------------------------------------------------------------------ //
     //  HTTP execution                                                     //
