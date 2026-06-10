@@ -36,6 +36,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -422,6 +423,44 @@ private fun SettingsItem(
             Modifier.clickable(onClick = onClick)
         } else {
             Modifier
+        }
+    )
+}
+
+@Composable
+private fun ThemePickerDialog(
+    currentMode: ThemeMode,
+    onModeSelected: (ThemeMode) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("选择主题") },
+        text = {
+            Column {
+                ThemeMode.entries.forEach { mode ->
+                    val label = when (mode) {
+                        ThemeMode.SYSTEM -> "跟随系统"
+                        ThemeMode.LIGHT -> "浅色模式"
+                        ThemeMode.DARK -> "深色模式"
+                    }
+                    ListItem(
+                        headlineContent = { Text(label) },
+                        leadingContent = {
+                            RadioButton(
+                                selected = currentMode == mode,
+                                onClick = { onModeSelected(mode) }
+                            )
+                        },
+                        modifier = Modifier.clickable { onModeSelected(mode) }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
         }
     )
 }

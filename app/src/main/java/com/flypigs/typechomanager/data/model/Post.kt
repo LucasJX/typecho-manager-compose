@@ -17,7 +17,8 @@ data class Post(
     val categories: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
     val commentCount: Int = 0,
-    val viewsCount: Int = 0
+    val viewsCount: Int = 0,
+    val cover: String = ""
 ) {
     companion object {
         enum class Status(val value: String) {

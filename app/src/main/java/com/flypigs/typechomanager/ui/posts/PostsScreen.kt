@@ -315,9 +315,9 @@ private fun PostCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (post.category.isNotEmpty()) {
+                    if (post.categories.isNotEmpty()) {
                         Text(
-                            text = " · ${post.category}",
+                            text = " · ${post.categories.first()}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )

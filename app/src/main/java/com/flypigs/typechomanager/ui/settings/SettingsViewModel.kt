@@ -18,11 +18,14 @@ data class SettingsUiState(
     val blogUrl: String = "",
     val endpoint: String = "",
     val username: String = "",
+    val xmlRpcUrl: String = "",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val isDark: Boolean = false,
+    val isLoading: Boolean = false,
     val postCount: Int = 0,
     val draftCount: Int = 0,
     val categoryCount: Int = 0,
+    val attachmentCount: Int = 0,
     val isLoadingStats: Boolean = false,
 )
 
@@ -55,6 +58,7 @@ class SettingsViewModel @Inject constructor(
                 },
                 endpoint = config.endpoint,
                 username = config.username,
+                xmlRpcUrl = config.endpoint,
                 themeMode = themeMode,
                 isDark = themeMode == ThemeMode.DARK,
             )
@@ -71,10 +75,16 @@ class SettingsViewModel @Inject constructor(
                 } catch (_: Exception) {
                     emptyList()
                 }
+                val attachments = try {
+                    postRepository.getAttachments()
+                } catch (_: Exception) {
+                    emptyList()
+                }
                 _uiState.value = _uiState.value.copy(
                     postCount = posts.count { it.status == "publish" },
                     draftCount = posts.count { it.status == "draft" },
                     categoryCount = categories.size,
+                    attachmentCount = attachments.size,
                     isLoadingStats = false,
                 )
             } catch (_: Exception) {

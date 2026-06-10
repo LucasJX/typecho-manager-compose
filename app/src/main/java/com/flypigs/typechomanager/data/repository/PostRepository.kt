@@ -1,8 +1,10 @@
 package com.flypigs.typechomanager.data.repository
 
 import com.flypigs.typechomanager.data.local.ConfigDataStore
+import com.flypigs.typechomanager.data.model.Attachment
 import com.flypigs.typechomanager.data.model.Category
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.data.remote.CompanionApiClient
 import com.flypigs.typechomanager.data.remote.XmlRpcClient
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,6 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class PostRepository @Inject constructor(
     private val xmlRpcClient: XmlRpcClient,
+    private val companionApiClient: CompanionApiClient,
     private val configDataStore: ConfigDataStore
 ) {
     private val cacheMutex = Mutex()
@@ -96,6 +99,12 @@ class PostRepository @Inject constructor(
             username = config.username,
             password = config.password
         )
+    }
+
+    /** Fetch all attachments for the blog. */
+    suspend fun getAttachments(): List<Attachment> {
+        val (items, _, _) = companionApiClient.listMedia(page = 1, pageSize = 1000)
+        return items
     }
 
     /** Clear the in-memory cache (e.g. on logout). */
