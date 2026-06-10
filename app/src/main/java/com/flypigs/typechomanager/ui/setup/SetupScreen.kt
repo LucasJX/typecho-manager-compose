@@ -1,5 +1,6 @@
 package com.flypigs.typechomanager.ui.setup
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +37,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
+import com.flypigs.typechomanager.R
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -74,11 +77,10 @@ fun SetupScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             // Logo / Icon
-            Icon(
-                imageVector = Icons.Default.Web,
-                contentDescription = null,
-                modifier = Modifier.size(72.dp),
-                tint = MaterialTheme.colorScheme.primary,
+            Image(
+                painter = painterResource(id = R.mipmap.ic_launcher),
+                contentDescription = "App Icon",
+                modifier = Modifier.size(80.dp),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
