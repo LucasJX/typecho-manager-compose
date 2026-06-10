@@ -28,9 +28,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.flypigs.typechomanager.data.repository.ConfigRepository
+import com.flypigs.typechomanager.data.repository.PostRepository
 import com.flypigs.typechomanager.ui.attachments.AttachmentsScreen
 import com.flypigs.typechomanager.ui.components.BottomNavBar
 import com.flypigs.typechomanager.ui.home.HomeScreen
+import com.flypigs.typechomanager.ui.postdetail.PostDetailScreen
 import com.flypigs.typechomanager.ui.posts.PostsScreen
 import com.flypigs.typechomanager.ui.settings.SettingsScreen
 import com.flypigs.typechomanager.ui.setup.SetupScreen
@@ -40,6 +42,7 @@ import kotlinx.coroutines.delay
 fun NavGraph(
     navController: NavHostController = rememberNavController(),
     configRepository: ConfigRepository,
+    postRepository: PostRepository,
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -67,7 +70,6 @@ fun NavGraph(
             startDestination = Screen.Splash.route,
             modifier = Modifier.padding(innerPadding),
         ) {
-            // Splash — checks if already configured
             composable(Screen.Splash.route) {
                 SplashScreen(
                     configRepository = configRepository,
@@ -84,7 +86,6 @@ fun NavGraph(
                 )
             }
 
-            // Setup — first-time config
             composable(Screen.Setup.route) {
                 SetupScreen(
                     onNavigateToMain = {
@@ -95,7 +96,6 @@ fun NavGraph(
                 )
             }
 
-            // Home — post list
             composable(Screen.Home.route) {
                 HomeScreen(
                     onNewPost = {
@@ -107,21 +107,21 @@ fun NavGraph(
                 )
             }
 
-            // Posts — all posts list
             composable(Screen.Posts.route) {
                 PostsScreen(
                     onPostClick = { cid ->
                         navController.navigate(Screen.PostDetail.createRoute(cid))
+                    },
+                    onNewPost = {
+                        navController.navigate(Screen.Editor.createRoute())
                     }
                 )
             }
 
-            // Attachments
             composable(Screen.Attachments.route) {
                 AttachmentsScreen()
             }
 
-            // Settings
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     onNavigateToSetup = {
@@ -130,19 +130,18 @@ fun NavGraph(
                 )
             }
 
-            // Post Detail
             composable(
                 route = Screen.PostDetail.route,
                 arguments = listOf(navArgument("cid") { type = NavType.IntType }),
             ) { backStackEntry ->
                 val cid = backStackEntry.arguments?.getInt("cid") ?: return@composable
-                // TODO: PostDetail screen
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("文章详情 #$cid", style = MaterialTheme.typography.headlineMedium)
-                }
+                PostDetailScreen(
+                    cid = cid,
+                    postRepository = postRepository,
+                    onBack = { navController.popBackStack() }
+                )
             }
 
-            // Editor
             composable(
                 route = Screen.Editor.route,
                 arguments = listOf(
@@ -153,7 +152,6 @@ fun NavGraph(
                 ),
             ) { backStackEntry ->
                 val cid = backStackEntry.arguments?.getInt("cid")?.takeIf { it != -1 }
-                // TODO: Editor screen
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         if (cid != null) "编辑文章 #$cid" else "新建文章",
@@ -174,7 +172,7 @@ private fun SplashScreen(
     var checking by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        delay(800) // Brief splash
+        delay(800)
         val isLoggedIn = configRepository.isLoggedIn()
         checking = false
         if (isLoggedIn) onNavigateToHome() else onNavigateToSetup()
