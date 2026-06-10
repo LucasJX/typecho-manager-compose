@@ -2,6 +2,7 @@ package com.flypigs.typechomanager.data.remote
 
 import com.flypigs.typechomanager.data.model.Category
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.data.model.Post.Status
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -379,7 +380,7 @@ class XmlRpcClient @Inject constructor(
         val title = (members["title"] as? String) ?: ""
         val slug = (members["wp_slug"] as? String) ?: ""
         val text = (members["description"] as? String) ?: ""
-        val status = (members["post_status"] as? String) ?: Post.Status.DRAFT.value
+        val status = (members["post_status"] as? String) ?: Status.DRAFT.value
         val author = (members["userid"] as? String)?.toIntOrNull() ?: 0
         val created = parseIso8601(members["dateCreated"] as? String)
         val modified = parseIso8601(members["date_modified_gmt"] as? String)
