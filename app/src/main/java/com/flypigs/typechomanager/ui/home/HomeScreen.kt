@@ -639,7 +639,7 @@ fun SkeletonScreen(modifier: Modifier = Modifier) {
             repeat(3) { i ->
                 SkeletonBox(
                     modifier = Modifier
-                        .width(60.dp + i * 12.dp)
+                        .width(60.dp + 12.dp * i)
                         .height(36.dp)
                         .clip(RoundedCornerShape(18.dp))
                 )
