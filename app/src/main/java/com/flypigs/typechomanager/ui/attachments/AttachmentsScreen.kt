@@ -7,7 +7,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -351,7 +350,6 @@ fun AttachmentGrid(
 }
 
 // ─── 附件卡片 ───
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AttachmentCard(
     attachment: Attachment,
@@ -387,7 +385,7 @@ fun AttachmentCard(
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(
+            .clickable(
                 onClick = {},
                 onLongClick = { showMenu = true }
             ),
@@ -532,7 +530,7 @@ fun AttachmentsSkeletonScreen(modifier: Modifier = Modifier) {
             repeat(2) { i ->
                 SkeletonBox(
                     modifier = Modifier
-                        .width(70.dp + i * 20.dp)
+                        .width(70.dp + 20.dp * i)
                         .height(36.dp)
                         .clip(RoundedCornerShape(18.dp))
                 )
