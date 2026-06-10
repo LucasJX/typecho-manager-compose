@@ -174,15 +174,15 @@ private fun WelcomeSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Large)
     ) {
         Text(
             text = "$greeting，$userName",
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
         Text(
             text = "已发布 $publishedCount 篇文章，$draftCount 篇草稿",
             style = MaterialTheme.typography.bodyLarge,

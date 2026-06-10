@@ -2,6 +2,7 @@ package com.flypigs.typechomanager.ui.designsystem
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * Material 3 Expressive Design System
@@ -10,12 +11,14 @@ import androidx.compose.ui.unit.dp
  */
 object DesignSystem {
     
-    // 圆角系统 - 8dp 网格
+    // 圆角系统 - 8dp 网格，更丰富层级
     object Corner {
         val Small = RoundedCornerShape(8.dp)
         val Medium = RoundedCornerShape(12.dp)
         val Large = RoundedCornerShape(16.dp)
         val ExtraLarge = RoundedCornerShape(20.dp)
+        val XXLarge = RoundedCornerShape(24.dp)
+        val XXXLarge = RoundedCornerShape(28.dp)
         val Card = RoundedCornerShape(20.dp)  // 卡片统一圆角
     }
     
@@ -63,23 +66,32 @@ object DesignSystem {
         val HorizontalPadding = 16.dp
     }
     
-    // 字体层级
+    // 字体层级 - M3 Expressive 更大胆的字号
     object Typography {
-        val DisplayLarge = 48
-        val DisplayMedium = 40
-        val DisplaySmall = 36
-        val HeadlineLarge = 32
-        val HeadlineMedium = 28
-        val HeadlineSmall = 24
-        val TitleLarge = 22
-        val TitleMedium = 16
-        val TitleSmall = 14
-        val BodyLarge = 16
-        val BodyMedium = 14
-        val BodySmall = 12
-        val LabelLarge = 14
-        val LabelMedium = 12
-        val LabelSmall = 11
+        // Display - 更大胆
+        val DisplayLarge = 48.sp
+        val DisplayMedium = 40.sp
+        val DisplaySmall = 36.sp
+        
+        // Headline - 更突出
+        val HeadlineLarge = 32.sp
+        val HeadlineMedium = 28.sp
+        val HeadlineSmall = 24.sp
+        
+        // Title - 清晰
+        val TitleLarge = 22.sp
+        val TitleMedium = 16.sp
+        val TitleSmall = 14.sp
+        
+        // Body - 舒适
+        val BodyLarge = 16.sp
+        val BodyMedium = 14.sp
+        val BodySmall = 12.sp
+        
+        // Label - 紧凑
+        val LabelLarge = 14.sp
+        val LabelMedium = 12.sp
+        val LabelSmall = 11.sp
     }
     
     // 分类颜色
@@ -89,5 +101,12 @@ object DesignSystem {
         val Tech = 0xFF2196F3      // 技术手机 - 蓝色
         val AI = 0xFF9C27B0        // AI - 紫色
         val Tools = 0xFFFF9800     // 工具 - 橙色
+    }
+    
+    // 动画时长
+    object Animation {
+        val Short = 150
+        val Medium = 300
+        val Long = 500
     }
 }
