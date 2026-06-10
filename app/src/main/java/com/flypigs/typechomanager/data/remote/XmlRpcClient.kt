@@ -47,13 +47,12 @@ class XmlRpcClient @Inject constructor(
         endpoint: String,
         username: String,
         password: String,
-        blogId: String = "1",
         numberOfPosts: Int = 20
     ): List<Post> {
         val xml = buildMethodCall(
             METHOD_GET_RECENT_POSTS,
             listOf(
-                valueString(blogId),
+                valueString("1"), // blogId (Typecho default)
                 valueString(username),
                 valueString(encodePassword(password)),
                 valueInt(numberOfPosts)
@@ -145,13 +144,12 @@ class XmlRpcClient @Inject constructor(
     suspend fun getCategories(
         endpoint: String,
         username: String,
-        password: String,
-        blogId: String = "1"
+        password: String
     ): List<Category> {
         val xml = buildMethodCall(
             METHOD_GET_CATEGORIES,
             listOf(
-                valueString(blogId),
+                valueString("1"), // blogId (Typecho default)
                 valueString(username),
                 valueString(encodePassword(password))
             )

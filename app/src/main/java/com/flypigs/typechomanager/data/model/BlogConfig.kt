@@ -7,6 +7,5 @@ data class BlogConfig(
     val endpoint: String = "",
     val username: String = "",
     val password: String = "",
-    val blogId: String = "1",
     val blogName: String? = null
 )

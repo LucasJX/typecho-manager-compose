@@ -44,7 +44,6 @@ class PostRepository @Inject constructor(
             endpoint = config.endpoint,
             username = config.username,
             password = config.password,
-            blogId = config.blogId.ifBlank { "1" },
             numberOfPosts = numberOfPosts
         )
         cachedPosts = posts
@@ -95,8 +94,7 @@ class PostRepository @Inject constructor(
         return xmlRpcClient.getCategories(
             endpoint = config.endpoint,
             username = config.username,
-            password = config.password,
-            blogId = config.blogId.ifBlank { "1" }
+            password = config.password
         )
     }
 

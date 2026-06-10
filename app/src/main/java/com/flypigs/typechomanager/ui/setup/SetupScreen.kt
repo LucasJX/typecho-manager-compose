@@ -137,22 +137,6 @@ fun SetupScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Next,
-                ),
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Blog ID
-            OutlinedTextField(
-                value = uiState.blogId,
-                onValueChange = { viewModel.updateField(blogId = it) },
-                label = { Text("Blog ID") },
-                placeholder = { Text("1") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done,
                 ),
                 keyboardActions = KeyboardActions(

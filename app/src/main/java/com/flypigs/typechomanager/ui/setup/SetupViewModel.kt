@@ -16,7 +16,6 @@ data class SetupUiState(
     val endpoint: String = "",
     val username: String = "",
     val password: String = "",
-    val blogId: String = "1",
     val isLoading: Boolean = false,
     val error: String? = null,
     val connected: Boolean = false,
@@ -35,13 +34,11 @@ class SetupViewModel @Inject constructor(
         endpoint: String? = null,
         username: String? = null,
         password: String? = null,
-        blogId: String? = null,
     ) {
         _uiState.value = _uiState.value.copy(
             endpoint = endpoint ?: _uiState.value.endpoint,
             username = username ?: _uiState.value.username,
             password = password ?: _uiState.value.password,
-            blogId = blogId ?: _uiState.value.blogId,
             error = null,
         )
     }
@@ -64,17 +61,14 @@ class SetupViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                // Test connection by fetching recent posts
-                // Auto-append /xmlrpc.php if not present
-                val endpoint = state.endpoint.trimEnd('/').let { url ->
-                    if (url.endsWith("/xmlrpc.php")) url
-                    else "$url/xmlrpc.php"
-                }
+                // Build correct XML-RPC endpoint
+                // Typecho 1.3.0 uses /index.php/action/xmlrpc
+                val endpoint = buildXmlRpcEndpoint(state.endpoint.trimEnd('/'))
+                
                 val posts = xmlRpcClient.getRecentPosts(
                     endpoint = endpoint,
                     username = state.username,
                     password = state.password,
-                    blogId = state.blogId.ifBlank { "1" },
                     numberOfPosts = 1,
                 )
 
@@ -83,7 +77,6 @@ class SetupViewModel @Inject constructor(
                     endpoint = endpoint,
                     username = state.username,
                     password = state.password,
-                    blogId = state.blogId.ifBlank { "1" },
                     blogName = "",
                 )
                 configDataStore.saveConfig(config)
@@ -99,5 +92,30 @@ class SetupViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /**
+     * Build correct XML-RPC endpoint URL for Typecho.
+     * 
+     * Typecho 1.3.0 XML-RPC endpoint is at /index.php/action/xmlrpc
+     * This function handles various input formats:
+     * - https://example.com -> https://example.com/index.php/action/xmlrpc
+     * - https://example.com/ -> https://example.com/index.php/action/xmlrpc
+     * - https://example.com/index.php -> https://example.com/index.php/action/xmlrpc
+     * - https://example.com/index.php/action/xmlrpc -> unchanged
+     */
+    private fun buildXmlRpcEndpoint(baseUrl: String): String {
+        // Already has the correct endpoint
+        if (baseUrl.endsWith("/action/xmlrpc")) {
+            return baseUrl
+        }
+        
+        // Has /index.php, append /action/xmlrpc
+        if (baseUrl.endsWith("/index.php")) {
+            return "$baseUrl/action/xmlrpc"
+        }
+        
+        // Default: append /index.php/action/xmlrpc
+        return "$baseUrl/index.php/action/xmlrpc"
     }
 }

@@ -23,7 +23,6 @@ class ConfigDataStore(private val dataStore: DataStore<Preferences>) {
         val ENDPOINT = stringPreferencesKey("endpoint")
         val USERNAME = stringPreferencesKey("username")
         val PASSWORD = stringPreferencesKey("password")
-        val BLOG_ID = stringPreferencesKey("blog_id")
         val BLOG_NAME = stringPreferencesKey("blog_name")
         val HAS_CONFIG = booleanPreferencesKey("has_config")
         val THEME_MODE = stringPreferencesKey("theme_mode")
@@ -37,7 +36,6 @@ class ConfigDataStore(private val dataStore: DataStore<Preferences>) {
             prefs[Keys.ENDPOINT] = config.endpoint
             prefs[Keys.USERNAME] = config.username
             prefs[Keys.PASSWORD] = config.password
-            prefs[Keys.BLOG_ID] = config.blogId
             prefs[Keys.BLOG_NAME] = config.blogName ?: ""
             prefs[Keys.HAS_CONFIG] = true
         }
@@ -52,7 +50,6 @@ class ConfigDataStore(private val dataStore: DataStore<Preferences>) {
                 endpoint = prefs[Keys.ENDPOINT] ?: "",
                 username = prefs[Keys.USERNAME] ?: "",
                 password = prefs[Keys.PASSWORD] ?: "",
-                blogId = prefs[Keys.BLOG_ID] ?: "1",
                 blogName = prefs[Keys.BLOG_NAME] ?: ""
             )
         }.first()
