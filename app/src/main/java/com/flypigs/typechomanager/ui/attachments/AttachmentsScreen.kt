@@ -1,7 +1,6 @@
 package com.flypigs.typechomanager.ui.attachments
 
 import android.widget.Toast
-
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -21,13 +20,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -42,6 +38,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -61,7 +59,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -70,16 +67,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Attachment
-import com.flypigs.typechomanager.ui.components.PageHeaderWithSubtitle
-import com.flypigs.typechomanager.ui.home.EmptyState
-import com.flypigs.typechomanager.ui.home.SkeletonBox
-import com.flypigs.typechomanager.ui.settings.StatItem
-import com.flypigs.typechomanager.ui.settings.SectionTitle
-import kotlinx.coroutines.flow.distinctUntilChanged
+import com.flypigs.typechomanager.ui.designsystem.DesignSystem
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,19 +86,18 @@ fun AttachmentsScreen(
     val context = LocalContext.current
     var selectedFilter by remember { mutableStateOf("") }
 
-    // Show errors as snackbar
     LaunchedEffect(uiState.error) {
         uiState.error?.let { msg ->
             snackbarHostState.showSnackbar(msg)
         }
     }
 
-    // 过滤附件
-    val filteredAttachments = if (selectedFilter.isEmpty()) {
-        uiState.attachments
-    } else {
-        uiState.attachments.filter { it.mime.startsWith(selectedFilter) }
+    val filteredAttachments = uiState.attachments.filter {
+        selectedFilter.isEmpty() || it.type.startsWith(selectedFilter)
     }
+
+    val imageCount = uiState.attachments.count { it.type.startsWith("image/") }
+    val totalSize = uiState.attachments.sumOf { it.size }
 
     Scaffold(
         floatingActionButton = {
@@ -116,82 +109,101 @@ fun AttachmentsScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            PageHeaderWithSubtitle(
-                title = "附件",
-                subtitle = if (uiState.total > 0) "共 ${uiState.total} 项" else null
-            )
-
-            PullToRefreshBox(
-                isRefreshing = uiState.isRefreshing,
-                onRefresh = { viewModel.refresh() },
-                modifier = Modifier.fillMaxSize()
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = { viewModel.refresh() },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = DesignSystem.Fab.BottomPadding)
             ) {
-                when {
-                    uiState.isLoading -> {
-                        AttachmentsSkeletonScreen()
+                // 标题
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = DesignSystem.Spacing.ExtraLarge)
+                            .padding(top = DesignSystem.Spacing.Large)
+                    ) {
+                        Text(
+                            text = "附件",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
+                        Text(
+                            text = "共 ${uiState.attachments.size} 个附件",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    uiState.attachments.isEmpty() -> {
-                        EmptyState("暂无附件")
+                }
+
+                // 横向统计条
+                item {
+                    StatsBar(
+                        totalCount = uiState.attachments.size,
+                        imageCount = imageCount,
+                        totalSize = totalSize
+                    )
+                }
+
+                // FilterChip
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Medium),
+                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)
+                    ) {
+                        FilterChip(
+                            selected = selectedFilter.isEmpty(),
+                            onClick = { selectedFilter = "" },
+                            label = { Text("全部 ${uiState.attachments.size}") },
+                            shape = DesignSystem.Chip.Corner,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        FilterChip(
+                            selected = selectedFilter == "image/",
+                            onClick = { selectedFilter = if (selectedFilter == "image/") "" else "image/" },
+                            label = { Text("图片 $imageCount") },
+                            shape = DesignSystem.Chip.Corner,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.secondary
+                            )
+                        )
                     }
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = 100.dp)
-                        ) {
-                            // 统计卡
-                            item(key = "stats") {
-                                AttachmentStatsCard(
-                                    totalCount = uiState.total,
-                                    totalSize = uiState.totalSize,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                                )
-                            }
+                }
 
-                            // 过滤Tab
-                            item(key = "filter_tabs") {
-                                AttachmentFilterRow(
-                                    totalCount = uiState.attachments.size,
-                                    imageCount = uiState.attachments.count { it.mime.startsWith("image/") },
-                                    selectedFilter = selectedFilter,
-                                    onFilterChange = { selectedFilter = it },
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
+                // 附件网格
+                if (uiState.isLoading && uiState.attachments.isEmpty()) {
+                    items(6) {
+                        AttachmentCardSkeleton()
+                    }
+                } else if (filteredAttachments.isEmpty()) {
+                    item {
+                        EmptyState(
+                            message = "暂无附件",
+                            icon = Icons.Default.Image
+                        )
+                    }
+                } else {
+                    items(filteredAttachments, key = { it.cid }) { attachment ->
+                        AttachmentCard(
+                            attachment = attachment,
+                            onDelete = { cid ->
+                                viewModel.deleteAttachment(cid)
+                            },
+                            onCopyUrl = { url ->
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                clipboard.setPrimaryClip(ClipData.newPlainText("URL", url))
+                                Toast.makeText(context, "已复制链接", Toast.LENGTH_SHORT).show()
                             }
-
-                            // 附件网格
-                            item(key = "grid") {
-                                AttachmentGrid(
-                                    attachments = filteredAttachments,
-                                    onDelete = { cid -> viewModel.deleteAttachment(cid) },
-                                    onCopyUrl = { url ->
-                                        val clipboard = context.getSystemService(
-                                            Context.CLIPBOARD_SERVICE
-                                        ) as ClipboardManager
-                                        clipboard.setPrimaryClip(ClipData.newPlainText("url", url))
-                                        Toast.makeText(context, "已复制 URL", Toast.LENGTH_SHORT).show()
-                                    },
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
-                            }
-
-                            // 加载更多
-                            if (uiState.isLoadingMore) {
-                                item(key = "loading_more") {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.dp
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        )
                     }
                 }
             }
@@ -199,178 +211,177 @@ fun AttachmentsScreen(
     }
 }
 
-// ─── 附件统计卡 ───
 @Composable
-fun AttachmentStatsCard(
-    totalCount: Int,
-    totalSize: Long,
-    modifier: Modifier = Modifier
-) {
-    val sizeStr = formatFileSize(totalSize)
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.45f),
-                    )
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(20.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            StatItem(value = "$totalCount", label = "附件数")
-            StatItem(value = sizeStr, label = "总大小")
-        }
-    }
-}
-
-// ─── 附件过滤Tab ───
-@Composable
-fun AttachmentFilterRow(
+private fun StatsBar(
     totalCount: Int,
     imageCount: Int,
-    selectedFilter: String,
-    onFilterChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    totalSize: Long
 ) {
-    val filters = listOf(
-        Triple("", "全部", totalCount),
-        Triple("image/", "图片", imageCount),
-    )
-
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(filters) { (value, label, count) ->
-            val isSelected = value == selectedFilter
-            FilterChip(
-                label = label,
-                count = count,
-                isSelected = isSelected,
-                onClick = { onFilterChange(value) }
-            )
-        }
-    }
-}
-
-@Composable
-fun FilterChip(
-    label: String,
-    count: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val bgColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
-    }
-    val textColor = if (isSelected) {
-        Color.White
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
-    Box(
+    ElevatedCard(
         modifier = Modifier
-            .height(36.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(bgColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
-        contentAlignment = Alignment.Center
+            .fillMaxWidth()
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Medium),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                    color = textColor
-                )
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "($count)",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = textColor.copy(alpha = 0.8f)
-                )
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(DesignSystem.Spacing.Large),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            StatItem(label = "附件", value = totalCount.toString())
+            StatItem(label = "图片", value = imageCount.toString())
+            StatItem(label = "总大小", value = formatFileSize(totalSize))
         }
     }
 }
 
-// ─── 附件网格 ───
 @Composable
-fun AttachmentGrid(
-    attachments: List<Attachment>,
-    onDelete: (Int) -> Unit,
-    onCopyUrl: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val gridState = rememberLazyGridState()
-
-    // 检测是否需要加载更多
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            val lastVisibleItem = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisibleItem >= attachments.size - 6
-        }
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        state = gridState,
-        modifier = modifier.height((((attachments.size + 1) / 2) * 200).dp),
-        contentPadding = PaddingValues(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+private fun StatItem(label: String, value: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        items(
-            items = attachments,
-            key = { it.cid }
-        ) { attachment ->
-            AttachmentCard(
-                attachment = attachment,
-                onDelete = { onDelete(attachment.cid) },
-                onCopyUrl = { onCopyUrl(attachment.url) }
-            )
-        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
-// ─── 附件卡片 ───
 @Composable
-fun AttachmentCard(
+private fun AttachmentCard(
     attachment: Attachment,
-    onDelete: () -> Unit,
-    onCopyUrl: () -> Unit,
-    modifier: Modifier = Modifier
+    onDelete: (Int) -> Unit,
+    onCopyUrl: (String) -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // 删除确认
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.ExtraSmall),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column {
+            // 图片
+            if (attachment.type.startsWith("image/")) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f)
+                        .clickable { showMenu = true }
+                ) {
+                    SubcomposeAsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(attachment.url)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    
+                    // 类型角标
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = attachment.type.split("/").last().uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
+            // 信息区
+            Column(
+                modifier = Modifier.padding(DesignSystem.Spacing.Large)
+            ) {
+                Text(
+                    text = attachment.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = formatTimestamp(attachment.created),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = formatFileSize(attachment.size),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        // 下拉菜单
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("复制链接") },
+                onClick = {
+                    showMenu = false
+                    onCopyUrl(attachment.url)
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("删除") },
+                onClick = {
+                    showMenu = false
+                    showDeleteDialog = true
+                }
+            )
+        }
+    }
+
+    // 删除确认对话框
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("删除附件") },
-            text = { Text("确定要删除「${attachment.title}」吗？此操作不可撤销。") },
+            text = { Text("确定要删除这个附件吗？此操作不可撤销。") },
             confirmButton = {
-                TextButton(onClick = {
-                    showDeleteDialog = false
-                    onDelete()
-                }) {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDelete(attachment.cid)
+                    }
+                ) {
                     Text("删除", color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -381,189 +392,85 @@ fun AttachmentCard(
             }
         )
     }
+}
 
-    ElevatedCard(
-        modifier = modifier
+@Composable
+private fun EmptyState(message: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Column(
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable { },
-        shape = RoundedCornerShape(12.dp)
+            .padding(DesignSystem.Spacing.XXXLarge),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box {
-            Column {
-                // 图片预览
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun AttachmentCardSkeleton() {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.ExtraSmall),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            )
+            Column(
+                modifier = Modifier.padding(DesignSystem.Spacing.Large)
+            ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (attachment.mime.startsWith("image/")) {
-                        SubcomposeAsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(attachment.url)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            loading = {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                }
-                            },
-                            error = {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.Image,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                }
-                            }
-                        )
-                    } else {
-                        // 非图片文件
-                        Icon(
-                            Icons.Default.Image,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                            modifier = Modifier.size(32.dp)
-                        )
-
-                        // 非图片警告角标
-                        if (attachment.mime.startsWith("text/")) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(6.dp)
-                                    .size(16.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
-                                        shape = RoundedCornerShape(4.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.Warning,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(10.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 标题和信息
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Text(
-                        text = attachment.title,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = formatFileSize(attachment.size.toLong()),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // 长按菜单
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("复制 URL") },
-                    onClick = {
-                        showMenu = false
-                        onCopyUrl()
-                    }
+                        .fillMaxWidth(0.6f)
+                        .height(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
-                DropdownMenuItem(
-                    text = { Text("删除", color = MaterialTheme.colorScheme.error) },
-                    onClick = {
-                        showMenu = false
-                        showDeleteDialog = true
-                    }
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.4f)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
             }
         }
     }
 }
 
-// ─── 附件骨架屏 ───
-@Composable
-fun AttachmentsSkeletonScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        // Stats skeleton
-        SkeletonBox(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .clip(RoundedCornerShape(16.dp))
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        // Tab skeleton
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            repeat(2) { i ->
-                SkeletonBox(
-                    modifier = Modifier
-                        .width(70.dp + 20.dp * i)
-                        .height(36.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        // Grid skeleton
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            repeat(2) {
-                SkeletonBox(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            repeat(2) {
-                SkeletonBox(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-            }
-        }
-    }
+private fun formatTimestamp(timestamp: Long): String {
+    if (timestamp <= 0L) return ""
+    return try {
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        sdf.format(Date(timestamp))
+    } catch (_: Exception) { "" }
 }
 
-// ─── 工具函数 ───
 private fun formatFileSize(bytes: Long): String {
-    if (bytes < 1024) return "$bytes B"
-    val kb = bytes / 1024.0
-    if (kb < 1024) return "%.1f KB".format(kb)
-    val mb = kb / 1024.0
-    return "%.1f MB".format(mb)
+    return when {
+        bytes < 1024 -> "$bytes B"
+        bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+        bytes < 1024 * 1024 * 1024 -> "${"%.1f".format(bytes / (1024.0 * 1024.0))} MB"
+        else -> "${"%.2f".format(bytes / (1024.0 * 1024.0 * 1024.0))} GB"
+    }
 }
