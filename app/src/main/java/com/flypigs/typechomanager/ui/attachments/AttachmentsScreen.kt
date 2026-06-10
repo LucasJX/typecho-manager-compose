@@ -1,3 +1,4 @@
+import android.widget.Toast
 package com.flypigs.typechomanager.ui.attachments
 
 import android.content.ClipData
@@ -76,7 +77,7 @@ import com.flypigs.typechomanager.data.model.Attachment
 import com.flypigs.typechomanager.ui.components.PageHeaderWithSubtitle
 import com.flypigs.typechomanager.ui.home.EmptyState
 import com.flypigs.typechomanager.ui.home.SkeletonBox
-import com.flypigs.typechomanager.ui.home.StatItem
+import com.flypigs.typechomanager.ui.settings.StatItem
 import com.flypigs.typechomanager.ui.settings.SectionTitle
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -168,7 +169,7 @@ fun AttachmentsScreen(
                                             Context.CLIPBOARD_SERVICE
                                         ) as ClipboardManager
                                         clipboard.setPrimaryClip(ClipData.newPlainText("url", url))
-                                        snackbarHostState.showSnackbar("已复制 URL")
+                                        Toast.makeText(context, "已复制 URL", Toast.LENGTH_SHORT).show()
                                     },
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
@@ -349,6 +350,7 @@ fun AttachmentGrid(
 }
 
 // ─── 附件卡片 ───
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AttachmentCard(
     attachment: Attachment,

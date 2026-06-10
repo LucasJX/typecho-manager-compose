@@ -706,7 +706,7 @@ fun extractExcerpt(html: String, maxLength: Int = 100): String {
     return if (text.length > maxLength) text.take(maxLength) + "…" else text
 }
 
-private fun formatTimestamp(timestamp: Long): String {
+fun formatTimestamp(timestamp: Long): String {
     if (timestamp <= 0L) return ""
     return try {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
