@@ -267,8 +267,15 @@ class XmlRpcClient @Inject constructor(
     // ------------------------------------------------------------------ //
 
     /**
-     * Parse a `<methodResponse><params>` into a list of [T], one per `<param>`.
-     * Each `<param>` is expected to contain a `<struct>`.
+     * Parse a `<methodResponse><params>` into a list of [T].
+     *
+     * Typecho returns an array-of-structs wrapped in a single `<param>`:
+     * ```
+     * <params><param><value><array><data>
+     *   <value><struct>...</struct></value>
+     *   ...
+     * </data></array></value></param></params>
+     * ```
      */
     private fun <T> parseArray(xml: String, structParser: (XmlPullParser) -> T): List<T> {
         checkForFault(xml)
@@ -278,23 +285,27 @@ class XmlRpcClient @Inject constructor(
         parser.setInput(StringReader(xml))
 
         val results = mutableListOf<T>()
-        var inParams = false
 
+        // Navigate to <params>, then find each <struct> inside <array><data>
         while (parser.eventType != XmlPullParser.END_DOCUMENT) {
-            when (parser.eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (parser.name) {
-                        "params" -> inParams = true
-                        "value" -> {
-                            if (inParams) {
-                                // Drill into the struct inside <value>
+            if (parser.eventType == XmlPullParser.START_TAG && parser.name == "array") {
+                // Inside <array> — look for <data>, then iterate each <value><struct>
+                while (parser.eventType != XmlPullParser.END_DOCUMENT) {
+                    if (parser.eventType == XmlPullParser.START_TAG && parser.name == "data") {
+                        // Inside <data> — each child <value> contains a <struct>
+                        while (parser.eventType != XmlPullParser.END_DOCUMENT) {
+                            if (parser.eventType == XmlPullParser.START_TAG && parser.name == "value") {
                                 val struct = findChildTag(parser, "struct")
                                 if (struct != null) {
                                     results.add(structParser(struct))
                                 }
                             }
+                            if (parser.eventType == XmlPullParser.END_TAG && parser.name == "data") break
+                            parser.next()
                         }
                     }
+                    if (parser.eventType == XmlPullParser.END_TAG && parser.name == "array") break
+                    parser.next()
                 }
             }
             parser.next()
