@@ -1,6 +1,7 @@
 package com.flypigs.typechomanager.ui.postdetail
 
 import android.graphics.Color as AndroidColor
+import android.text.Html
 import android.text.method.LinkMovementMethod
 import android.widget.TextView
 import androidx.compose.foundation.layout.Arrangement
@@ -158,7 +159,7 @@ private fun HtmlContent(html: String, modifier: Modifier = Modifier) {
             }
         },
         update = { textView ->
-            val imageGetter = HtmlCompat.ImageGetter { source ->
+            val imageGetter = Html.ImageGetter { source ->
                 val drawable = android.graphics.drawable.ColorDrawable(AndroidColor.LTGRAY)
                 drawable.setBounds(0, 0, 400, 300)
                 drawable
