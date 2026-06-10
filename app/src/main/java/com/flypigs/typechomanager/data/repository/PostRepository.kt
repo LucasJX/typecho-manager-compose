@@ -103,7 +103,17 @@ class PostRepository @Inject constructor(
 
     /** Fetch all attachments for the blog. */
     suspend fun getAttachments(): List<Attachment> {
-        val (items, _, _) = companionApiClient.listMedia(page = 1, pageSize = 1000)
+        val config = configDataStore.getConfig()
+        val companionBase = config.blogUrl.ifEmpty {
+            config.endpoint.substringBefore("/index.php")
+        }.trimEnd('/')
+        val (items, _, _) = companionApiClient.listMedia(
+            companionBase = companionBase,
+            username = config.username,
+            password = config.password,
+            page = 1,
+            pageSize = 1000
+        )
         return items
     }
 

@@ -224,7 +224,11 @@ fun SettingsScreen(
                         SettingsItem(
                             icon = Icons.Default.Palette,
                             title = "主题模式",
-                            subtitle = uiState.themeMode,
+                            subtitle = when (uiState.themeMode) {
+                                ThemeMode.SYSTEM -> "跟随系统"
+                                ThemeMode.LIGHT -> "浅色模式"
+                                ThemeMode.DARK -> "深色模式"
+                            },
                             onClick = { showThemeDialog = true }
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
