@@ -20,6 +20,9 @@ on:
       - 'settings.gradle.kts'
       - 'gradlew'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
