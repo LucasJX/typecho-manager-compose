@@ -5,8 +5,6 @@ import android.text.method.LinkMovementMethod
 import android.widget.TextView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -42,7 +39,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class::class)
 @Composable
 fun PostDetailScreen(
     cid: Int,
@@ -124,23 +121,11 @@ fun PostDetailScreen(
                     // Categories + Tags
                     if (p.categories.isNotEmpty() || p.tags.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(12.dp))
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            p.categories.forEach { cat ->
-                                AssistChip(
-                                    onClick = {},
-                                    label = { Text(cat, style = MaterialTheme.typography.labelSmall) }
-                                )
-                            }
-                            p.tags.forEach { tag ->
-                                AssistChip(
-                                    onClick = {},
-                                    label = { Text("#$tag", style = MaterialTheme.typography.labelSmall) }
-                                )
-                            }
-                        }
+                        Text(
+                            text = (p.categories + p.tags.map { "#$it" }).joinToString(" · "),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
