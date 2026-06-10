@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flypigs.typechomanager.data.model.Post
-import com.flypigs.typechomanager.data.model.Post.Status
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -234,18 +233,18 @@ private fun PostCard(
 
 @Composable
 private fun StatusBadge(status: String, modifier: Modifier = Modifier) {
-    val (label, containerColor, contentColor) = when (Status.fromValue(status)) {
-        Status.PUBLISH -> Triple(
+    val (label, containerColor, contentColor) = when (Post.Companion.Status.fromValue(status)) {
+        Post.Companion.Status.PUBLISH -> Triple(
             "已发布",
             MaterialTheme.colorScheme.primaryContainer,
             MaterialTheme.colorScheme.onPrimaryContainer
         )
-        Status.DRAFT -> Triple(
+        Post.Companion.Status.DRAFT -> Triple(
             "草稿",
             MaterialTheme.colorScheme.tertiaryContainer,
             MaterialTheme.colorScheme.onTertiaryContainer
         )
-        Status.PRIVATE -> Triple(
+        Post.Companion.Status.PRIVATE -> Triple(
             "私密",
             MaterialTheme.colorScheme.secondaryContainer,
             MaterialTheme.colorScheme.onSecondaryContainer
