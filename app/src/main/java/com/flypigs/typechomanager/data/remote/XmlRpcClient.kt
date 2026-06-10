@@ -396,6 +396,7 @@ class XmlRpcClient @Inject constructor(
         val tags = (members["mt_keywords"] as? List<*>)
             ?.filterIsInstance<String>() ?: emptyList()
         val commentCount = (members["mt_allow_comments"] as? String)?.toIntOrNull() ?: 0
+        val viewsCount = (members["views"] as? String)?.toIntOrNull() ?: 0
 
         return Post(
             cid = cid,
@@ -408,7 +409,8 @@ class XmlRpcClient @Inject constructor(
             author = author,
             categories = categories,
             tags = tags,
-            commentCount = commentCount
+            commentCount = commentCount,
+            viewsCount = viewsCount
         )
     }
 
