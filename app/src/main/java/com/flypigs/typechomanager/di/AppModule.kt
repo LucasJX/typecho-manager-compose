@@ -5,8 +5,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.flypigs.typechomanager.data.local.ConfigDataStore
-import com.flypigs.typechomanager.data.remote.CompanionApiClient
-import com.flypigs.typechomanager.data.remote.XmlRpcClient
 import com.flypigs.typechomanager.data.repository.ConfigRepository
 import dagger.Module
 import dagger.Provides
@@ -51,18 +49,6 @@ object AppModule {
     @Singleton
     fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
         return context.dataStore
-    }
-
-    @Provides
-    @Singleton
-    fun provideXmlRpcClient(okHttpClient: OkHttpClient): XmlRpcClient {
-        return XmlRpcClient(okHttpClient)
-    }
-
-    @Provides
-    @Singleton
-    fun provideCompanionApiClient(okHttpClient: OkHttpClient, json: Json): CompanionApiClient {
-        return CompanionApiClient(okHttpClient, json)
     }
 
     @Provides
