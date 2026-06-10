@@ -65,8 +65,13 @@ class SetupViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 // Test connection by fetching recent posts
+                // Auto-append /xmlrpc.php if not present
+                val endpoint = state.endpoint.trimEnd('/').let { url ->
+                    if (url.endsWith("/xmlrpc.php")) url
+                    else "$url/xmlrpc.php"
+                }
                 val posts = xmlRpcClient.getRecentPosts(
-                    endpoint = state.endpoint.trimEnd('/'),
+                    endpoint = endpoint,
                     username = state.username,
                     password = state.password,
                     blogId = state.blogId.ifBlank { "1" },
@@ -75,7 +80,7 @@ class SetupViewModel @Inject constructor(
 
                 // Save config on success
                 val config = BlogConfig(
-                    endpoint = state.endpoint.trimEnd('/'),
+                    endpoint = endpoint,
                     username = state.username,
                     password = state.password,
                     blogId = state.blogId.ifBlank { "1" },
