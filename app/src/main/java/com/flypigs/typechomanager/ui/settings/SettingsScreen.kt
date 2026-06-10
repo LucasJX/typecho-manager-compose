@@ -109,7 +109,7 @@ fun SettingsScreen(
             item {
                 BrandHeaderCard(
                     username = uiState.username.ifEmpty { "未登录" },
-                    blogName = uiState.blogName.ifEmpty { "Typecho 博客管理客户端" },
+                    blogName = uiState.blogName.ifEmpty { uiState.username },
                     postCount = uiState.postCount,
                     draftCount = uiState.draftCount,
                     categoryCount = uiState.categoryCount,
@@ -211,7 +211,7 @@ fun SettingsScreen(
                             icon = Icons.Default.OpenInBrowser,
                             iconColor = MaterialTheme.colorScheme.tertiary,
                             label = "GitHub 项目",
-                            value = "LucasJX/typecho-manager-compose",
+                            value = "GitHub 项目",
                             onClick = { /* TODO: 打开链接 */ }
                         )
                     }

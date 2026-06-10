@@ -3,20 +3,15 @@ package com.flypigs.typechomanager.ui.navigation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,6 +29,7 @@ import com.flypigs.typechomanager.ui.components.BottomNavBar
 import com.flypigs.typechomanager.ui.home.HomeScreen
 import com.flypigs.typechomanager.ui.postdetail.PostDetailScreen
 import com.flypigs.typechomanager.ui.posts.PostsScreen
+import com.flypigs.typechomanager.ui.editor.EditorScreen
 import com.flypigs.typechomanager.ui.settings.SettingsScreen
 import com.flypigs.typechomanager.ui.setup.SetupScreen
 import kotlinx.coroutines.delay
@@ -142,22 +138,10 @@ fun NavGraph(
                 )
             }
 
-            composable(
-                route = Screen.Editor.route,
-                arguments = listOf(
-                    navArgument("cid") {
-                        type = NavType.IntType
-                        defaultValue = -1
-                    },
-                ),
-            ) { backStackEntry ->
-                val cid = backStackEntry.arguments?.getInt("cid")?.takeIf { it != -1 }
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        if (cid != null) "编辑文章 #$cid" else "新建文章",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                }
+            composable(Screen.Editor.route) {
+                EditorScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }

@@ -15,8 +15,8 @@ android {
         applicationId = "com.flypigs.typechomanager"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.4.0"
+        versionCode = 10
+        versionName = "1.5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -102,4 +102,11 @@ dependencies {
 
     // Image Loading
     implementation(libs.coil.compose)
+
+    // Markdown
+    implementation(libs.markwon.core)
+    implementation(libs.markwon.html)
+    implementation(libs.markwon.image)
+    implementation(libs.markwon.ext.tables)
+    implementation(libs.markwon.syntax.highlight)
 }
