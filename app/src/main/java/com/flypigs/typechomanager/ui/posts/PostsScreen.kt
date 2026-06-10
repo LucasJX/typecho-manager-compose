@@ -68,6 +68,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.ui.components.EmptyState
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import java.text.SimpleDateFormat
 import java.util.Date

@@ -70,6 +70,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Attachment
+import com.flypigs.typechomanager.ui.components.EmptyState
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -390,29 +391,6 @@ private fun AttachmentCard(
                     Text("取消")
                 }
             }
-        )
-    }
-}
-
-@Composable
-private fun EmptyState(message: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(DesignSystem.Spacing.XXXLarge),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-        )
-        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
