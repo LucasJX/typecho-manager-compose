@@ -6,11 +6,13 @@ import android.text.method.LinkMovementMethod
 import android.widget.TextView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,8 +33,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
@@ -51,26 +56,41 @@ fun PostDetailScreen(
     var post by remember { mutableStateOf<Post?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     LaunchedEffect(cid) {
         try {
-            post = postRepository.getPost(cid)
+            // Typecho 1.3.0 metaWeblog.getPost 有 bug (500)
+            // 改用 getRecentPosts 在列表中查找
+            val posts = postRepository.getRecentPosts(refresh = false, numberOfPosts = 100)
+            post = posts.find { it.cid == cid }
+            if (post == null) {
+                error = "未找到文章 #$cid"
+            }
         } catch (e: Exception) {
-            error = e.message ?: "Failed to load post"
+            error = e.message ?: "加载失败"
         } finally {
             isLoading = false
         }
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(post?.title ?: "文章详情", maxLines = 1) },
+                title = {
+                    Text(
+                        post?.title ?: "文章详情",
+                        maxLines = 1,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
@@ -108,31 +128,42 @@ fun PostDetailScreen(
                     Text(
                         text = p.title.ifBlank { "(无标题)" },
                         style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Date + status
-                    Text(
-                        text = formatTimestamp(p.created),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    // Categories + Tags
-                    if (p.categories.isNotEmpty() || p.tags.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(12.dp))
+                    // Date + categories row
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = (p.categories + p.tags.map { "#$it" }).joinToString(" · "),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            text = formatTimestamp(p.created),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (p.categories.isNotEmpty()) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = p.categories.joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    // Tags
+                    if (p.tags.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = p.tags.joinToString(" ") { "#$it" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // HTML content rendered via AndroidView
+                    // HTML content
                     HtmlContent(html = p.text)
 
                     Spacer(modifier = Modifier.height(32.dp))

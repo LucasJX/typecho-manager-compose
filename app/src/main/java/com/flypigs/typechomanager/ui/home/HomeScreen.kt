@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,8 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,20 +38,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.ui.components.PageHeader
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -67,7 +62,6 @@ fun HomeScreen(
 ) {
     val viewModel = androidx.hilt.navigation.compose.hiltViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState.error) {
@@ -77,15 +71,6 @@ fun HomeScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text("首页", fontWeight = FontWeight.Bold)
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNewPost,
@@ -95,58 +80,60 @@ fun HomeScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
-            onRefresh = { viewModel.refresh() },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                if (uiState.categories.isNotEmpty()) {
-                    CategoryChipRow(
-                        categories = uiState.categories.map { it.name },
-                        selectedCategory = uiState.selectedCategorySlug,
-                        onCategoryClick = { name -> viewModel.filterByCategory(name) },
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            PageHeader("首页")
 
-                when {
-                    uiState.isLoading -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("加载中…", style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = { viewModel.refresh() },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (uiState.categories.isNotEmpty()) {
+                        CategoryChipRow(
+                            categories = uiState.categories.map { it.name },
+                            selectedCategory = uiState.selectedCategorySlug,
+                            onCategoryClick = { name -> viewModel.filterByCategory(name) },
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
                     }
-                    uiState.posts.isEmpty() -> {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                if (uiState.selectedCategorySlug != null) "该分类下暂无文章" else "暂无文章",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+
+                    when {
+                        uiState.isLoading -> {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text("加载中…", style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
-                    }
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            items(items = uiState.posts, key = { it.cid }) { post ->
-                                PostCard(
-                                    post = post,
-                                    onClick = { onPostClick(post.cid) }
+                        uiState.posts.isEmpty() -> {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    if (uiState.selectedCategorySlug != null) "该分类下暂无文章" else "暂无文章",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                            }
+                        }
+                        else -> {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
+                                items(items = uiState.posts, key = { it.cid }) { post ->
+                                    PostCard(
+                                        post = post,
+                                        onClick = { onPostClick(post.cid) }
+                                    )
+                                }
                             }
                         }
                     }
@@ -178,9 +165,6 @@ private fun CategoryChipRow(
     }
 }
 
-/**
- * Enhanced post card: cover image + title + excerpt + category + date.
- */
 @Composable
 fun PostCard(
     post: Post,
@@ -197,7 +181,6 @@ fun PostCard(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
-            // Cover image with gradient overlay
             if (coverUrl != null) {
                 Box(
                     modifier = Modifier
@@ -243,7 +226,6 @@ fun PostCard(
                             }
                         }
                     )
-                    // Gradient at bottom of image
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -259,7 +241,6 @@ fun PostCard(
             }
 
             Column(modifier = Modifier.padding(16.dp)) {
-                // Title
                 Text(
                     text = post.title.ifBlank { "(无标题)" },
                     style = MaterialTheme.typography.titleMedium,
@@ -268,7 +249,6 @@ fun PostCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Excerpt (always show if text is not empty)
                 if (excerpt.isNotBlank()) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
@@ -282,7 +262,6 @@ fun PostCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Bottom row: category + date
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (post.categories.isNotEmpty()) {
                         Box(
@@ -313,37 +292,25 @@ fun PostCard(
     }
 }
 
-// ─── Helpers ───────────────────────────────────────────────────
-
-/**
- * Extract the first image URL from HTML content.
- * Handles: <img src="...">, <img src='...'>, <img src=...>
- * Also handles HTML-encoded entities (decoded by XML parser).
- */
 fun extractFirstImage(html: String): String? {
     if (html.isBlank()) return null
-    // Try standard src="..." or src='...'
     val regex = Regex("""<img[^>]+src\s*=\s*["']([^"']+)["']""")
     return regex.find(html)?.groupValues?.get(1)
         ?: run {
-            // Fallback: src without quotes
             val regex2 = Regex("""<img[^>]+src\s*=\s*([^\s>]+)""")
             regex2.find(html)?.groupValues?.get(1)
         }
 }
 
-/**
- * Strip HTML tags and return plain text excerpt.
- */
 fun extractExcerpt(html: String, maxLength: Int = 100): String {
     if (html.isBlank()) return ""
     val text = html
-        .replace(Regex("<img[^>]*>"), "")    // remove images
-        .replace(Regex("<br\\s*/?>"), "\n")   // br → newline
-        .replace(Regex("<[^>]+>"), "")        // remove all tags
-        .replace(Regex("&[a-zA-Z]+;"), " ")   // remove HTML entities
-        .replace(Regex("&#\\d+;"), " ")       // remove numeric entities
-        .replace(Regex("\\s+"), " ")           // collapse whitespace
+        .replace(Regex("<img[^>]*>"), "")
+        .replace(Regex("<br\\s*/?>"), "\n")
+        .replace(Regex("<[^>]+>"), "")
+        .replace(Regex("&[a-zA-Z]+;"), " ")
+        .replace(Regex("&#\\d+;"), " ")
+        .replace(Regex("\\s+"), " ")
         .trim()
     return if (text.length > maxLength) text.take(maxLength) + "…" else text
 }
