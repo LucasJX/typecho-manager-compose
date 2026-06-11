@@ -102,9 +102,9 @@ fun ArticleCard(
         ) {
             // 左侧缩略图 80x80
             ThumbnailImage(
-                imageUrl = post.thumb,
+                imageUrl = post.cover,
                 title = post.title,
-                category = post.category,
+                category = post.categories.firstOrNull() ?: "",
                 modifier = Modifier.size(DesignSystem.Component.CardThumbnailSize),
             )
 
@@ -128,8 +128,8 @@ fun ArticleCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // 分类标签
-                    if (post.category.isNotEmpty()) {
-                        CategoryChip(category = post.category)
+                    if (post.categories.isNotEmpty()) {
+                        CategoryChip(category = post.categories.first())
                     }
 
                     // 状态圆点 + 文字
@@ -171,7 +171,7 @@ fun ArticleCard(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = formatRelativeTime(post.date),
+                            text = formatRelativeTime(post.created),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

@@ -343,9 +343,9 @@ private fun HeroPreviewCard(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // 背景图或占位
-            if (post?.thumb != null) {
+            if (post?.cover != null && post.cover.isNotEmpty()) {
                 AsyncImage(
-                    model = post.thumb,
+                    model = post.cover,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
@@ -443,7 +443,7 @@ private fun ActivityTimelineItem(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = formatRelativeTime(post.date),
+                text = formatRelativeTime(post.created),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

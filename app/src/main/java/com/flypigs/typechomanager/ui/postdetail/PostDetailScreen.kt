@@ -156,9 +156,9 @@ fun PostDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             // 分类
-                            if (p.category.isNotEmpty()) {
+                            if (p.categories.isNotEmpty()) {
                                 Text(
-                                    text = p.category,
+                                    text = p.categories.first(),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
@@ -170,7 +170,7 @@ fun PostDetailScreen(
 
                             // 发布时间
                             Text(
-                                text = formatTimestamp(p.date),
+                                text = formatTimestamp(p.created),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -199,7 +199,7 @@ fun PostDetailScreen(
                 // 文章内容（Markdown 渲染）
                 item(key = "content") {
                     MarkdownPreview(
-                        markdown = p.content,
+                        markdown = p.text,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = DesignSystem.Spacing.Large),
@@ -302,7 +302,7 @@ fun PostDetailScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
-                                text = p.commentsCount.toString(),
+                                text = p.commentCount.toString(),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
