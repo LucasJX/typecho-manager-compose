@@ -125,7 +125,7 @@ fun PostsScreen(
         uiState.posts.filter { post ->
             val matchesSearch = searchQuery.isEmpty() ||
                 post.title.contains(searchQuery, ignoreCase = true) ||
-                post.content.contains(searchQuery, ignoreCase = true)
+                post.text.contains(searchQuery, ignoreCase = true)
 
             val matchesStatus = uiState.selectedStatus == null ||
                 post.status == uiState.selectedStatus

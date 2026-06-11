@@ -97,17 +97,11 @@ fun NavGraph(
 
             composable(Screen.Home.route) {
                 HomeScreen(
-                    onNewPost = {
-                        navController.navigate(Screen.Editor.createRoute())
-                    },
                     onPostClick = { cid ->
                         navController.navigate(Screen.PostDetail.createRoute(cid))
                     },
-                    onNavigateToPosts = {
-                        navController.navigate(Screen.Posts.route)
-                    },
-                    onNavigateToAttachments = {
-                        navController.navigate(Screen.Attachments.route)
+                    onWriteClick = {
+                        navController.navigate(Screen.Editor.createRoute())
                     }
                 )
             }
@@ -117,22 +111,20 @@ fun NavGraph(
                     onPostClick = { cid ->
                         navController.navigate(Screen.PostDetail.createRoute(cid))
                     },
-                    onNewPost = {
+                    onWriteClick = {
                         navController.navigate(Screen.Editor.createRoute())
                     }
                 )
             }
 
             composable(Screen.Attachments.route) {
-                AttachmentsScreen()
+                AttachmentsScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable(Screen.Settings.route) {
-                SettingsScreen(
-                    onNavigateToSetup = {
-                        navController.navigate(Screen.Setup.route)
-                    }
-                )
+                SettingsScreen()
             }
 
             composable(

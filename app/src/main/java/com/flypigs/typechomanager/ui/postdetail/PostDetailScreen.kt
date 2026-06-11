@@ -62,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
+import com.flypigs.typechomanager.ui.editor.MarkdownPreview
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -106,9 +107,9 @@ fun PostDetailScreen(
             ) {
                 // 头图
                 item(key = "header_image") {
-                    if (p.thumb != null) {
+                    if (p.cover != null && p.cover.isNotEmpty()) {
                         AsyncImage(
-                            model = p.thumb,
+                            model = p.cover,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()

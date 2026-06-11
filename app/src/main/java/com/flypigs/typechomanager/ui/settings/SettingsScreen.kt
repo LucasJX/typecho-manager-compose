@@ -185,7 +185,11 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Palette,
                     title = "主题模式",
-                    subtitle = uiState.themeMode,
+                    subtitle = when(uiState.themeMode) {
+                        com.flypigs.typechomanager.data.model.ThemeMode.SYSTEM -> "跟随系统"
+                        com.flypigs.typechomanager.data.model.ThemeMode.LIGHT -> "浅色"
+                        com.flypigs.typechomanager.data.model.ThemeMode.DARK -> "深色"
+                    },
                     onClick = { viewModel.toggleThemeMode() },
                 )
             }
