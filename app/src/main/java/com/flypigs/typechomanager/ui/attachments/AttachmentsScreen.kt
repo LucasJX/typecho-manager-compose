@@ -396,7 +396,7 @@ private fun FullScreenPreview(
                 color = Color.White,
             )
             Text(
-                text = "${formatFileSize(currentAttachment.size)} • ${formatTimestamp(currentAttachment.date)}",
+                text = "${formatFileSize(currentAttachment.size)} • ${formatTimestamp(currentAttachment.created)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.8f),
             )
