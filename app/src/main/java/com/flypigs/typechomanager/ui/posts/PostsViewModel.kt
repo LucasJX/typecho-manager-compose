@@ -15,7 +15,8 @@ data class PostsUiState(
     val posts: List<Post> = emptyList(),
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val selectedStatus: String? = null,
 )
 
 @HiltViewModel
@@ -82,5 +83,9 @@ class PostsViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun filterByStatus(status: String?) {
+        _uiState.value = _uiState.value.copy(selectedStatus = status)
     }
 }
