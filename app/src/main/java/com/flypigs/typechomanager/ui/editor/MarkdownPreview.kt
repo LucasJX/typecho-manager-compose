@@ -32,9 +32,12 @@ fun MarkdownPreview(
         factory = { ctx ->
             TextView(ctx).apply {
                 val density = ctx.resources.displayMetrics.density
-                setPadding((16 * density).toInt(), (8 * density).toInt(), (16 * density).toInt(), (8 * density).toInt())
+                // 只保留上下内边距，水平由外层控制
+                setPadding(0, (8 * density).toInt(), 0, (8 * density).toInt())
                 textSize = 16f
-                lineHeight = (textSize * 1.5f).toInt()
+                lineHeight = (textSize * 1.6f).toInt()
+                // 链接颜色跟随主题
+                setLinkTextColor(0xFF7C8CFF.toInt())
             }
         },
         update = { textView ->
@@ -42,6 +45,5 @@ fun MarkdownPreview(
         },
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
     )
 }

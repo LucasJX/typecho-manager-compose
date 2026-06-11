@@ -16,4 +16,5 @@ sealed class Screen(val route: String) {
             return if (postId != null) "editor?postId=$postId" else "editor"
         }
     }
+    data object Changelog : Screen("changelog")
 }

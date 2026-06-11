@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -69,6 +70,7 @@ import coil.compose.AsyncImage
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.components.v3.ArticleCard
 import com.flypigs.typechomanager.ui.components.v3.CollapsingTitle
+import com.flypigs.typechomanager.ui.components.v3.HomeSkeleton
 import com.flypigs.typechomanager.ui.components.v3.StatBar
 import com.flypigs.typechomanager.ui.components.v3.StatItem
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
@@ -127,8 +129,15 @@ fun HomeScreen(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
     ) {
+        // 骨架屏
+        if (uiState.isLoading && uiState.allPosts.isEmpty()) {
+            HomeSkeleton()
+            return@PullToRefreshBox
+        }
+
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
                 // FAB：滚动隐藏时收缩为小 FAB 再淡出
                 AnimatedVisibility(
@@ -159,7 +168,7 @@ fun HomeScreen(
                 // 1. 可折叠大标题
                 // ═══════════════════════════════════════════
                 item(key = "collapsing_title") {
-                    CollapsingTitle(scrollProgress = scrollProgress)
+                    CollapsingTitle(scrollProgress = scrollProgress, blogName = uiState.blogName)
                 }
 
                 // ═══════════════════════════════════════════
@@ -169,6 +178,7 @@ fun HomeScreen(
                     val latestPost = uiState.allPosts.firstOrNull()
                     HeroPreviewCard(
                         post = latestPost,
+                        blogName = uiState.blogName.ifEmpty { "Blogga" },
                         onClick = { latestPost?.let { onPostClick(it.cid) } },
                     )
                 }
@@ -332,6 +342,7 @@ fun HomeScreen(
 @Composable
 private fun HeroPreviewCard(
     post: Post?,
+    blogName: String = "Blogga",
     onClick: () -> Unit,
 ) {
     Card(
@@ -389,7 +400,7 @@ private fun HeroPreviewCard(
                     .padding(DesignSystem.Spacing.Large),
             ) {
                 Text(
-                    text = "Blogga",
+                    text = blogName,
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White,
                 )

@@ -159,6 +159,33 @@ class CompanionApiClient @Inject constructor(
         }
     }
 
+    /**
+     * Delete a post by CID (绕开 Typecho 1.3.0 XMLRPC deletePost bug).
+     */
+    suspend fun deletePost(
+        companionBase: String,
+        username: String,
+        password: String,
+        cid: Int
+    ): Boolean = withContext(Dispatchers.IO) {
+        val url = "${companionBase.trimEnd('/')}/companion-api.php"
+        val formBody = "action=delete_post&username=${urlEncode(username)}&password=${urlEncode(password)}&cid=$cid"
+
+        val request = Request.Builder()
+            .url(url)
+            .post(formBody.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw CompanionApiException("HTTP ${response.code}: ${response.message}")
+            }
+            val body = response.body?.string()
+                ?: throw CompanionApiException("Empty response body")
+            json.decodeFromString<SimpleResponse>(body).success
+        }
+    }
+
     // ------------------------------------------------------------------ //
     //  Internal DTOs                                                      //
     // ------------------------------------------------------------------ //

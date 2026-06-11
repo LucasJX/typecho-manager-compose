@@ -2,6 +2,7 @@ package com.flypigs.typechomanager.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flypigs.typechomanager.data.local.ConfigDataStore
 import com.flypigs.typechomanager.data.model.Category
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.data.repository.PostRepository
@@ -17,6 +18,7 @@ data class HomeUiState(
     val allPosts: List<Post> = emptyList(),
     val categories: List<Category> = emptyList(),
     val attachmentCount: Int = 0,
+    val blogName: String = "",
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,
@@ -25,14 +27,25 @@ data class HomeUiState(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val postRepository: PostRepository
+    private val postRepository: PostRepository,
+    private val configDataStore: ConfigDataStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        loadBlogName()
         loadPosts()
+    }
+
+    private fun loadBlogName() {
+        viewModelScope.launch {
+            try {
+                val config = configDataStore.getConfig()
+                _uiState.value = _uiState.value.copy(blogName = config.blogName ?: "")
+            } catch (_: Exception) {}
+        }
     }
 
     /** Initial load — fetches posts and categories in parallel. */

@@ -38,7 +38,7 @@ data class SettingsUiState(
     val cacheSize: String = "0 KB",
     val pullToRefreshEnabled: Boolean = true,
     val imageQuality: String = "高质量",
-    val versionName: String = "1.7.0",
+    val versionName: String = "1.8.0",
     val heatmapData: List<HeatmapDay> = emptyList(),
 )
 
@@ -141,7 +141,11 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleThemeMode() {
-        val newMode = if (_uiState.value.isDark) ThemeMode.SYSTEM else ThemeMode.DARK
+        val newMode = when (_uiState.value.themeMode) {
+            ThemeMode.SYSTEM -> ThemeMode.LIGHT
+            ThemeMode.LIGHT -> ThemeMode.DARK
+            ThemeMode.DARK -> ThemeMode.SYSTEM
+        }
         viewModelScope.launch {
             configDataStore.saveThemeMode(newMode)
             _uiState.value = _uiState.value.copy(

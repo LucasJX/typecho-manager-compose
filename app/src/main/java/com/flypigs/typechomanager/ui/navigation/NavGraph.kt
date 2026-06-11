@@ -28,6 +28,7 @@ import androidx.navigation.navArgument
 import com.flypigs.typechomanager.data.repository.ConfigRepository
 import com.flypigs.typechomanager.data.repository.PostRepository
 import com.flypigs.typechomanager.ui.attachments.AttachmentsScreen
+import com.flypigs.typechomanager.ui.changelog.ChangelogScreen
 import com.flypigs.typechomanager.ui.components.BottomNavBar
 import com.flypigs.typechomanager.ui.home.HomeScreen
 import com.flypigs.typechomanager.ui.postdetail.PostDetailScreen
@@ -124,7 +125,17 @@ fun NavGraph(
             }
 
             composable(Screen.Settings.route) {
-                SettingsScreen()
+                SettingsScreen(
+                    onNavigateToChangelog = {
+                        navController.navigate(Screen.Changelog.route)
+                    }
+                )
+            }
+
+            composable(Screen.Changelog.route) {
+                ChangelogScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable(

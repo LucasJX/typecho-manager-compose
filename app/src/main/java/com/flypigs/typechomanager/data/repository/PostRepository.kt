@@ -69,17 +69,22 @@ class PostRepository @Inject constructor(
     /**
      * Delete a post by its content-id.
      *
+     * Uses companion-api (绕开 Typecho 1.3.0 XMLRPC deletePost bug).
      * On success the post is also evicted from the in-memory cache.
      */
     suspend fun deletePost(cid: Int): Boolean {
         val config = configDataStore.getConfig()
         require(config.endpoint.isNotBlank()) { "Blog endpoint is not configured" }
 
-        val result = xmlRpcClient.deletePost(
-            endpoint = config.endpoint,
+        val companionBase = config.blogUrl.ifEmpty {
+            config.endpoint.substringBefore("/index.php")
+        }.trimEnd('/')
+
+        val result = companionApiClient.deletePost(
+            companionBase = companionBase,
             username = config.username,
             password = config.password,
-            postId = cid.toString()
+            cid = cid
         )
         if (result) {
             cacheMutex.withLock {

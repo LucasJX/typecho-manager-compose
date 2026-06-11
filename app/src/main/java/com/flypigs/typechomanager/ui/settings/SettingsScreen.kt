@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,7 +43,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,15 +61,12 @@ import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
+    onNavigateToChangelog: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("设置") },
-            )
-        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -79,12 +76,25 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
         ) {
             // ═══════════════════════════════════════════
+            // 页面标题
+            // ═══════════════════════════════════════════
+            item(key = "page_title") {
+                Text(
+                    text = "设置",
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = DesignSystem.Spacing.Small),
+                )
+            }
+            // ═══════════════════════════════════════════
             // Hero 卡片（160dp，圆角 28dp，背景渐变）
             // ═══════════════════════════════════════════
             item(key = "hero") {
                 HeroCard(
                     blogName = uiState.blogName,
                     blogUrl = uiState.blogUrl,
+                    username = uiState.username,
                 )
             }
 
@@ -233,7 +243,7 @@ fun SettingsScreen(
                     icon = Icons.Default.Update,
                     title = "更新日志",
                     subtitle = null,
-                    onClick = { /* TODO: 查看更新日志 */ },
+                    onClick = onNavigateToChangelog,
                 )
             }
 
@@ -270,6 +280,7 @@ fun SettingsScreen(
 private fun HeroCard(
     blogName: String,
     blogUrl: String,
+    username: String = "",
 ) {
     Card(
         modifier = Modifier
@@ -295,7 +306,8 @@ private fun HeroCard(
                     .align(Alignment.CenterStart)
                     .padding(DesignSystem.Spacing.Large),
             ) {
-                // 头像
+                // 头像 — 首字母
+                val initial = username.firstOrNull()?.uppercase() ?: blogName.firstOrNull()?.uppercase() ?: "B"
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -304,7 +316,7 @@ private fun HeroCard(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = blogName.firstOrNull()?.toString() ?: "B",
+                        text = initial,
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )

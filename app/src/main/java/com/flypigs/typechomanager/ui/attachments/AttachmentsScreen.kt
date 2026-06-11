@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -70,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.flypigs.typechomanager.data.model.Attachment
+import com.flypigs.typechomanager.ui.components.v3.AttachmentsSkeleton
 import com.flypigs.typechomanager.ui.components.v3.StatBar
 import com.flypigs.typechomanager.ui.components.v3.StatItem
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
@@ -106,7 +108,7 @@ fun AttachmentsScreen(
 
     // 统计数据
     val imageCount = remember(uiState.attachments) {
-        uiState.attachments.count { it.type.startsWith("image/") }
+        uiState.attachments.count { it.mime.startsWith("image/") }
     }
     val totalSize = remember(uiState.attachments) {
         uiState.attachments.sumOf { it.size }
@@ -116,8 +118,15 @@ fun AttachmentsScreen(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
     ) {
+        // 骨架屏
+        if (uiState.isLoading && uiState.attachments.isEmpty()) {
+            AttachmentsSkeleton()
+            return@PullToRefreshBox
+        }
+
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
                 AnimatedVisibility(
                     visible = fabVisible,
@@ -150,6 +159,33 @@ fun AttachmentsScreen(
                 horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                 verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
             ) {
+                // ═══════════════════════════════════════════
+                // 页面标题（跨列）
+                // ═══════════════════════════════════════════
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = "附件",
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = DesignSystem.Spacing.Small),
+                    )
+                }
+
+                // ═══════════════════════════════════════════
+                // 错误提示（跨列）
+                // ═══════════════════════════════════════════
+                if (uiState.error != null) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            text = "⚠ ${uiState.error}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(vertical = DesignSystem.Spacing.Small),
+                        )
+                    }
+                }
+
                 // ═══════════════════════════════════════════
                 // StatBar（跨列）
                 // ═══════════════════════════════════════════
@@ -252,7 +288,7 @@ private fun AttachmentGridItem(
             .clickable(onClick = onClick),
     ) {
         // 缩略图
-        if (attachment.type.startsWith("image/") && attachment.url != null) {
+        if (attachment.mime.startsWith("image/") && attachment.url.isNotEmpty()) {
             AsyncImage(
                 model = attachment.url,
                 contentDescription = attachment.name,

@@ -203,7 +203,7 @@ fun PostDetailScreen(
                         markdown = p.text,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = DesignSystem.Spacing.Large),
+                            .padding(horizontal = DesignSystem.Spacing.Medium),
                     )
                 }
 

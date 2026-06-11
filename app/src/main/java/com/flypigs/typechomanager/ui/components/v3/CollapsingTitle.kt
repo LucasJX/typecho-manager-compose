@@ -17,13 +17,14 @@ import androidx.compose.ui.unit.sp
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 /**
- * 可折叠大标题 - 首页 "Blogga"
+ * 可折叠大标题 - 首页显示博客名称
  * 初始 48sp，颜色 primary
  * 向上滚动时：字号缩小到 24sp，颜色变为 onSurface，透明度降低到 0.6
  */
 @Composable
 fun CollapsingTitle(
     scrollProgress: Float, // 0f = 完全展开, 1f = 完全折叠
+    blogName: String = "Blogga",
     modifier: Modifier = Modifier,
 ) {
     // 字号动画：48sp → 24sp
@@ -54,10 +55,10 @@ fun CollapsingTitle(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium)
+            .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.ExtraSmall)
     ) {
         Text(
-            text = "Blogga",
+            text = blogName.ifEmpty { "Blogga" },
             style = MaterialTheme.typography.displayLarge.copy(
                 fontSize = fontSize.sp,
             ),

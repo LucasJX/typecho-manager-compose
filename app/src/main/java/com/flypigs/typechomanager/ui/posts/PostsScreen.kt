@@ -7,8 +7,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
@@ -18,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -71,6 +70,7 @@ import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.components.v3.ArticleCard
 import com.flypigs.typechomanager.ui.components.v3.FilterChipRow
 import com.flypigs.typechomanager.ui.components.v3.FilterItem
+import com.flypigs.typechomanager.ui.components.v3.PostsSkeleton
 import com.flypigs.typechomanager.ui.components.v3.StatBar
 import com.flypigs.typechomanager.ui.components.v3.StatItem
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
@@ -99,8 +99,9 @@ fun PostsScreen(
     // 列表/网格模式
     var isListView by remember { mutableStateOf(true) }
 
-    // 删除确认
+    // 删除确认（单篇/批量）
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var pendingDeleteCid by remember { mutableStateOf<Int?>(null) } // 左滑触发的单篇删除
 
     // FAB 可见性
     val fabVisible by remember {
@@ -138,8 +139,15 @@ fun PostsScreen(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
     ) {
+        // 骨架屏
+        if (uiState.isLoading && uiState.posts.isEmpty()) {
+            PostsSkeleton()
+            return@PullToRefreshBox
+        }
+
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
                 AnimatedVisibility(
                     visible = fabVisible,
@@ -236,7 +244,8 @@ fun PostsScreen(
                             confirmValueChange = { dismissValue ->
                                 when (dismissValue) {
                                     SwipeToDismissBoxValue.EndToStart -> {
-                                        // 左滑删除
+                                        // 左滑删除 — 记住 cid 再弹确认框
+                                        pendingDeleteCid = post.cid
                                         showDeleteDialog = true
                                         false
                                     }
@@ -361,29 +370,35 @@ fun PostsScreen(
 
     // 删除确认对话框
     if (showDeleteDialog) {
+        val hasSingle = pendingDeleteCid != null
+        val hasBatch = selectedPosts.isNotEmpty()
+        val deleteCount = if (hasSingle) 1 else selectedPosts.size
+
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = {
+                showDeleteDialog = false
+                pendingDeleteCid = null
+            },
             title = { Text("确认删除") },
             text = {
-                Text(
-                    if (selectedPosts.size > 1) {
-                        "确定要删除 ${selectedPosts.size} 篇文章吗？此操作不可撤销。"
-                    } else {
-                        "确定要删除这篇文章吗？此操作不可撤销。"
-                    }
-                )
+                Text("确定要删除 ${if (deleteCount > 1) "${deleteCount} 篇文章" else "这篇文章"}吗？此操作不可撤销。")
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        selectedPosts.forEach { cid ->
-                            viewModel.deletePost(cid)
+                        if (hasSingle) {
+                            viewModel.deletePost(pendingDeleteCid!!)
                         }
+                        if (hasBatch) {
+                            selectedPosts.forEach { cid -> viewModel.deletePost(cid) }
+                        }
+                        val count = deleteCount
                         scope.launch {
-                            snackbarHostState.showSnackbar("已删除 ${selectedPosts.size} 篇文章")
+                            snackbarHostState.showSnackbar("已删除 ${count} 篇文章")
                         }
                         isMultiSelectMode = false
                         selectedPosts = emptySet()
+                        pendingDeleteCid = null
                         showDeleteDialog = false
                     },
                 ) {
@@ -391,7 +406,10 @@ fun PostsScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    pendingDeleteCid = null
+                }) {
                     Text("取消")
                 }
             },
