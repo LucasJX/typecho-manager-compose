@@ -1,5 +1,12 @@
 package com.flypigs.typechomanager.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,563 +23,445 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Attachment
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
+import coil.compose.AsyncImage
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.ui.components.v3.ArticleCard
+import com.flypigs.typechomanager.ui.components.v3.CollapsingTitle
+import com.flypigs.typechomanager.ui.components.v3.StatBar
+import com.flypigs.typechomanager.ui.components.v3.StatItem
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNewPost: () -> Unit = {},
-    onPostClick: (Int) -> Unit = {},
-    onNavigateToPosts: () -> Unit = {},
-    onNavigateToAttachments: () -> Unit = {},
+    onPostClick: (Int) -> Unit,
+    onWriteClick: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    val viewModel = hiltViewModel<HomeViewModel>()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { msg ->
-            snackbarHostState.showSnackbar(msg)
+    // 计算滚动进度（0f = 完全展开, 1f = 完全折叠）
+    val scrollProgress by remember {
+        derivedStateOf {
+            val firstVisibleIndex = listState.firstVisibleItemIndex
+            val firstVisibleOffset = listState.firstVisibleItemScrollOffset
+            if (firstVisibleIndex == 0) {
+                (firstVisibleOffset / 200f).coerceIn(0f, 1f)
+            } else {
+                1f
+            }
         }
     }
 
-    val publishedPosts = uiState.allPosts.filter { it.status == "publish" }
-
-    val listState = rememberLazyListState()
-    var lastFirstVisibleIndex by remember { mutableIntStateOf(0) }
-    val fabVisible = remember { mutableStateOf(true) }
-
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .collect { index ->
-                fabVisible.value = index <= lastFirstVisibleIndex || index == 0
-                lastFirstVisibleIndex = index
-            }
+    // FAB 可见性
+    val fabVisible by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex < 2
+        }
     }
 
-    Scaffold(
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = fabVisible.value,
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = onNewPost,
-                    icon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                    text = { Text("写文章") },
-                )
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
-            onRefresh = { viewModel.refresh() },
-            modifier = Modifier.fillMaxSize().padding(padding)
-        ) {
+    // 灵感浮窗
+    var showInspirationSheet by remember { mutableStateOf(false) }
+    var inspirationText by remember { mutableStateOf("") }
+
+    // 最近发布的文章（用于动态时间线）
+    val recentPosts = remember(uiState.allPosts) {
+        uiState.allPosts.sortedByDescending { it.date }.take(3)
+    }
+
+    // 统计数据
+    val publishedCount = remember(uiState.allPosts) {
+        uiState.allPosts.count { it.status == "publish" }
+    }
+
+    PullToRefreshBox(
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.refresh() },
+    ) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            floatingActionButton = {
+                // FAB：滚动隐藏时收缩为小 FAB 再淡出
+                AnimatedVisibility(
+                    visible = fabVisible,
+                    enter = scaleIn() + fadeIn(),
+                    exit = scaleOut() + fadeOut(),
+                ) {
+                    ExtendedFloatingActionButton(
+                        onClick = onWriteClick,
+                        icon = { Icon(Icons.Default.Edit, "写文章") },
+                        text = { Text("写文章") },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        shape = DesignSystem.Corner.Fab,
+                    )
+                }
+            },
+        ) { paddingValues ->
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = DesignSystem.Fab.BottomPadding)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(bottom = DesignSystem.Component.FabBottomPadding),
+                verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
             ) {
-                // 欢迎信息
-                item {
-                    WelcomeSection(
-                        userName = "管理员",
-                        publishedCount = publishedPosts.size,
-                        draftCount = uiState.allPosts.count { it.status == "draft" }
+                // ═══════════════════════════════════════════
+                // 1. 可折叠大标题
+                // ═══════════════════════════════════════════
+                item(key = "collapsing_title") {
+                    CollapsingTitle(scrollProgress = scrollProgress)
+                }
+
+                // ═══════════════════════════════════════════
+                // 2. 博客实时预览卡片（Hero 卡）
+                // ═══════════════════════════════════════════
+                item(key = "hero_card") {
+                    val latestPost = uiState.allPosts.firstOrNull()
+                    HeroPreviewCard(
+                        post = latestPost,
+                        onClick = { latestPost?.let { onPostClick(it.cid) } },
                     )
                 }
 
-                // 今日数据卡片
-                item {
-                    TodayStatsSection(
-                        postCount = uiState.allPosts.size,
-                        categoryCount = uiState.categories.size,
-                        attachmentCount = uiState.attachmentCount,
-                        onPostClick = onNavigateToPosts,
-                        onCategoryClick = onNavigateToPosts,
-                        onAttachmentClick = onNavigateToAttachments
+                // ═══════════════════════════════════════════
+                // 3. 今日统计条
+                // ═══════════════════════════════════════════
+                item(key = "stat_bar") {
+                    StatBar(
+                        stats = listOf(
+                            StatItem(value = publishedCount, label = "已发布"),
+                            StatItem(value = uiState.allPosts.size, label = "总文章"),
+                            StatItem(value = uiState.categories.size, label = "分类"),
+                            StatItem(value = uiState.attachmentCount, label = "附件"),
+                        ),
+                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                     )
                 }
 
-                // 快速操作
-                item {
-                    QuickActionsSection(
-                        onNewPost = onNewPost,
-                        onAttachments = onNavigateToAttachments
+                // ═══════════════════════════════════════════
+                // 4. 最近动态时间线
+                // ═══════════════════════════════════════════
+                item(key = "activity_header") {
+                    Text(
+                        text = "最近动态",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                     )
                 }
 
-                // 最近文章标题
-                item {
-                    SectionHeader(
-                        title = "最近文章",
-                        actionText = "查看全部",
-                        onAction = onNavigateToPosts
+                items(
+                    items = recentPosts,
+                    key = { "activity_${it.cid}" },
+                ) { post ->
+                    ActivityTimelineItem(
+                        post = post,
+                        onClick = { onPostClick(post.cid) },
                     )
                 }
 
-                // 最近文章列表
-                if (uiState.isLoading && uiState.allPosts.isEmpty()) {
-                    items(3) {
-                        PostCardSkeleton()
-                    }
-                } else {
-                    items(publishedPosts.take(5)) { post ->
-                        PostCard(
-                            post = post,
-                            onClick = { onPostClick(post.cid) }
-                        )
-                    }
+                // ═══════════════════════════════════════════
+                // 5. 最近文章（管理列表）
+                // ═══════════════════════════════════════════
+                item(key = "recent_header") {
+                    Text(
+                        text = "最近文章",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                    )
+                }
+
+                items(
+                    items = uiState.posts.take(5),
+                    key = { "post_${it.cid}" },
+                ) { post ->
+                    ArticleCard(
+                        post = post,
+                        onClick = { onPostClick(post.cid) },
+                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                    )
+                }
+
+                // 底部间距
+                item(key = "bottom_spacer") {
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
                 }
             }
         }
-    }
-}
 
-@Composable
-private fun WelcomeSection(
-    userName: String,
-    publishedCount: Int,
-    draftCount: Int
-) {
-    val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
-        in 0..11 -> "早上好"
-        in 12..17 -> "下午好"
-        else -> "晚上好"
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Large)
-    ) {
-        Text(
-            text = "$greeting，$userName",
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
-        Text(
-            text = "已发布 $publishedCount 篇文章，$draftCount 篇草稿",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun TodayStatsSection(
-    postCount: Int,
-    categoryCount: Int,
-    attachmentCount: Int,
-    onPostClick: () -> Unit,
-    onCategoryClick: () -> Unit,
-    onAttachmentClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.ExtraLarge),
-        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)
-    ) {
-        StatCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.Description,
-            label = "文章",
-            value = postCount.toString(),
-            color = MaterialTheme.colorScheme.primary,
-            onClick = onPostClick
-        )
-        StatCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.Category,
-            label = "分类",
-            value = categoryCount.toString(),
-            color = MaterialTheme.colorScheme.secondary,
-            onClick = onCategoryClick
-        )
-        StatCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.Attachment,
-            label = "附件",
-            value = attachmentCount.toString(),
-            color = MaterialTheme.colorScheme.tertiary,
-            onClick = onAttachmentClick
-        )
-    }
-}
-
-@Composable
-private fun StatCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    label: String,
-    value: String,
-    color: Color,
-    onClick: () -> Unit
-) {
-    ElevatedCard(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = DesignSystem.Corner.Card,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignSystem.Spacing.Large),
-            verticalAlignment = Alignment.CenterVertically
+        // ═══════════════════════════════════════════
+        // 6. 灵感浮窗 Chip（吸附在右下角）
+        // ═══════════════════════════════════════════
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomEnd,
         ) {
-            Box(
+            FloatingActionButton(
+                onClick = { showInspirationSheet = true },
                 modifier = Modifier
-                    .size(DesignSystem.Card.IconSize)
-                    .clip(DesignSystem.Card.IconCorner)
-                    .background(color.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
+                    .padding(
+                        end = DesignSystem.Spacing.Large,
+                        bottom = DesignSystem.Component.FabBottomPadding + DesignSystem.Spacing.Large,
+                    )
+                    .size(48.dp),
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                shape = CircleShape,
             ) {
                 Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
-            Column {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    imageVector = Icons.Outlined.Lightbulb,
+                    contentDescription = "记灵感",
                 )
             }
         }
     }
-}
 
-@Composable
-private fun QuickActionsSection(
-    onNewPost: () -> Unit,
-    onAttachments: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Medium)
-    ) {
-        Text(
-            text = "快速操作",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)
-        ) {
-            ActionCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Default.Edit,
-                label = "写文章",
-                description = "创建新内容",
-                color = MaterialTheme.colorScheme.primary,
-                onClick = onNewPost
-            )
-            ActionCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Default.Attachment,
-                label = "附件",
-                description = "管理媒体文件",
-                color = MaterialTheme.colorScheme.tertiary,
-                onClick = onAttachments
-            )
-        }
-    }
-}
-
-@Composable
-private fun ActionCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    label: String,
-    description: String,
-    color: Color,
-    onClick: () -> Unit
-) {
-    ElevatedCard(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = DesignSystem.Corner.Card,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignSystem.Spacing.Large)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(DesignSystem.Card.IconSize)
-                    .clip(DesignSystem.Card.IconCorner)
-                    .background(color.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun SectionHeader(
-    title: String,
-    actionText: String? = null,
-    onAction: (() -> Unit)? = null
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Medium),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        if (actionText != null && onAction != null) {
-            TextButton(onClick = onAction) {
-                Text(
-                    text = actionText,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PostCard(
-    post: Post,
-    onClick: () -> Unit
-) {
-    ElevatedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.ExtraSmall)
-            .clickable(onClick = onClick),
-        shape = DesignSystem.Corner.Card,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignSystem.Spacing.Large)
+    // 灵感浮窗底部弹窗
+    if (showInspirationSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showInspirationSheet = false
+                inspirationText = ""
+            },
         ) {
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(DesignSystem.Spacing.Large),
             ) {
                 Text(
-                    text = post.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = "记录灵感",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = DesignSystem.Spacing.Medium),
                 )
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
-                Text(
-                    text = stripHtml(post.text).take(80),
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+
+                TextField(
+                    value = inspirationText,
+                    onValueChange = { inspirationText = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("写下你的想法...") },
+                    minLines = 3,
                 )
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = DesignSystem.Spacing.Medium),
+                    horizontalArrangement = Arrangement.End,
                 ) {
-                    Text(
-                        text = formatTimestamp(post.created),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (post.categories.isNotEmpty()) {
-                        Text(
-                            text = " · ${post.categories.first()}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    TextButton(
+                        onClick = {
+                            showInspirationSheet = false
+                            inspirationText = ""
+                        },
+                    ) {
+                        Text("取消")
+                    }
+                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
+                    TextButton(
+                        onClick = {
+                            // TODO: 保存灵感为草稿
+                            scope.launch {
+                                snackbarHostState.showSnackbar("灵感已保存为草稿")
+                            }
+                            showInspirationSheet = false
+                            inspirationText = ""
+                        },
+                        enabled = inspirationText.isNotBlank(),
+                    ) {
+                        Text("保存草稿")
                     }
                 }
-            }
-
-            if (post.cover.isNotEmpty()) {
-                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
-                SubcomposeAsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(post.cover)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(DesignSystem.Card.ThumbnailSize)
-                        .clip(DesignSystem.Card.ThumbnailCorner)
-                )
             }
         }
     }
 }
 
+// ═══════════════════════════════════════════════════════
+// Hero 预览卡片
+// ═══════════════════════════════════════════════════════
 @Composable
-private fun PostCardSkeleton() {
-    ElevatedCard(
+private fun HeroPreviewCard(
+    post: Post?,
+    onClick: () -> Unit,
+) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.ExtraSmall),
-        shape = DesignSystem.Corner.Card,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            .height(DesignSystem.Component.HeroHeight)
+            .padding(horizontal = DesignSystem.Spacing.Large)
+            .clickable(onClick = onClick),
+        shape = DesignSystem.Corner.Hero,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignSystem.Spacing.Large)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(20.dp)
-                        .clip(DesignSystem.Corner.Small)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 背景图或占位
+            if (post?.thumb != null) {
+                AsyncImage(
+                    model = post.thumb,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
                 )
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+            } else {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .height(16.dp)
-                        .clip(DesignSystem.Corner.Small)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                )
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.4f)
-                        .height(14.dp)
-                        .clip(DesignSystem.Corner.Small)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                    MaterialTheme.colorScheme.surfaceContainerHigh,
+                                )
+                            )
+                        ),
                 )
             }
-            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+
+            // 底部渐变遮罩
             Box(
                 modifier = Modifier
-                    .size(DesignSystem.Card.ThumbnailSize)
-                    .clip(DesignSystem.Card.ThumbnailCorner)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f),
+                            ),
+                            startY = 100f,
+                        )
+                    ),
+            )
+
+            // 底部信息
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(DesignSystem.Spacing.Large),
+            ) {
+                Text(
+                    text = "Blogga",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                )
+                if (post != null) {
+                    Text(
+                        text = post.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White.copy(alpha = 0.9f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// 动态时间线项
+// ═══════════════════════════════════════════════════════
+@Composable
+private fun ActivityTimelineItem(
+    post: Post,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(
+                horizontal = DesignSystem.Spacing.Large,
+                vertical = DesignSystem.Spacing.Small,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+    ) {
+        // 时间轴小圆点
+        Box(
+            modifier = Modifier
+                .padding(top = 6.dp)
+                .size(8.dp)
+                .background(MaterialTheme.colorScheme.primary, CircleShape),
+        )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = "你发布了《${post.title}》",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = formatRelativeTime(post.date),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
-private fun formatTimestamp(timestamp: Long): String {
-    if (timestamp <= 0L) return ""
-    return try {
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        sdf.format(Date(timestamp))
-    } catch (_: Exception) { "" }
-}
+// ═══════════════════════════════════════════════════════
+// 工具函数
+// ═══════════════════════════════════════════════════════
+private fun formatRelativeTime(date: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - date
 
-private fun stripHtml(html: String): String {
-    return html
-        .replace(Regex("<br\\s*/?>"), "\n")
-        .replace(Regex("<[^>]+>"), "")
-        .replace(Regex("&[a-zA-Z]+;"), " ")
-        .replace(Regex("&#\\d+;"), " ")
-        .replace(Regex("\\s+"), " ")
-        .trim()
+    return when {
+        diff < 60 * 1000 -> "刚刚"
+        diff < 60 * 60 * 1000 -> "${diff / (60 * 1000)}分钟前"
+        diff < 24 * 60 * 60 * 1000 -> "${diff / (60 * 60 * 1000)}小时前"
+        diff < 7 * 24 * 60 * 60 * 1000 -> "${diff / (24 * 60 * 60 * 1000)}天前"
+        else -> SimpleDateFormat("MM-dd", Locale.getDefault()).format(Date(date))
+    }
 }

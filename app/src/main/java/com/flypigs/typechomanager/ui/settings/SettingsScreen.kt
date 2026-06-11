@@ -5,6 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,470 +17,476 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Attachment
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Category
-
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Update
-import androidx.compose.material.icons.filled.Web
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.flypigs.typechomanager.BuildConfig
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    onNavigateToSetup: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    var showLogoutDialog by remember { mutableStateOf(false) }
-    var showThemeDialog by remember { mutableStateOf(false) }
 
-    // 退出确认对话框
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text("退出登录") },
-            text = { Text("确定要退出登录吗？本地配置将被清除。") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showLogoutDialog = false
-                    viewModel.logout { onNavigateToSetup() }
-                }) {
-                    Text("确定", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("取消")
-                }
-            },
-        )
-    }
-
-    // 主题选择对话框
-    if (showThemeDialog) {
-        ThemePickerDialog(
-            currentMode = uiState.themeMode,
-            onModeSelected = { mode ->
-                viewModel.saveThemeMode(mode)
-                showThemeDialog = false
-            },
-            onDismiss = { showThemeDialog = false }
-        )
-    }
-
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("设置") },
+            )
+        },
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(DesignSystem.Spacing.Large),
+            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
         ) {
-            // 标题
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.ExtraLarge)
-                        .padding(top = DesignSystem.Spacing.Large)
-                ) {
-                    Text(
-                        text = "设置",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            // Hero 卡片
-            item {
+            // ═══════════════════════════════════════════
+            // Hero 卡片（160dp，圆角 28dp，背景渐变）
+            // ═══════════════════════════════════════════
+            item(key = "hero") {
                 HeroCard(
-                    userName = uiState.username,
+                    blogName = uiState.blogName,
                     blogUrl = uiState.blogUrl,
-                    isLoading = uiState.isLoading
                 )
             }
 
-            // 账号信息
-            item {
+            // ═══════════════════════════════════════════
+            // 账号组
+            // ═══════════════════════════════════════════
+            item(key = "account_header") {
                 SectionHeader(title = "账号")
             }
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.ExtraLarge),
-                    shape = DesignSystem.Corner.Card,
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.Web,
-                            title = "博客地址",
-                            subtitle = uiState.blogUrl.ifEmpty { "未配置" }
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
-                        SettingsItem(
-                            icon = Icons.Default.Person,
-                            title = "用户名",
-                            subtitle = uiState.username.ifEmpty { "未配置" }
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
-                        SettingsItem(
-                            icon = Icons.Default.Info,
-                            title = "API 地址",
-                            subtitle = uiState.xmlRpcUrl.ifEmpty { "未配置" }
-                        )
-                    }
-                }
+
+            item(key = "blog_url") {
+                SettingsItem(
+                    icon = Icons.Default.Language,
+                    title = "博客地址",
+                    subtitle = uiState.blogUrl,
+                    onClick = { /* TODO: 编辑 */ },
+                )
             }
 
-            // 内容管理
-            item {
+            item(key = "username") {
+                SettingsItem(
+                    icon = Icons.Default.AccountCircle,
+                    title = "用户名",
+                    subtitle = uiState.username,
+                    onClick = { /* TODO: 编辑 */ },
+                )
+            }
+
+            item(key = "api_url") {
+                SettingsItem(
+                    icon = Icons.Default.Security,
+                    title = "API 地址",
+                    subtitle = uiState.apiUrl,
+                    onClick = { /* TODO: 编辑 */ },
+                )
+            }
+
+            // ═══════════════════════════════════════════
+            // 内容管理组
+            // ═══════════════════════════════════════════
+            item(key = "content_header") {
                 SectionHeader(title = "内容管理")
             }
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.ExtraLarge),
-                    shape = DesignSystem.Corner.Card,
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.Description,
-                            title = "文章数",
-                            subtitle = "${uiState.postCount} 篇"
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
-                        SettingsItem(
-                            icon = Icons.Default.Category,
-                            title = "分类数",
-                            subtitle = "${uiState.categoryCount} 个"
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
-                        SettingsItem(
-                            icon = Icons.Default.Attachment,
-                            title = "附件数",
-                            subtitle = "${uiState.attachmentCount} 个"
-                        )
-                    }
-                }
+
+            item(key = "post_count") {
+                SettingsItem(
+                    icon = Icons.Default.Description,
+                    title = "文章数",
+                    subtitle = "${uiState.postCount} 篇",
+                    onClick = null,
+                )
             }
 
-            // 应用设置
-            item {
+            item(key = "category_count") {
+                SettingsItem(
+                    icon = Icons.Default.Category,
+                    title = "分类数",
+                    subtitle = "${uiState.categoryCount} 个",
+                    onClick = null,
+                )
+            }
+
+            item(key = "attachment_count") {
+                SettingsItem(
+                    icon = Icons.Default.AttachFile,
+                    title = "附件数",
+                    subtitle = "${uiState.attachmentCount} 个",
+                    onClick = null,
+                )
+            }
+
+            item(key = "cache_size") {
+                SettingsItem(
+                    icon = Icons.Default.Refresh,
+                    title = "缓存大小",
+                    subtitle = uiState.cacheSize,
+                    onClick = { viewModel.clearCache() },
+                )
+            }
+
+            // ═══════════════════════════════════════════
+            // 写作热力图（新增亮点）
+            // ═══════════════════════════════════════════
+            item(key = "heatmap") {
+                WritingHeatmap(
+                    data = uiState.heatmapData,
+                )
+            }
+
+            // ═══════════════════════════════════════════
+            // 应用组
+            // ═══════════════════════════════════════════
+            item(key = "app_header") {
                 SectionHeader(title = "应用")
             }
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.ExtraLarge),
-                    shape = DesignSystem.Corner.Card,
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.Palette,
-                            title = "主题模式",
-                            subtitle = when (uiState.themeMode) {
-                                ThemeMode.SYSTEM -> "跟随系统"
-                                ThemeMode.LIGHT -> "浅色模式"
-                                ThemeMode.DARK -> "深色模式"
-                            },
-                            onClick = { showThemeDialog = true }
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
-                        SettingsItem(
-                            icon = Icons.Default.Refresh,
-                            title = "清除缓存",
-                            subtitle = "清除本地缓存数据",
-                            onClick = {
-                                viewModel.clearCache {
-                                    Toast.makeText(context, "缓存已清除", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                    }
-                }
+
+            item(key = "theme") {
+                SettingsItem(
+                    icon = Icons.Default.Palette,
+                    title = "主题模式",
+                    subtitle = uiState.themeMode,
+                    onClick = { viewModel.toggleThemeMode() },
+                )
             }
 
-            // 关于
-            item {
+            item(key = "pull_refresh") {
+                SettingsItem(
+                    icon = Icons.Default.Refresh,
+                    title = "下拉刷新",
+                    subtitle = if (uiState.pullToRefreshEnabled) "已开启" else "已关闭",
+                    onClick = { viewModel.togglePullToRefresh() },
+                )
+            }
+
+            item(key = "image_quality") {
+                SettingsItem(
+                    icon = Icons.Default.Star,
+                    title = "图片质量",
+                    subtitle = uiState.imageQuality,
+                    onClick = { viewModel.cycleImageQuality() },
+                )
+            }
+
+            // ═══════════════════════════════════════════
+            // 关于组
+            // ═══════════════════════════════════════════
+            item(key = "about_header") {
                 SectionHeader(title = "关于")
             }
-            item {
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.ExtraLarge),
-                    shape = DesignSystem.Corner.Card,
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.Info,
-                            title = "版本",
-                            subtitle = "v${BuildConfig.VERSION_NAME}"
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
-                        SettingsItem(
-                            icon = Icons.Default.Update,
-                            title = "检查更新",
-                            subtitle = "检查新版本",
-                            onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LucasJX/typecho-manager-compose/releases")))
-                            }
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
-                        SettingsItem(
-                            icon = Icons.Default.OpenInBrowser,
-                            title = "GitHub",
-                            subtitle = "查看源代码",
-                            onClick = {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LucasJX/typecho-manager-compose")))
-                            }
-                        )
-                    }
-                }
+
+            item(key = "version") {
+                SettingsItem(
+                    icon = Icons.Default.Info,
+                    title = "版本号",
+                    subtitle = uiState.versionName,
+                    onClick = null,
+                )
             }
 
-            // 退出按钮
-            item {
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.XXLarge))
-                TextButton(
-                    onClick = { showLogoutDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.ExtraLarge)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ExitToApp,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
-                    Text(
-                        text = "退出登录",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.XXXLarge))
+            item(key = "changelog") {
+                SettingsItem(
+                    icon = Icons.Default.Update,
+                    title = "更新日志",
+                    subtitle = null,
+                    onClick = { /* TODO: 查看更新日志 */ },
+                )
+            }
+
+            item(key = "github") {
+                SettingsItem(
+                    icon = Icons.Default.Code,
+                    title = "GitHub",
+                    subtitle = "查看源码",
+                    onClick = { /* TODO: 打开 GitHub */ },
+                )
+            }
+
+            item(key = "license") {
+                SettingsItem(
+                    icon = Icons.Default.Description,
+                    title = "许可证",
+                    subtitle = "MIT License",
+                    onClick = null,
+                )
+            }
+
+            // 底部间距
+            item(key = "bottom_spacer") {
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
             }
         }
     }
 }
 
+// ═══════════════════════════════════════════════════════
+// Hero 卡片
+// ═══════════════════════════════════════════════════════
 @Composable
 private fun HeroCard(
-    userName: String,
+    blogName: String,
     blogUrl: String,
-    isLoading: Boolean
 ) {
-    ElevatedCard(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Medium),
-        shape = DesignSystem.Corner.ExtraLarge,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+            .height(160.dp),
+        shape = DesignSystem.Corner.Hero,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(DesignSystem.Spacing.XXLarge),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.surface,
+                        )
+                    )
+                ),
         ) {
-            // 头像
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(72.dp)
-                    .clip(DesignSystem.Corner.Card)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+                    .align(Alignment.CenterStart)
+                    .padding(DesignSystem.Spacing.Large),
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(36.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
-            
-            if (isLoading) {
+                // 头像
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.4f)
-                        .height(24.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
-                )
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f))
-                )
-            } else {
-                Text(
-                    text = userName.ifEmpty { "管理员" },
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                if (blogUrl.isNotEmpty()) {
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
-                        text = blogUrl,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        text = blogName.firstOrNull()?.toString() ?: "B",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
+
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+
+                Text(
+                    text = blogName.ifEmpty { "Blogga" },
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = blogUrl,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                )
             }
         }
     }
 }
 
+// ═══════════════════════════════════════════════════════
+// Section Header
+// ═══════════════════════════════════════════════════════
 @Composable
 private fun SectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(
-            horizontal = DesignSystem.Spacing.ExtraLarge,
-            vertical = DesignSystem.Spacing.Medium
-        )
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(vertical = DesignSystem.Spacing.Small),
     )
 }
 
+// ═══════════════════════════════════════════════════════
+// Settings Item
+// ═══════════════════════════════════════════════════════
 @Composable
 private fun SettingsItem(
     icon: ImageVector,
     title: String,
-    subtitle: String,
-    onClick: (() -> Unit)? = null
+    subtitle: String?,
+    onClick: (() -> Unit)?,
 ) {
-    ListItem(
-        headlineContent = {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
+            )
+            .padding(vertical = DesignSystem.Spacing.Medium),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(modifier = Modifier.width(DesignSystem.Spacing.Large))
+
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                color = MaterialTheme.colorScheme.onSurface,
             )
-        },
-        supportingContent = {
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        leadingContent = {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-        },
-        modifier = if (onClick != null) {
-            Modifier.clickable(onClick = onClick)
-        } else {
-            Modifier
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-    )
+
+        if (onClick != null) {
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
 }
 
+// ═══════════════════════════════════════════════════════
+// 写作热力图（模仿 GitHub 贡献图）
+// ═══════════════════════════════════════════════════════
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ThemePickerDialog(
-    currentMode: ThemeMode,
-    onModeSelected: (ThemeMode) -> Unit,
-    onDismiss: () -> Unit
+private fun WritingHeatmap(
+    data: List<HeatmapDay>,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("选择主题") },
-        text = {
-            Column {
-                ThemeMode.entries.forEach { mode ->
-                    val label = when (mode) {
-                        ThemeMode.SYSTEM -> "跟随系统"
-                        ThemeMode.LIGHT -> "浅色模式"
-                        ThemeMode.DARK -> "深色模式"
-                    }
-                    ListItem(
-                        headlineContent = { Text(label) },
-                        leadingContent = {
-                            RadioButton(
-                                selected = currentMode == mode,
-                                onClick = { onModeSelected(mode) }
-                            )
-                        },
-                        modifier = Modifier.clickable { onModeSelected(mode) }
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = DesignSystem.Spacing.Medium),
+    ) {
+        Text(
+            text = "写作热力图",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold,
+        )
+
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+
+        // 热力图网格（简化版：显示过去 12 周）
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(DesignSystem.Component.HeatmapHeight)
+                .clip(DesignSystem.Corner.Medium)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .padding(DesignSystem.Spacing.Small),
+        ) {
+            data.take(84).forEach { day -> // 12 周 * 7 天
+                val alpha = (day.count.coerceIn(0, 4) / 4f).coerceIn(0.1f, 1f)
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            if (day.count > 0) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = alpha)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            }
+                        ),
+                )
             }
         }
-    )
+
+        // 图例
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = DesignSystem.Spacing.Small),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "少",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            repeat(5) { level ->
+                val alpha = ((level + 1) / 5f).coerceIn(0.1f, 1f)
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .padding(horizontal = 1.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            if (level > 0) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = alpha)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            }
+                        ),
+                )
+            }
+            Text(
+                text = "多",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
 }
+
+/**
+ * 热力图数据
+ */
+data class HeatmapDay(
+    val date: String, // yyyy-MM-dd
+    val count: Int,   // 当天文章操作次数
+)

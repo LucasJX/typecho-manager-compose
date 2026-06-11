@@ -1,112 +1,197 @@
 package com.flypigs.typechomanager.ui.designsystem
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Material 3 Expressive Design System
- * 
- * 统一的设计规范，确保所有页面视觉语言一致
+ * Design System v3 - Material 3 Expressive
+ * 面向 Blogga for Typecho 的完整设计规范
  */
 object DesignSystem {
-    
-    // 圆角系统 - 8dp 网格，更丰富层级
+
+    // ═══════════════════════════════════════════════════════
+    // 网格与间距（8dp 基准）
+    // ═══════════════════════════════════════════════════════
+    object Spacing {
+        val ExtraSmall = 4.dp
+        val Small = 8.dp       // 元素最小间距
+        val Medium = 12.dp     // 卡片间隙
+        val Large = 16.dp      // 页面水平边距、卡片内边距
+        val ExtraLarge = 20.dp
+        val XXLarge = 24.dp    // 区块间距
+        val XXXLarge = 32.dp   // Hero 区大留白
+        val SectionGap = 24.dp // 区块间距
+        val CardPadding = 16.dp // 卡片内边距
+        val CardGap = 12.dp    // 卡片间隙
+        val PageHorizontal = 16.dp // 页面水平边距
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 圆角系统
+    // ═══════════════════════════════════════════════════════
     object Corner {
+        // 小型组件（Chip、小按钮、输入框）
+        val Chip = RoundedCornerShape(20.dp)
+        val SmallButton = RoundedCornerShape(20.dp)
+        val Input = RoundedCornerShape(20.dp)
+
+        // 卡片、统计条
+        val Card = RoundedCornerShape(24.dp)
+        val StatBar = RoundedCornerShape(24.dp)
+
+        // 大容器（Hero 卡片、阅读模式头图）
+        val Hero = RoundedCornerShape(28.dp)
+        val LargeContainer = RoundedCornerShape(28.dp)
+
+        // FAB
+        val Fab = RoundedCornerShape(20.dp)
+
+        // 缩略图
+        val Thumbnail = RoundedCornerShape(12.dp)
+        val ImageSmall = RoundedCornerShape(12.dp)
+
+        // 通用
         val Small = RoundedCornerShape(8.dp)
         val Medium = RoundedCornerShape(12.dp)
         val Large = RoundedCornerShape(16.dp)
         val ExtraLarge = RoundedCornerShape(20.dp)
-        val XXLarge = RoundedCornerShape(24.dp)
-        val XXXLarge = RoundedCornerShape(28.dp)
-        val Card = RoundedCornerShape(20.dp)  // 卡片统一圆角
     }
-    
-    // 间距系统 - 8dp 网格
-    object Spacing {
-        val ExtraSmall = 4.dp
-        val Small = 8.dp
-        val Medium = 12.dp
-        val Large = 16.dp
-        val ExtraLarge = 20.dp
-        val XXLarge = 24.dp
-        val XXXLarge = 32.dp
+
+    // ═══════════════════════════════════════════════════════
+    // 品牌主色组（语义色，非硬编码）
+    // ═══════════════════════════════════════════════════════
+    object BrandColors {
+        val Primary = Color(0xFF7C8CFF)
+        val Secondary = Color(0xFF5CC8FF)
+        val Tertiary = Color(0xFFB388FF)
     }
-    
-    // 卡片尺寸
-    object Card {
-        val MinHeight = 80.dp
-        val IconSize = 44.dp
-        val IconCorner = RoundedCornerShape(12.dp)
-        val ThumbnailSize = 80.dp
-        val ThumbnailCorner = RoundedCornerShape(12.dp)
+
+    // 语义色
+    object SemanticColors {
+        val Success = Color(0xFF4CAF50)
+        val Warning = Color(0xFFFFB020)
+        val Error = Color(0xFFFF5252)
     }
-    
-    // 搜索框
-    object Search {
-        val Height = 56.dp
-        val Corner = RoundedCornerShape(16.dp)
+
+    // 分类专属色（用于标签）
+    object CategoryColors {
+        val Life = Color(0xFF66BB6A)        // 生活杂谈
+        val Tech = Color(0xFF42A5F5)        // 技术
+        val AI = Color(0xFFAB47BC)          // AI
+        val Tools = Color(0xFFFF7043)       // 工具
+        val Travel = Color(0xFF26C6DA)      // 旅行
     }
-    
-    // FilterChip
-    object Chip {
-        val Height = 36.dp
-        val Corner = RoundedCornerShape(20.dp)
+
+    // ═══════════════════════════════════════════════════════
+    // 组件尺寸
+    // ═══════════════════════════════════════════════════════
+    object Component {
+        // NavigationBar
+        val NavBarHeight = 80.dp
+        val NavBarHorizontalPadding = 16.dp
+
+        // 搜索栏
+        val SearchBarHeight = 56.dp
+        val SearchBarCorner = Corner.Input
+
+        // FilterChip
+        val ChipHeight = 36.dp
+        val ChipCorner = Corner.Chip
+        val ChipGap = 8.dp
+
+        // StatBar
+        val StatBarHeight = 72.dp
+        val StatBarCorner = Corner.StatBar
+
+        // 文章卡片
+        val CardThumbnailSize = 80.dp
+        val CardThumbnailCorner = Corner.Thumbnail
+        val CardCorner = Corner.Card
+
+        // FAB
+        val FabCorner = Corner.Fab
+        val FabBottomPadding = 88.dp // 含导航栏
+
+        // 附件网格
+        val AttachmentGridColumns = 2
+        val AttachmentItemCorner = Corner.Thumbnail
+
+        // Hero 卡片
+        val HeroHeight = 200.dp
+        val HeroCorner = Corner.Hero
+
+        // 热力图
+        val HeatmapHeight = 120.dp
     }
-    
-    // FAB
-    object Fab {
-        val Corner = RoundedCornerShape(16.dp)
-        val BottomPadding = 88.dp
-    }
-    
-    // NavigationBar
-    object NavBar {
-        val Height = 80.dp
-        val HorizontalPadding = 16.dp
-    }
-    
-    // 字体层级 - M3 Expressive 更大胆的字号
+
+    // ═══════════════════════════════════════════════════════
+    // 排版层级（Expressive 强化版）
+    // ═══════════════════════════════════════════════════════
     object Typography {
-        // Display - 更大胆
+        // Display
         val DisplayLarge = 48.sp
         val DisplayMedium = 40.sp
         val DisplaySmall = 36.sp
-        
-        // Headline - 更突出
-        val HeadlineLarge = 32.sp
+
+        // Headline
+        val HeadlineLarge = 36.sp
         val HeadlineMedium = 28.sp
         val HeadlineSmall = 24.sp
-        
-        // Title - 清晰
-        val TitleLarge = 22.sp
-        val TitleMedium = 16.sp
-        val TitleSmall = 14.sp
-        
-        // Body - 舒适
+
+        // Title
+        val TitleLarge = 24.sp
+        val TitleMedium = 20.sp
+        val TitleSmall = 16.sp
+
+        // Body
         val BodyLarge = 16.sp
         val BodyMedium = 14.sp
         val BodySmall = 12.sp
-        
-        // Label - 紧凑
+
+        // Label
         val LabelLarge = 14.sp
         val LabelMedium = 12.sp
         val LabelSmall = 11.sp
     }
-    
-    // 分类颜色
-    object CategoryColors {
-        val Default = 0xFF7C8CFF
-        val Life = 0xFF4CAF50      // 生活杂谈 - 绿色
-        val Tech = 0xFF2196F3      // 技术手机 - 蓝色
-        val AI = 0xFF9C27B0        // AI - 紫色
-        val Tools = 0xFFFF9800     // 工具 - 橙色
-    }
-    
-    // 动画时长
+
+    // ═══════════════════════════════════════════════════════
+    // 动效参数
+    // ═══════════════════════════════════════════════════════
     object Animation {
-        val Short = 150
-        val Medium = 300
-        val Long = 500
+        // 卡片点击缩放
+        val CardPressScale = 0.97f
+        val CardPressDuration = 100
+
+        // 数字滚动
+        val NumberScrollDuration = 800
+
+        // FAB 动效
+        val FabSpringDamping = 0.6f
+        val FabSpringStiffness = 400f
+
+        // 导航切换
+        val NavigationTransitionDuration = 300
+
+        // 灵感 Chip 微光
+        val ShimmerDuration = 2000
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 其他常量
+    // ═══════════════════════════════════════════════════════
+    object Constants {
+        // 首页
+        val HomeTitleInitialSize = 48.sp
+        val HomeTitleCollapsedSize = 24.sp
+        val HomeTitleCollapsedAlpha = 0.6f
+
+        // 附件预览
+        val AttachmentPreviewContentPadding = 80.dp
+
+        // 日期格式
+        const val DateFormatPattern = "yyyy-MM-dd HH:mm:ss"
+        const val RelativeTimeFormat = "relative"
     }
 }
