@@ -27,6 +27,8 @@ class ConfigDataStore(private val dataStore: DataStore<Preferences>) {
         val BLOG_URL = stringPreferencesKey("blog_url")
         val HAS_CONFIG = booleanPreferencesKey("has_config")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val PULL_TO_REFRESH = booleanPreferencesKey("pull_to_refresh")
+        val IMAGE_QUALITY = stringPreferencesKey("image_quality")
     }
 
     /**
@@ -101,5 +103,29 @@ class ConfigDataStore(private val dataStore: DataStore<Preferences>) {
         return dataStore.data.map { prefs ->
             prefs[Keys.HAS_CONFIG] ?: false
         }.first()
+    }
+
+    suspend fun getPullToRefreshEnabled(): Boolean {
+        return dataStore.data.map { prefs ->
+            prefs[Keys.PULL_TO_REFRESH] ?: true
+        }.first()
+    }
+
+    suspend fun setPullToRefreshEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[Keys.PULL_TO_REFRESH] = enabled
+        }
+    }
+
+    suspend fun getImageQuality(): String {
+        return dataStore.data.map { prefs ->
+            prefs[Keys.IMAGE_QUALITY] ?: "高质量"
+        }.first()
+    }
+
+    suspend fun setImageQuality(quality: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.IMAGE_QUALITY] = quality
+        }
     }
 }

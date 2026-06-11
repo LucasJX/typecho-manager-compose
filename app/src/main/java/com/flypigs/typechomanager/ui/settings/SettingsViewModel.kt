@@ -68,7 +68,7 @@ class SettingsViewModel @Inject constructor(
                     blogUrl = config.blogUrl,
                     endpoint = config.endpoint,
                     username = config.username,
-                    xmlRpcUrl = config.xmlRpcUrl,
+                    xmlRpcUrl = config.endpoint,
                     apiUrl = config.endpoint,
                     themeMode = themeMode,
                     isDark = themeMode == ThemeMode.DARK,
@@ -143,7 +143,7 @@ class SettingsViewModel @Inject constructor(
     fun toggleThemeMode() {
         val newMode = if (_uiState.value.isDark) ThemeMode.SYSTEM else ThemeMode.DARK
         viewModelScope.launch {
-            configDataStore.setThemeMode(newMode)
+            configDataStore.saveThemeMode(newMode)
             _uiState.value = _uiState.value.copy(
                 themeMode = newMode,
                 isDark = newMode == ThemeMode.DARK,
