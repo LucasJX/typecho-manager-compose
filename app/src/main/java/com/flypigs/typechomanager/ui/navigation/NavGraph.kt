@@ -134,7 +134,6 @@ fun NavGraph(
                 val cid = backStackEntry.arguments?.getInt("cid") ?: return@composable
                 PostDetailScreen(
                     cid = cid,
-                    postRepository = postRepository,
                     onBack = { navController.popBackStack() },
                     onEdit = { editCid ->
                         navController.navigate(Screen.Editor.createRoute(editCid.toString()))

@@ -76,6 +76,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onPostClick: (Int) -> Unit,
@@ -113,7 +114,7 @@ fun HomeScreen(
 
     // 最近发布的文章（用于动态时间线）
     val recentPosts = remember(uiState.allPosts) {
-        uiState.allPosts.sortedByDescending { it.date }.take(3)
+        uiState.allPosts.sortedByDescending { it.created }.take(3)
     }
 
     // 统计数据
