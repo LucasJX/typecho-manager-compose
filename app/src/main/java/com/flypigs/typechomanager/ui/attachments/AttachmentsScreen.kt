@@ -297,10 +297,10 @@ private fun AttachmentCard(
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .padding(DesignSystem.Spacing.Small)
+                            .clip(DesignSystem.Corner.Small)
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = DesignSystem.Spacing.Small, vertical = DesignSystem.Spacing.ExtraSmall)
                     ) {
                         Text(
                             text = attachment.type.split("/").last().uppercase(),

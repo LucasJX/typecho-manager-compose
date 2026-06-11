@@ -1,6 +1,5 @@
 package com.flypigs.typechomanager.ui.home
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,19 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,22 +33,28 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.SubcomposeAsyncImage
@@ -86,13 +86,31 @@ fun HomeScreen(
 
     val publishedPosts = uiState.allPosts.filter { it.status == "publish" }
 
+    val listState = rememberLazyListState()
+    var lastFirstVisibleIndex by remember { mutableIntStateOf(0) }
+    val fabVisible = remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { index ->
+                fabVisible.value = index <= lastFirstVisibleIndex || index == 0
+                lastFirstVisibleIndex = index
+            }
+    }
+
     Scaffold(
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onNewPost,
-                icon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                text = { Text("写文章") },
-            )
+            AnimatedVisibility(
+                visible = fabVisible.value,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it })
+            ) {
+                ExtendedFloatingActionButton(
+                    onClick = onNewPost,
+                    icon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                    text = { Text("写文章") },
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -102,8 +120,9 @@ fun HomeScreen(
             modifier = Modifier.fillMaxSize().padding(padding)
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 88.dp)
+                contentPadding = PaddingValues(bottom = DesignSystem.Fab.BottomPadding)
             ) {
                 // 欢迎信息
                 item {
@@ -119,8 +138,10 @@ fun HomeScreen(
                     TodayStatsSection(
                         postCount = uiState.allPosts.size,
                         categoryCount = uiState.categories.size,
+                        attachmentCount = uiState.attachmentCount,
                         onPostClick = onNavigateToPosts,
-                        onCategoryClick = onNavigateToPosts
+                        onCategoryClick = onNavigateToPosts,
+                        onAttachmentClick = onNavigateToAttachments
                     )
                 }
 
@@ -195,14 +216,16 @@ private fun WelcomeSection(
 private fun TodayStatsSection(
     postCount: Int,
     categoryCount: Int,
+    attachmentCount: Int,
     onPostClick: () -> Unit,
-    onCategoryClick: () -> Unit
+    onCategoryClick: () -> Unit,
+    onAttachmentClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge),
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)
     ) {
         StatCard(
             modifier = Modifier.weight(1f),
@@ -220,6 +243,14 @@ private fun TodayStatsSection(
             color = MaterialTheme.colorScheme.secondary,
             onClick = onCategoryClick
         )
+        StatCard(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Attachment,
+            label = "附件",
+            value = attachmentCount.toString(),
+            color = MaterialTheme.colorScheme.tertiary,
+            onClick = onAttachmentClick
+        )
     }
 }
 
@@ -234,7 +265,7 @@ private fun StatCard(
 ) {
     ElevatedCard(
         modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
+        shape = DesignSystem.Corner.Card,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -242,13 +273,13 @@ private fun StatCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(DesignSystem.Spacing.Large),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(DesignSystem.Card.IconSize)
+                    .clip(DesignSystem.Card.IconCorner)
                     .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -259,7 +290,7 @@ private fun StatCard(
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
             Column {
                 Text(
                     text = value,
@@ -285,7 +316,7 @@ private fun QuickActionsSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Medium)
     ) {
         Text(
             text = "快速操作",
@@ -293,10 +324,10 @@ private fun QuickActionsSection(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)
         ) {
             ActionCard(
                 modifier = Modifier.weight(1f),
@@ -329,7 +360,7 @@ private fun ActionCard(
 ) {
     ElevatedCard(
         modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
+        shape = DesignSystem.Corner.Card,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -337,12 +368,12 @@ private fun ActionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(DesignSystem.Spacing.Large)
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(DesignSystem.Card.IconSize)
+                    .clip(DesignSystem.Card.IconCorner)
                     .background(color.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -353,7 +384,7 @@ private fun ActionCard(
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
@@ -378,7 +409,7 @@ private fun SectionHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.Medium),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -408,9 +439,9 @@ private fun PostCard(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 6.dp)
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.ExtraSmall)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
+        shape = DesignSystem.Corner.Card,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -418,7 +449,7 @@ private fun PostCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(DesignSystem.Spacing.Large)
         ) {
             Column(
                 modifier = Modifier.weight(1f)
@@ -431,7 +462,7 @@ private fun PostCard(
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
                 Text(
                     text = stripHtml(post.text).take(80),
                     style = MaterialTheme.typography.bodyMedium,
@@ -439,7 +470,7 @@ private fun PostCard(
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -459,7 +490,7 @@ private fun PostCard(
             }
 
             if (post.cover.isNotEmpty()) {
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
                 SubcomposeAsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(post.cover)
@@ -468,8 +499,8 @@ private fun PostCard(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(DesignSystem.Card.ThumbnailSize)
+                        .clip(DesignSystem.Card.ThumbnailCorner)
                 )
             }
         }
@@ -481,8 +512,8 @@ private fun PostCardSkeleton() {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 6.dp),
-        shape = RoundedCornerShape(20.dp),
+            .padding(horizontal = DesignSystem.Spacing.ExtraLarge, vertical = DesignSystem.Spacing.ExtraSmall),
+        shape = DesignSystem.Corner.Card,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -490,38 +521,38 @@ private fun PostCardSkeleton() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(DesignSystem.Spacing.Large)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
                         .height(20.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(DesignSystem.Corner.Small)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .height(16.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(DesignSystem.Corner.Small)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.4f)
                         .height(14.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(DesignSystem.Corner.Small)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
             Box(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(DesignSystem.Card.ThumbnailSize)
+                    .clip(DesignSystem.Card.ThumbnailCorner)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             )
         }

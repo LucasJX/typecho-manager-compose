@@ -52,8 +52,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.BuildConfig
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
@@ -65,6 +69,7 @@ fun SettingsScreen(
     onNavigateToSetup: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
 
@@ -236,7 +241,11 @@ fun SettingsScreen(
                             icon = Icons.Default.Refresh,
                             title = "清除缓存",
                             subtitle = "清除本地缓存数据",
-                            onClick = { /* TODO */ }
+                            onClick = {
+                                viewModel.clearCache {
+                                    Toast.makeText(context, "缓存已清除", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         )
                     }
                 }
@@ -267,14 +276,18 @@ fun SettingsScreen(
                             icon = Icons.Default.Update,
                             title = "检查更新",
                             subtitle = "检查新版本",
-                            onClick = { /* TODO */ }
+                            onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LucasJX/typecho-manager-compose/releases")))
+                            }
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large))
                         SettingsItem(
                             icon = Icons.Default.OpenInBrowser,
                             title = "GitHub",
                             subtitle = "查看源代码",
-                            onClick = { /* TODO */ }
+                            onClick = {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LucasJX/typecho-manager-compose")))
+                            }
                         )
                     }
                 }
@@ -331,7 +344,7 @@ private fun HeroCard(
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(DesignSystem.Corner.Card)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {

@@ -367,9 +367,9 @@ private fun StatusBadge(status: String) {
     
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(DesignSystem.Corner.Small)
             .background(color.copy(alpha = 0.1f))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = DesignSystem.Spacing.Small, vertical = DesignSystem.Spacing.ExtraSmall)
     ) {
         Text(
             text = text,

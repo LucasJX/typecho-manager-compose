@@ -16,6 +16,7 @@ data class HomeUiState(
     val posts: List<Post> = emptyList(),
     val allPosts: List<Post> = emptyList(),
     val categories: List<Category> = emptyList(),
+    val attachmentCount: Int = 0,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,
@@ -45,10 +46,16 @@ class HomeViewModel @Inject constructor(
                 } catch (_: Exception) {
                     emptyList()
                 }
+                val attachmentCount = try {
+                    postRepository.getAttachments().size
+                } catch (_: Exception) {
+                    0
+                }
                 _uiState.value = _uiState.value.copy(
                     allPosts = posts,
                     posts = applyFilter(posts, _uiState.value.selectedCategorySlug),
                     categories = categories,
+                    attachmentCount = attachmentCount,
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -71,10 +78,16 @@ class HomeViewModel @Inject constructor(
                 } catch (_: Exception) {
                     _uiState.value.categories
                 }
+                val attachmentCount = try {
+                    postRepository.getAttachments().size
+                } catch (_: Exception) {
+                    _uiState.value.attachmentCount
+                }
                 _uiState.value = _uiState.value.copy(
                     allPosts = posts,
                     posts = applyFilter(posts, _uiState.value.selectedCategorySlug),
                     categories = categories,
+                    attachmentCount = attachmentCount,
                     isRefreshing = false
                 )
             } catch (e: Exception) {

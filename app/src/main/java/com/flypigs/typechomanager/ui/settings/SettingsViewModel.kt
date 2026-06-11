@@ -114,4 +114,16 @@ class SettingsViewModel @Inject constructor(
             onLoggedOut()
         }
     }
+
+    fun clearCache(onCleared: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                // Clear image cache by reloading stats
+                loadStats()
+                onCleared()
+            } catch (_: Exception) {
+                onCleared()
+            }
+        }
+    }
 }
