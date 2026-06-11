@@ -14,7 +14,6 @@ import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.image.ImagesPlugin
-import io.noties.markwon.syntax.SyntaxHighlightPlugin
 
 /**
  * Markdown 预览组件，使用 Markwon 渲染 Markdown 内容
@@ -31,7 +30,6 @@ fun MarkdownPreview(
             .usePlugin(ImagesPlugin.create())
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TablePlugin.create(context))
-            .usePlugin(SyntaxHighlightPlugin.create())
             .build()
     }
 
