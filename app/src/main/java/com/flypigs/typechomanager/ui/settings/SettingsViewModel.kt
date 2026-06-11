@@ -64,7 +64,7 @@ class SettingsViewModel @Inject constructor(
                 val config = configDataStore.getConfig()
                 val themeMode = configDataStore.getThemeMode()
                 _uiState.value = _uiState.value.copy(
-                    blogName = config.blogName,
+                    blogName = config.blogName ?: "",
                     blogUrl = config.blogUrl,
                     endpoint = config.endpoint,
                     username = config.username,
@@ -124,7 +124,7 @@ class SettingsViewModel @Inject constructor(
                 calendar.add(Calendar.WEEK_OF_YEAR, -12)
                 calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
 
-                val postDates = posts.groupBy { dateFormat.format(it.date) }
+                val postDates = posts.groupBy { dateFormat.format(it.created) }
 
                 repeat(84) { // 12 周 * 7 天
                     val dateStr = dateFormat.format(calendar.time)

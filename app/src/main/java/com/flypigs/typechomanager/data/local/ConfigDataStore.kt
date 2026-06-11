@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.flypigs.typechomanager.data.model.BlogConfig
-import com.flypigs.typechomanager.ui.settings.ThemeMode
+import com.flypigs.typechomanager.data.model.ThemeMode
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 

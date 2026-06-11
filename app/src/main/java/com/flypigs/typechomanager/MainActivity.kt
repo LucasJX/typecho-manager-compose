@@ -12,7 +12,7 @@ import com.flypigs.typechomanager.data.local.ConfigDataStore
 import com.flypigs.typechomanager.data.repository.ConfigRepository
 import com.flypigs.typechomanager.data.repository.PostRepository
 import com.flypigs.typechomanager.ui.navigation.NavGraph
-import com.flypigs.typechomanager.ui.settings.ThemeMode
+import com.flypigs.typechomanager.data.model.ThemeMode
 import com.flypigs.typechomanager.ui.theme.TypechoManagerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
