@@ -482,11 +482,3 @@ private fun WritingHeatmap(
         }
     }
 }
-
-/**
- * 热力图数据
- */
-data class HeatmapDay(
-    val date: String, // yyyy-MM-dd
-    val count: Int,   // 当天文章操作次数
-)

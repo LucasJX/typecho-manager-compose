@@ -15,6 +15,11 @@ import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 
+data class HeatmapDay(
+    val date: String,
+    val count: Int,
+)
+
 data class SettingsUiState(
     val blogName: String = "",
     val blogUrl: String = "",
