@@ -10,14 +10,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
-import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.image.ImagesPlugin
 
-/**
- * Markdown 预览组件，使用 Markwon 渲染 Markdown 内容
- */
 @Composable
 fun MarkdownPreview(
     markdown: String,
@@ -28,7 +24,6 @@ fun MarkdownPreview(
         Markwon.builder(context)
             .usePlugin(HtmlPlugin.create())
             .usePlugin(ImagesPlugin.create())
-            .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TablePlugin.create(context))
             .build()
     }
@@ -36,7 +31,8 @@ fun MarkdownPreview(
     AndroidView(
         factory = { ctx ->
             TextView(ctx).apply {
-                setPadding(16.dpToPx(ctx), 8.dpToPx(ctx), 16.dpToPx(ctx), 8.dpToPx(ctx))
+                val density = ctx.resources.displayMetrics.density
+                setPadding((16 * density).toInt(), (8 * density).toInt(), (16 * density).toInt(), (8 * density).toInt())
                 textSize = 16f
                 lineHeight = (textSize * 1.5f).toInt()
             }
@@ -49,6 +45,3 @@ fun MarkdownPreview(
             .padding(16.dp)
     )
 }
-
-private fun Int.dpToPx(context: android.content.Context): Int =
-    (this * context.resources.displayMetrics.density).toInt()
