@@ -116,7 +116,6 @@ dependencies {
     implementation(libs.markwon.ext.tables) {
         exclude(group = "org.jetbrains", module = "annotations-java5")
     }
-    implementation(libs.markwon.syntax.highlight) {
         exclude(group = "org.jetbrains", module = "annotations-java5")
     }
 }
