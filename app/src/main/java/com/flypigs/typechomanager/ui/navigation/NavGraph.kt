@@ -143,13 +143,27 @@ fun NavGraph(
                 PostDetailScreen(
                     cid = cid,
                     postRepository = postRepository,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onEdit = { editCid ->
+                        navController.navigate(Screen.Editor.createRoute(editCid.toString()))
+                    }
                 )
             }
 
-            composable(Screen.Editor.route) {
+            composable(
+                route = Screen.Editor.route,
+                arguments = listOf(
+                    navArgument("postId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val postId = backStackEntry.arguments?.getString("postId")
                 EditorScreen(
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    postId = postId
                 )
             }
         }

@@ -17,8 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +53,8 @@ import java.util.Locale
 fun PostDetailScreen(
     cid: Int,
     postRepository: PostRepository,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onEdit: (Int) -> Unit = {}
 ) {
     var post by remember { mutableStateOf<Post?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -92,6 +95,20 @@ fun PostDetailScreen(
                 },
                 scrollBehavior = scrollBehavior
             )
+        },
+        floatingActionButton = {
+            if (post != null) {
+                FloatingActionButton(
+                    onClick = { onEdit(cid) },
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "编辑",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
         }
     ) { padding ->
         when {

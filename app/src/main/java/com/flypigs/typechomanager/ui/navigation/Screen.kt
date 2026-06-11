@@ -11,7 +11,9 @@ sealed class Screen(val route: String) {
     data object PostDetail : Screen("postDetail/{cid}") {
         fun createRoute(cid: Int) = "postDetail/$cid"
     }
-    data object Editor : Screen("editor") {
-        fun createRoute() = "editor"
+    data object Editor : Screen("editor?postId={postId}") {
+        fun createRoute(postId: String? = null): String {
+            return if (postId != null) "editor?postId=$postId" else "editor"
+        }
     }
 }
