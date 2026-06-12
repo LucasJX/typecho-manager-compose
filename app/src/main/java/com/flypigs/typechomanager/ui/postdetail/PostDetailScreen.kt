@@ -42,7 +42,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,15 +50,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import com.flypigs.typechomanager.ui.editor.MarkdownPreview
-import com.flypigs.typechomanager.util.extractFirstImageUrl
+import com.flypigs.typechomanager.util.formatDate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -86,19 +83,8 @@ fun PostDetailScreen(
         }
     }
 
-    // 工具栏背景透明度
+    // 工具栏始终不透明（无封面图）
     val scrollState = rememberLazyListState()
-    val toolbarAlpha by remember {
-        derivedStateOf {
-            val firstVisibleIndex = scrollState.firstVisibleItemIndex
-            val firstVisibleOffset = scrollState.firstVisibleItemScrollOffset
-            if (firstVisibleIndex == 0) {
-                (firstVisibleOffset / 120f).coerceIn(0f, 1f)
-            } else {
-                1f
-            }
-        }
-    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -111,28 +97,13 @@ fun PostDetailScreen(
             } else if (post != null) {
                 val p = post!!
                 val isDraftOrPrivate = p.status == "draft" || p.status == "private"
-                val coverUrl = p.cover.takeIf { it.isNotEmpty() } ?: extractFirstImageUrl(p.text)
 
                 // 内容区域
                 LazyColumn(
                     state = scrollState,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    // 头图（紧凑高度）
-                    item(key = "header_image") {
-                        if (coverUrl != null) {
-                            AsyncImage(
-                                model = coverUrl,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp),
-                                contentScale = ContentScale.Crop,
-                            )
-                        }
-                    }
-
-                    // 文章信息
+                    // 文章信息（紧凑头部，与其他页面一致）
                     item(key = "article_info") {
                         Column(
                             modifier = Modifier
@@ -228,7 +199,7 @@ fun PostDetailScreen(
                 TopAppBar(
                     title = {
                         AnimatedVisibility(
-                            visible = toolbarAlpha > 0.5f,
+                            visible = true,
                             enter = fadeIn(),
                             exit = fadeOut(),
                         ) {
@@ -245,12 +216,12 @@ fun PostDetailScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "返回",
-                                tint = if (toolbarAlpha < 0.5f) Color.White else MaterialTheme.colorScheme.onSurface,
+                                tint = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = toolbarAlpha),
+                        containerColor = MaterialTheme.colorScheme.surface,
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
