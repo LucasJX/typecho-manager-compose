@@ -70,6 +70,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.ui.components.PageHeaderWithSubtitle
 import com.flypigs.typechomanager.ui.components.v3.ArticleCard
 import com.flypigs.typechomanager.ui.components.v3.FilterChipRow
 import com.flypigs.typechomanager.ui.components.v3.FilterItem
@@ -196,7 +197,13 @@ fun PostsScreen(
                         }
                     }
                 } else {
-                    // 普通搜索栏
+                    // 大标题（与其他页面一致）
+                    PageHeaderWithSubtitle(
+                        title = "文章",
+                        subtitle = "共 ${filteredPosts.size} 篇",
+                    )
+
+                    // 搜索栏
                     SearchBar(
                         query = searchQuery,
                         onQueryChange = { searchQuery = it },
@@ -221,32 +228,12 @@ fun PostsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = DesignSystem.Spacing.Large)
-                            .height(DesignSystem.Component.SearchBarHeight)
-                            .padding(top = DesignSystem.Spacing.Small),
+                            .height(DesignSystem.Component.SearchBarHeight),
                         shape = DesignSystem.Corner.Input,
                     ) {}
                 }
 
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
-
-                // ═══════════════════════════════════════════
-                // 顶部标题行：文章 / 共 N 篇
-                // ═══════════════════════════════════════════
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.Large),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "文章 / 共 ${filteredPosts.size} 篇",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
                 // ═══════════════════════════════════════════
                 // FilterChip 组

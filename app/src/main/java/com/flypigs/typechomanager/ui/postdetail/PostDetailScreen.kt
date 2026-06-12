@@ -126,23 +126,11 @@ fun PostDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(280.dp),
+                                    .height(200.dp),
                                 contentScale = ContentScale.Crop,
                             )
                         } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                                MaterialTheme.colorScheme.surface,
-                                            )
-                                        )
-                                    ),
-                            )
+                            Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
 
