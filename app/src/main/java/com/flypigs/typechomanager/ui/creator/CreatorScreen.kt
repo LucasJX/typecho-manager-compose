@@ -1,16 +1,18 @@
 package com.flypigs.typechomanager.ui.creator
 
+import android.net.Uri
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -19,20 +21,30 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,11 +52,35 @@ import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 fun CreatorScreen(
     onWriteArticle: () -> Unit = {},
     onNewDraft: () -> Unit = {},
-    onUploadImage: () -> Unit = {},
     onAIAssist: () -> Unit = {},
+    onMaterialLibrary: () -> Unit = {},
+    onBack: () -> Unit = {},
+    viewModel: CreatorViewModel = hiltViewModel(),
 ) {
+    BackHandler(onBack = onBack)
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // 图片选择器
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.uploadImage(it) }
+    }
+
+    // 显示上传结果
+    LaunchedEffect(uiState.uploadResult, uiState.error) {
+        val message = uiState.uploadResult ?: uiState.error
+        message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearResult()
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -84,10 +120,11 @@ fun CreatorScreen(
                 }
                 item {
                     CreatorEntryCard(
-                        icon = Icons.Default.CloudUpload,
-                        title = "上传图片",
+                        icon = if (uiState.isUploading) null else Icons.Default.CloudUpload,
+                        title = if (uiState.isUploading) "上传中..." else "上传图片",
                         subtitle = "上传到素材库",
-                        onClick = onUploadImage,
+                        onClick = { if (!uiState.isUploading) imagePickerLauncher.launch("image/*") },
+                        isLoading = uiState.isUploading,
                     )
                 }
                 item {
@@ -95,7 +132,23 @@ fun CreatorScreen(
                         icon = Icons.Default.AutoAwesome,
                         title = "AI 辅助",
                         subtitle = "智能创作",
-                        onClick = onAIAssist,
+                        onClick = {
+                            onAIAssist()
+                            // AI 功能尚未实现，给用户反馈
+                            snackbarHostState.let { state ->
+                                scope.launch {
+                                    state.showSnackbar("AI 辅助功能即将上线")
+                                }
+                            }
+                        },
+                    )
+                }
+                item {
+                    CreatorEntryCard(
+                        icon = Icons.Default.PhotoLibrary,
+                        title = "素材库",
+                        subtitle = "浏览已有素材",
+                        onClick = onMaterialLibrary,
                     )
                 }
             }
@@ -105,10 +158,11 @@ fun CreatorScreen(
 
 @Composable
 private fun CreatorEntryCard(
-    icon: ImageVector,
+    icon: ImageVector?,
     title: String,
     subtitle: String,
     onClick: () -> Unit,
+    isLoading: Boolean = false,
 ) {
     Card(
         onClick = onClick,
@@ -127,12 +181,19 @@ private fun CreatorEntryCard(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                modifier = Modifier.size(40.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            } else if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
             Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
             Text(
                 text = title,
@@ -149,3 +210,4 @@ private fun CreatorEntryCard(
         }
     }
 }
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.XXLarge),

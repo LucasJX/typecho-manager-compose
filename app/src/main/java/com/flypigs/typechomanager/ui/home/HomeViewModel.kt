@@ -56,7 +56,11 @@ class HomeViewModel @Inject constructor(
     /** Initial load — fetches posts and categories in parallel. */
     private fun loadPosts() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            // 仅在无数据时显示 loading，有缓存时静默加载
+            val showLoading = _uiState.value.allPosts.isEmpty()
+            if (showLoading) {
+                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            }
             try {
                 val posts = postRepository.getRecentPosts()
                 val categories = try {

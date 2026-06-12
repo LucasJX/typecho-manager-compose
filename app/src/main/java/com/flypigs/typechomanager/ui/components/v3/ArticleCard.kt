@@ -44,6 +44,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.util.extractFirstImageUrl
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -121,6 +122,7 @@ fun ArticleCard(
                 imageUrl = post.cover,
                 title = post.title,
                 category = post.categories.firstOrNull() ?: "",
+                text = post.text,
                 modifier = Modifier.size(DesignSystem.Component.CardThumbnailSize),
             )
 
@@ -217,11 +219,13 @@ private fun ThumbnailImage(
     title: String,
     category: String,
     modifier: Modifier = Modifier,
+    text: String = "",
 ) {
-    if (!imageUrl.isNullOrEmpty()) {
+    val effectiveUrl = imageUrl?.takeIf { it.isNotEmpty() } ?: extractFirstImageUrl(text)
+    if (effectiveUrl != null) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(imageUrl)
+                .data(effectiveUrl)
                 .crossfade(DesignSystem.Animation.CrossfadeDuration)
                 .build(),
             contentDescription = title,

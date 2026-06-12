@@ -1,5 +1,6 @@
 package com.flypigs.typechomanager.ui.editor
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -19,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,6 +67,7 @@ fun EditorScreen(
     postId: String? = null,
     viewModel: EditorViewModel = hiltViewModel()
 ) {
+    BackHandler(onBack = onBack)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSettingsSheet by remember { mutableStateOf(false) }
@@ -141,8 +144,8 @@ fun EditorScreen(
             // 底部操作栏
             EditorBottomBar(
                 isPublishing = uiState.isPublishing,
-                status = uiState.status,
                 onSaveDraft = { viewModel.saveDraft() },
+                onPublishPrivate = { viewModel.publishPrivate() },
                 onPublish = { viewModel.publish() }
             )
         },
@@ -298,16 +301,16 @@ private fun ToolbarButton(
 @Composable
 private fun EditorBottomBar(
     isPublishing: Boolean,
-    status: Post.Companion.Status,
     onSaveDraft: () -> Unit,
-    onPublish: () -> Unit
+    onPublishPrivate: () -> Unit,
+    onPublish: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 保存草稿
@@ -319,7 +322,32 @@ private fun EditorBottomBar(
             Text("保存草稿")
         }
 
-        // 发布按钮
+        // 私密发布
+        OutlinedButton(
+            onClick = onPublishPrivate,
+            enabled = !isPublishing,
+            modifier = Modifier.weight(1f),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.tertiary
+            )
+        ) {
+            if (isPublishing) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                )
+            } else {
+                Icon(
+                    Icons.Default.VisibilityOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("私密")
+            }
+        }
+
+        // 发布
         Button(
             onClick = onPublish,
             enabled = !isPublishing,
@@ -335,13 +363,7 @@ private fun EditorBottomBar(
                     strokeWidth = 2.dp
                 )
             } else {
-                Text(
-                    when (status) {
-                        Post.Companion.Status.PUBLISH -> "发布"
-                        Post.Companion.Status.DRAFT -> "发布草稿"
-                        Post.Companion.Status.PRIVATE -> "私密发布"
-                    }
-                )
+                Text("发布")
             }
         }
     }

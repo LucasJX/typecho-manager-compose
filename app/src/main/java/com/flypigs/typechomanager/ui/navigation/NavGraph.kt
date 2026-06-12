@@ -156,6 +156,13 @@ fun NavGraph(
                     },
                     onWriteClick = {
                         navController.navigate(Screen.Editor.createRoute())
+                    },
+                    onBack = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }
@@ -168,18 +175,35 @@ fun NavGraph(
                     onNewDraft = {
                         navController.navigate(Screen.Editor.createRoute())
                     },
-                    onUploadImage = {
-                        // TODO: 上传图片
-                    },
                     onAIAssist = {
                         // TODO: AI 辅助
+                    },
+                    onMaterialLibrary = {
+                        navController.navigate(Screen.Attachments.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onBack = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     },
                 )
             }
 
             composable(Screen.Attachments.route) {
                 AttachmentsScreen(
-                    onBack = { navController.popBackStack() }
+                    onBack = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
 
@@ -187,6 +211,13 @@ fun NavGraph(
                 ProfileScreen(
                     onNavigateToChangelog = {
                         navController.navigate(Screen.Changelog.route)
+                    },
+                    onBack = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }

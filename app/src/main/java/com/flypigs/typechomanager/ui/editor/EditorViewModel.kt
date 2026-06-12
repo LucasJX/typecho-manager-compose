@@ -6,6 +6,7 @@ import com.flypigs.typechomanager.data.local.ConfigDataStore
 import com.flypigs.typechomanager.data.model.Category
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.data.remote.XmlRpcClient
+import com.flypigs.typechomanager.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +33,7 @@ data class EditorUiState(
 @HiltViewModel
 class EditorViewModel @Inject constructor(
     private val xmlRpcClient: XmlRpcClient,
+    private val postRepository: PostRepository,
     private val configDataStore: ConfigDataStore,
 ) : ViewModel() {
 
@@ -49,13 +51,12 @@ class EditorViewModel @Inject constructor(
         editingPostId = postId
         viewModelScope.launch {
             try {
-                val config = configDataStore.getConfig()
-                val post = xmlRpcClient.getPost(
-                    endpoint = config.endpoint,
-                    username = config.username,
-                    password = config.password,
-                    postId = postId
-                )
+                val cid = postId.toIntOrNull() ?: 0
+                // 先从缓存找，避免 XML-RPC 500 错误
+                val cached = if (cid > 0) {
+                    postRepository.getRecentPosts().find { it.cid == cid }
+                } else null
+                val post = cached ?: postRepository.getPost(cid)
                 _uiState.value = _uiState.value.copy(
                     title = post.title,
                     content = post.text,
@@ -182,6 +183,11 @@ class EditorViewModel @Inject constructor(
 
     fun saveDraft() {
         setStatus(Post.Companion.Status.DRAFT)
+        publish()
+    }
+
+    fun publishPrivate() {
+        setStatus(Post.Companion.Status.PRIVATE)
         publish()
     }
 

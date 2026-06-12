@@ -26,6 +26,8 @@ class PostRepository @Inject constructor(
 ) {
     private val cacheMutex = Mutex()
     private var cachedPosts: List<Post>? = null
+    private var cachedCategories: List<Category>? = null
+    private var cachedAttachments: List<Attachment>? = null
 
     /**
      * Fetch recent posts from the blog.
@@ -117,19 +119,27 @@ class PostRepository @Inject constructor(
     }
 
     /** Fetch all categories for the blog. */
-    suspend fun getCategories(): List<Category> {
+    suspend fun getCategories(refresh: Boolean = false): List<Category> = cacheMutex.withLock {
+        if (!refresh && cachedCategories != null) {
+            return@withLock cachedCategories!!
+        }
         val config = configDataStore.getConfig()
         require(config.endpoint.isNotBlank()) { "Blog endpoint is not configured" }
 
-        return xmlRpcClient.getCategories(
+        val categories = xmlRpcClient.getCategories(
             endpoint = config.endpoint,
             username = config.username,
             password = config.password
         )
+        cachedCategories = categories
+        categories
     }
 
     /** Fetch all attachments for the blog. */
-    suspend fun getAttachments(): List<Attachment> {
+    suspend fun getAttachments(refresh: Boolean = false): List<Attachment> = cacheMutex.withLock {
+        if (!refresh && cachedAttachments != null) {
+            return@withLock cachedAttachments!!
+        }
         val config = configDataStore.getConfig()
         val companionBase = config.blogUrl.ifEmpty {
             config.endpoint.substringBefore("/index.php")
@@ -141,11 +151,14 @@ class PostRepository @Inject constructor(
             page = 1,
             pageSize = 1000
         )
-        return items
+        cachedAttachments = items
+        items
     }
 
     /** Clear the in-memory cache (e.g. on logout). */
     fun invalidateCache() {
         cachedPosts = null
+        cachedCategories = null
+        cachedAttachments = null
     }
 }

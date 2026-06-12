@@ -1,5 +1,6 @@
 package com.flypigs.typechomanager.ui.changelog
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ private data class GitHubRelease(
 fun ChangelogScreen(
     onBack: () -> Unit,
 ) {
+    BackHandler(onBack = onBack)
     var releases by remember { mutableStateOf<List<GitHubRelease>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -176,11 +178,25 @@ private fun ReleaseCard(release: GitHubRelease) {
             Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
             // Release notes (Markdown)
-            if (release.body.isNotBlank()) {
+            if (release.body.isNotBlank() && release.body.length > 20) {
                 MarkdownPreview(
                     markdown = release.body,
                     modifier = Modifier.fillMaxWidth(),
                 )
+            } else {
+                Text(
+                    text = "版本 ${release.name.ifEmpty { release.tag_name }} 发布，包含功能优化和问题修复。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (release.html_url.isNotBlank()) {
+                    Text(
+                        text = "查看完整更新说明 →",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.flypigs.typechomanager.ui.posts
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -81,8 +82,10 @@ import kotlinx.coroutines.launch
 fun PostsScreen(
     onPostClick: (Int) -> Unit,
     onWriteClick: () -> Unit,
+    onBack: () -> Unit = {},
     viewModel: PostsViewModel = hiltViewModel(),
 ) {
+    BackHandler(onBack = onBack)
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -218,12 +221,13 @@ fun PostsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = DesignSystem.Spacing.Large)
-                            .height(DesignSystem.Component.SearchBarHeight),
+                            .height(DesignSystem.Component.SearchBarHeight)
+                            .padding(top = DesignSystem.Spacing.Small),
                         shape = DesignSystem.Corner.Input,
                     ) {}
                 }
 
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
 
                 // ═══════════════════════════════════════════
                 // 顶部标题行：文章 / 共 N 篇

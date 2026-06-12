@@ -1,5 +1,6 @@
 package com.flypigs.typechomanager.ui.attachments
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -88,6 +89,7 @@ fun AttachmentsScreen(
     onBack: () -> Unit,
     viewModel: AttachmentsViewModel = hiltViewModel(),
 ) {
+    BackHandler(onBack = onBack)
     val uiState by viewModel.uiState.collectAsState()
     val filteredAttachments by viewModel.filteredAttachments.collectAsState()
     val gridState = rememberLazyGridState()

@@ -81,6 +81,7 @@ import com.flypigs.typechomanager.ui.components.v3.MorphingFab
 import com.flypigs.typechomanager.ui.components.v3.rememberCountUpState
 import com.flypigs.typechomanager.ui.components.v3.itemEnterAnimation
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
+import com.flypigs.typechomanager.util.extractFirstImageUrl
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -515,6 +516,7 @@ private fun ArticleCarouselCard(
     post: Post,
     onClick: () -> Unit,
 ) {
+    val coverUrl = post.cover.takeIf { it.isNotEmpty() } ?: extractFirstImageUrl(post.text)
     Card(
         modifier = Modifier
             .size(
@@ -530,10 +532,10 @@ private fun ArticleCarouselCard(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // 封面图或渐变占位
-            if (!post.cover.isNullOrEmpty()) {
+            if (coverUrl != null) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(post.cover)
+                        .data(coverUrl)
                         .crossfade(DesignSystem.Animation.CrossfadeDuration)
                         .build(),
                     contentDescription = post.title,

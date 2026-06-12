@@ -1,5 +1,6 @@
 package com.flypigs.typechomanager.ui.profile
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -55,7 +56,9 @@ import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToChangelog: () -> Unit = {},
+    onBack: () -> Unit = {},
 ) {
+    BackHandler(onBack = onBack)
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
