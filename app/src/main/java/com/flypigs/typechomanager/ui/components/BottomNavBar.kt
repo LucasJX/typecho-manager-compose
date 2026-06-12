@@ -1,10 +1,13 @@
 package com.flypigs.typechomanager.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateIntOffsetAsState
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -92,9 +95,15 @@ fun BottomNavBar(navController: NavController) {
                         modifier = Modifier.scale(scale)
                     )
                 },
-                label = if (selected) {
-                    { Text(text = item.label, style = MaterialTheme.typography.labelMedium) }
-                } else null,
+                label = {
+                    AnimatedVisibility(
+                        visible = selected,
+                        enter = expandIn(expandFrom = Alignment.Center),
+                        exit = shrinkOut(shrinkTowards = Alignment.Center),
+                    ) {
+                        Text(text = item.label, style = MaterialTheme.typography.labelMedium)
+                    }
+                },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,

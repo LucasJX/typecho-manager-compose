@@ -21,22 +21,16 @@ object DesignSystem {
     // 间距系统（只允许 8/16/24/32）
     // ═══════════════════════════════════════════════════════
     object Spacing {
+        val ExtraSmall = 4.dp      // 最小间距（图标与文字间隙）
         val Small = 8.dp           // 紧凑间距
         val Medium = 16.dp         // 标准间距
         val Large = 24.dp          // 区域间距
         val ExtraLarge = 32.dp     // 页面边距 / Hero 区域
+        val XXLarge = 48.dp        // 大块留白
         val CardPadding = 16.dp    // 卡片内边距
         val CardGap = 8.dp         // 卡片间距
         val SectionGap = 24.dp     // 区块间距
         val PageHorizontal = 16.dp // 页面水平边距
-
-        // 兼容旧值（逐步迁移）
-        @Deprecated("Use Small (8dp)", ReplaceWith("Small"))
-        val ExtraSmall = 4.dp
-        @Deprecated("Use Large (24dp)", ReplaceWith("Large"))
-        val XXLarge = 24.dp
-        @Deprecated("Use ExtraLarge (32dp)", ReplaceWith("ExtraLarge"))
-        val XXXLarge = 32.dp
     }
 
     // ═══════════════════════════════════════════════════════
@@ -56,23 +50,11 @@ object DesignSystem {
         // 输入框类
         val Input = RoundedCornerShape(16.dp)
 
-        // 兼容旧值（逐步迁移）
-        @Deprecated("Use Button", ReplaceWith("Button"))
-        val SmallButton = Button
-        @Deprecated("Use Card", ReplaceWith("Card"))
-        val LargeContainer = Card
-        @Deprecated("Use Card", ReplaceWith("Card"))
-        val Thumbnail = RoundedCornerShape(24.dp)
-        @Deprecated("Use Card", ReplaceWith("Card"))
-        val ImageSmall = RoundedCornerShape(24.dp)
-        @Deprecated("Use Button", ReplaceWith("Button"))
-        val Small = RoundedCornerShape(20.dp)
-        @Deprecated("Use Input", ReplaceWith("Input"))
+        // 中等容器（列表项）
         val Medium = RoundedCornerShape(16.dp)
-        @Deprecated("Use Input", ReplaceWith("Input"))
-        val Large = RoundedCornerShape(16.dp)
-        @Deprecated("Use Button", ReplaceWith("Button"))
-        val ExtraLarge = Button
+
+        // 缩略图
+        val Thumbnail = RoundedCornerShape(12.dp)
     }
 
     // ═══════════════════════════════════════════════════════
@@ -163,38 +145,6 @@ object DesignSystem {
         val Title = 20.sp
         val Body = 16.sp
         val Label = 12.sp
-
-        // 兼容旧 M3 命名（逐步迁移）
-        @Deprecated("Use Display", ReplaceWith("Display"))
-        val DisplayLarge = Display
-        @Deprecated("Use Display", ReplaceWith("Display"))
-        val DisplayMedium = Display
-        @Deprecated("Use Display", ReplaceWith("Display"))
-        val DisplaySmall = Display
-        @Deprecated("Use Headline", ReplaceWith("Headline"))
-        val HeadlineLarge = Headline
-        @Deprecated("Use Headline", ReplaceWith("Headline"))
-        val HeadlineMedium = Headline
-        @Deprecated("Use Headline", ReplaceWith("Headline"))
-        val HeadlineSmall = 24.sp
-        @Deprecated("Use Title", ReplaceWith("Title"))
-        val TitleLarge = Title
-        @Deprecated("Use Title", ReplaceWith("Title"))
-        val TitleMedium = Title
-        @Deprecated("Use Body", ReplaceWith("Body"))
-        val TitleSmall = Body
-        @Deprecated("Use Body", ReplaceWith("Body"))
-        val BodyLarge = Body
-        @Deprecated("Use Body", ReplaceWith("Body"))
-        val BodyMedium = 14.sp
-        @Deprecated("Use Label", ReplaceWith("Label"))
-        val BodySmall = Label
-        @Deprecated("Use Body", ReplaceWith("Body"))
-        val LabelLarge = 14.sp
-        @Deprecated("Use Label", ReplaceWith("Label"))
-        val LabelMedium = Label
-        @Deprecated("Use Label", ReplaceWith("Label"))
-        val LabelSmall = 11.sp
     }
 
     // ═══════════════════════════════════════════════════════

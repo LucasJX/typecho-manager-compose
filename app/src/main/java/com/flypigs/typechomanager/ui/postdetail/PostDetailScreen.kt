@@ -137,7 +137,7 @@ fun PostDetailScreen(
                                         modifier = Modifier
                                             .clip(DesignSystem.Corner.Chip)
                                             .background(MaterialTheme.colorScheme.primaryContainer)
-                                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                                            .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
                                     )
                                 }
 
@@ -157,7 +157,7 @@ fun PostDetailScreen(
                                         modifier = Modifier
                                             .clip(DesignSystem.Corner.Chip)
                                             .background(MaterialTheme.colorScheme.errorContainer)
-                                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                                            .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
                                     )
                                 }
                             }
@@ -194,7 +194,7 @@ fun PostDetailScreen(
 
                     // 底部间距
                     item(key = "bottom_spacer") {
-                        Spacer(modifier = Modifier.height(120.dp))
+                        Spacer(modifier = Modifier.height(DesignSystem.Component.FabBottomPadding + DesignSystem.Spacing.Large))
                     }
                 }
 
@@ -228,7 +228,7 @@ fun PostDetailScreen(
                             // 阅读数
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Visibility,
@@ -246,7 +246,7 @@ fun PostDetailScreen(
                             // 评论数
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Comment,
@@ -284,7 +284,7 @@ fun PostDetailScreen(
                                             contentDescription = null,
                                             modifier = Modifier.size(18.dp),
                                         )
-                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Spacer(modifier = Modifier.width(DesignSystem.Spacing.ExtraSmall))
                                         Text("发布")
                                     }
                                 }
@@ -299,7 +299,7 @@ fun PostDetailScreen(
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp),
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                Spacer(modifier = Modifier.width(DesignSystem.Spacing.ExtraSmall))
                                 Text("编辑")
                             }
                         }

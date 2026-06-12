@@ -326,7 +326,7 @@ private fun DataCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,

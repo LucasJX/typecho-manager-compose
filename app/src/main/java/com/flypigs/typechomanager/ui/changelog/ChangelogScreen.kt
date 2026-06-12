@@ -190,7 +190,7 @@ private fun ReleaseCard(release: GitHubRelease) {
                 text = dateStr,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
             )
 
             Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
@@ -212,7 +212,7 @@ private fun ReleaseCard(release: GitHubRelease) {
                         text = "查看完整更新说明 →",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
                     )
                 }
             }

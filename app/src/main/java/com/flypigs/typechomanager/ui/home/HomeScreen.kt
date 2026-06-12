@@ -365,7 +365,7 @@ private fun GreetingSection(
             text = "今天有 $postCount 篇文章，最近更新 $latestUpdate",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
         )
     }
 }
@@ -589,7 +589,7 @@ private fun ArticleCarouselCard(
                     text = formatRelativeTime(post.created),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
                 )
             }
         }
@@ -633,7 +633,7 @@ private fun ActivityTimelineItem(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(top = 6.dp)
+                    .padding(top = DesignSystem.Spacing.Small)
                     .size(8.dp)
                     .background(MaterialTheme.colorScheme.primary, CircleShape),
             )
@@ -742,7 +742,7 @@ private fun QuickActionButton(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
             )
         }
     }

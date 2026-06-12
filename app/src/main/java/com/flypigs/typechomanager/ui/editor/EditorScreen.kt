@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flypigs.typechomanager.data.model.Post
+import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,7 +170,7 @@ fun EditorScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
                 textStyle = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -186,8 +187,8 @@ fun EditorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(horizontal = DesignSystem.Spacing.Medium),
+                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)
                 ) {
                     uiState.selectedCategories.forEach { category ->
                         FilterChip(
@@ -202,7 +203,7 @@ fun EditorScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
 
             // 内容区域
             if (uiState.isPreview) {
@@ -236,7 +237,7 @@ fun EditorScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = DesignSystem.Spacing.Medium),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
                         fontFamily = FontFamily.Monospace,
                         lineHeight = 24.sp
@@ -259,9 +260,9 @@ private fun MarkdownToolbar(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = DesignSystem.Spacing.Small, vertical = DesignSystem.Spacing.ExtraSmall)
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall)
     ) {
         ToolbarButton("B", "粗体") { onInsert("**", "**") }
         ToolbarButton("I", "斜体") { onInsert("*", "*") }
@@ -309,8 +310,8 @@ private fun EditorBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 保存草稿
@@ -342,7 +343,7 @@ private fun EditorBottomBar(
                     contentDescription = null,
                     modifier = Modifier.size(16.dp)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(DesignSystem.Spacing.ExtraSmall))
                 Text("私密")
             }
         }
@@ -386,20 +387,20 @@ private fun PostSettingsSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+        shape = DesignSystem.Corner.Hero
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
+                .padding(horizontal = DesignSystem.Spacing.Large)
+                .padding(bottom = DesignSystem.Spacing.ExtraLarge)
         ) {
             Text(
                 "文章设置",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.Large)
             )
 
             // 分类选择
@@ -407,7 +408,7 @@ private fun PostSettingsSheet(
                 "分类",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.Medium)
             )
 
             if (uiState.isLoadingCategories) {
@@ -415,7 +416,7 @@ private fun PostSettingsSheet(
             } else {
                 // 使用简单的 Column 布局替代 FlowRow
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)
                 ) {
                     uiState.categories.forEach { category ->
                         val isSelected = uiState.selectedCategories.contains(category.name)
@@ -437,14 +438,14 @@ private fun PostSettingsSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
 
             // 标签输入
             Text(
                 "标签",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.Small)
             )
             OutlinedTextField(
                 value = uiState.tags,
@@ -454,17 +455,17 @@ private fun PostSettingsSheet(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
 
             // 发布状态
             Text(
                 "状态",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.Medium)
             )
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)
             ) {
                 Post.Companion.Status.entries.forEach { status ->
                     FilterChip(
@@ -488,27 +489,27 @@ private fun PostSettingsSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
 
             // 权限控制
             Text(
                 "权限",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = DesignSystem.Spacing.Small)
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onToggleComment() }
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = DesignSystem.Spacing.Small)
             ) {
                 Checkbox(
                     checked = uiState.allowComment,
                     onCheckedChange = { onToggleComment() }
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
                 Text("允许评论", style = MaterialTheme.typography.bodyLarge)
             }
             Row(
@@ -516,17 +517,17 @@ private fun PostSettingsSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onTogglePing() }
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = DesignSystem.Spacing.Small)
             ) {
                 Checkbox(
                     checked = uiState.allowPing,
                     onCheckedChange = { onTogglePing() }
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
                 Text("允许被引用", style = MaterialTheme.typography.bodyLarge)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
             // 确认按钮
             Button(

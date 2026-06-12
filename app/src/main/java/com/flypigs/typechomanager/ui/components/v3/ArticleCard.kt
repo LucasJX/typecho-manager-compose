@@ -140,12 +140,12 @@ fun ArticleCard(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
 
                 // 分类 · 发布时间
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
                 ) {
                     val category = post.categories.firstOrNull()
                     if (!category.isNullOrEmpty()) {
@@ -175,7 +175,7 @@ fun ArticleCard(
                     // 阅读数
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Visibility,
@@ -193,7 +193,7 @@ fun ArticleCard(
                     // 评论数
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChatBubbleOutline,

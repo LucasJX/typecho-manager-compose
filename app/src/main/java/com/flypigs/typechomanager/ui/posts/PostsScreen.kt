@@ -493,7 +493,7 @@ private fun BatchActionButton(
             modifier = Modifier.size(18.dp),
             tint = tint,
         )
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
