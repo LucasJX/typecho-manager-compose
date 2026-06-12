@@ -1,17 +1,13 @@
 package com.flypigs.typechomanager.ui.postdetail
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,8 +33,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -87,6 +80,7 @@ fun PostDetailScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (isLoading) {
@@ -102,25 +96,35 @@ fun PostDetailScreen(
                     state = scrollState,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    // 文章信息（紧凑头部，与其他页面一致）
+                    // 返回按钮 + 标题 + 元信息（与其他页面一致）
                     item(key = "article_info") {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(DesignSystem.Spacing.Large),
-                        ) {
-                            // 标题
-                            Text(
-                                text = p.title.ifBlank { "(无标题)" },
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // 返回按钮 + 大标题（与更新日志/素材库一致）
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall)
+                                    .padding(horizontal = DesignSystem.Spacing.Large),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = p.title.ifBlank { "(无标题)" },
+                                        style = MaterialTheme.typography.displaySmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
 
                             // 元信息
                             Row(
+                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                                 horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -193,39 +197,6 @@ fun PostDetailScreen(
                         Spacer(modifier = Modifier.height(120.dp))
                     }
                 }
-
-                // 顶部透明工具栏（悬浮于内容上方）
-                TopAppBar(
-                    title = {
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(),
-                            exit = fadeOut(),
-                        ) {
-                            Text(
-                                text = p.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "返回",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer { alpha = 1f },
-                )
 
                 // 底部悬浮栏（半透明）
                 Box(
