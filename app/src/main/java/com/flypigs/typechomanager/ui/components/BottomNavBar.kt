@@ -50,7 +50,7 @@ private val navItems = listOf(
     NavItem(Screen.Home.route, "首页", Icons.Filled.Home, Icons.Outlined.Home),
     NavItem(Screen.Posts.route, "文章", Icons.Filled.Article, Icons.Outlined.Article),
     NavItem(Screen.Creator.route, "创作", Icons.Filled.Edit, Icons.Outlined.Edit),
-    NavItem(Screen.Attachments.route, "素材", Icons.Filled.Attachment, Icons.Outlined.Attachment),
+    NavItem(Screen.Attachments.route, "资源", Icons.Filled.Attachment, Icons.Outlined.Attachment),
     NavItem(Screen.Profile.route, "我的", Icons.Filled.Person, Icons.Outlined.Person),
 )
 

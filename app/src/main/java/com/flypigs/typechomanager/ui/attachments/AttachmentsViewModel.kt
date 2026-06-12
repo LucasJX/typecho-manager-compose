@@ -1,12 +1,18 @@
 package com.flypigs.typechomanager.ui.attachments
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.os.Environment
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.flypigs.typechomanager.data.local.ConfigDataStore
 import com.flypigs.typechomanager.data.model.Attachment
 import com.flypigs.typechomanager.data.remote.CompanionApiClient
 import com.flypigs.typechomanager.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,9 +20,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
 import javax.inject.Inject
 
-/** 素材库视图模式 */
+/** 媒体资源中心视图模式 */
 enum class ViewMode { GRID, LIST }
 
 data class AttachmentsUiState(
@@ -35,10 +43,13 @@ data class AttachmentsUiState(
 
 @HiltViewModel
 class AttachmentsViewModel @Inject constructor(
+    application: Application,
     private val apiClient: CompanionApiClient,
     private val configDataStore: ConfigDataStore,
     private val postRepository: PostRepository,
-) : ViewModel() {
+) : AndroidViewModel(application) {
+
+    private val context: Context = application
 
     private val _uiState = MutableStateFlow(AttachmentsUiState())
     val uiState: StateFlow<AttachmentsUiState> = _uiState.asStateFlow()
@@ -187,6 +198,43 @@ class AttachmentsViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     isRefreshing = false,
                     error = e.message ?: "Refresh failed"
+                )
+            }
+        }
+    }
+
+    /**
+     * Copy the attachment URL to clipboard.
+     */
+    fun copyLink(attachment: Attachment) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("attachment_url", attachment.url)
+        clipboard.setPrimaryClip(clip)
+    }
+
+    /**
+     * Download the attachment file to the device's Downloads directory.
+     */
+    fun downloadFile(attachment: Attachment) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val url = URL(attachment.url)
+                    val connection = url.openConnection()
+                    connection.connect()
+                    val inputStream = connection.getInputStream()
+                    val downloadsDir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS
+                    )
+                    val outputFile = java.io.File(downloadsDir, attachment.name)
+                    outputFile.outputStream().use { output ->
+                        inputStream.copyTo(output)
+                    }
+                    inputStream.close()
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Download failed"
                 )
             }
         }

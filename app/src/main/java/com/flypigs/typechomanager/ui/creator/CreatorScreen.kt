@@ -118,7 +118,7 @@ fun CreatorScreen(
                     CreatorEntryCard(
                         icon = if (uiState.isUploading) null else Icons.Default.CloudUpload,
                         title = if (uiState.isUploading) "上传中..." else "上传图片",
-                        subtitle = "上传到素材库",
+                        subtitle = "上传到媒体资源中心",
                         onClick = { if (!uiState.isUploading) imagePickerLauncher.launch("image/*") },
                         isLoading = uiState.isUploading,
                     )
@@ -126,7 +126,7 @@ fun CreatorScreen(
                 item {
                     CreatorEntryCard(
                         icon = Icons.Default.PhotoLibrary,
-                        title = "素材库",
+                        title = "媒体资源中心",
                         subtitle = "浏览已有素材",
                         onClick = onMaterialLibrary,
                     )

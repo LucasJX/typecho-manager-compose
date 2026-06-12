@@ -6,8 +6,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,17 +36,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -53,6 +59,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -105,6 +112,10 @@ fun AttachmentsScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<Attachment?>(null) }
 
+    // 长按菜单（底部弹出）
+    var showContextMenu by remember { mutableStateOf(false) }
+    var contextMenuTarget by remember { mutableStateOf<Attachment?>(null) }
+
     // FAB 可见性
     val fabVisible by remember {
         derivedStateOf {
@@ -116,11 +127,12 @@ fun AttachmentsScreen(
         }
     }
 
-    // 统计文本
-    val statText = remember(uiState.attachments, uiState.totalSize) {
-        val count = uiState.attachments.size
-        val size = formatFileSize(uiState.totalSize)
-        "$count 个文件 · $size"
+    // 最近上传时间
+    val recentUploadText = remember(uiState.attachments) {
+        if (uiState.attachments.isNotEmpty()) {
+            val mostRecent = uiState.attachments.maxOfOrNull { it.created } ?: 0L
+            if (mostRecent > 0) formatRelativeTime(mostRecent) else ""
+        } else ""
     }
 
     PullToRefreshBox(
@@ -160,7 +172,7 @@ fun AttachmentsScreen(
                     .padding(horizontal = DesignSystem.Spacing.Large),
             ) {
                 // ═══════════════════════════════════════════
-                // 标题行：素材库 + 统计 + 视图切换
+                // 标题行：媒体资源中心 + 统计 + 视图切换
                 // ═══════════════════════════════════════════
                 Row(
                     modifier = Modifier
@@ -170,13 +182,22 @@ fun AttachmentsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "素材库",
-                            style = MaterialTheme.typography.displaySmall,
+                            text = "媒体资源中心",
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
+                        // 紧凑统计行：文件数 · 总大小 · 最近上传
                         Text(
-                            text = statText,
+                            text = buildString {
+                                append("${uiState.attachments.size} 文件")
+                                append(" · ")
+                                append(formatFileSize(uiState.totalSize))
+                                if (recentUploadText.isNotEmpty()) {
+                                    append(" · ")
+                                    append(recentUploadText)
+                                }
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -203,7 +224,7 @@ fun AttachmentsScreen(
                         .padding(vertical = DesignSystem.Spacing.Small),
                     placeholder = {
                         Text(
-                            "搜索素材...",
+                            "搜索资源...",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         )
@@ -247,7 +268,7 @@ fun AttachmentsScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = "没有找到匹配的素材",
+                            text = "没有找到匹配的资源",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -275,9 +296,9 @@ fun AttachmentsScreen(
                                     previewIndex = filteredAttachments.indexOf(attachment)
                                     showPreview = true
                                 },
-                                onDelete = {
-                                    deleteTarget = attachment
-                                    showDeleteDialog = true
+                                onLongClick = {
+                                    contextMenuTarget = attachment
+                                    showContextMenu = true
                                 },
                             )
                         }
@@ -306,9 +327,9 @@ fun AttachmentsScreen(
                                     previewIndex = filteredAttachments.indexOf(attachment)
                                     showPreview = true
                                 },
-                                onDelete = {
-                                    deleteTarget = attachment
-                                    showDeleteDialog = true
+                                onLongClick = {
+                                    contextMenuTarget = attachment
+                                    showContextMenu = true
                                 },
                             )
                         }
@@ -336,18 +357,116 @@ fun AttachmentsScreen(
         )
     }
 
+    // ═══════════════════════════════════════════════════════
+    // 长按上下文菜单（底部弹出）
+    // ═══════════════════════════════════════════════════════
+    if (showContextMenu && contextMenuTarget != null) {
+        val sheetState = rememberModalBottomSheetState()
+        val target = contextMenuTarget!!
+        ModalBottomSheet(
+            onDismissRequest = { showContextMenu = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = DesignSystem.Corner.Card,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = DesignSystem.Spacing.Large)
+                    .padding(bottom = DesignSystem.Spacing.ExtraLarge),
+            ) {
+                // 文件信息头
+                Text(
+                    text = target.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(bottom = DesignSystem.Spacing.ExtraSmall),
+                )
+                Text(
+                    text = formatFileSize(target.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = DesignSystem.Spacing.Large),
+                )
+
+                // 复制链接
+                DropdownMenuItem(
+                    text = { Text("复制链接", style = MaterialTheme.typography.bodyLarge) },
+                    onClick = {
+                        showContextMenu = false
+                        viewModel.copyLink(target)
+                        scope.launch {
+                            snackbarHostState.showSnackbar("已复制链接")
+                        }
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.ContentCopy,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                )
+
+                // 下载
+                DropdownMenuItem(
+                    text = { Text("下载", style = MaterialTheme.typography.bodyLarge) },
+                    onClick = {
+                        showContextMenu = false
+                        viewModel.downloadFile(target)
+                        scope.launch {
+                            snackbarHostState.showSnackbar("正在下载 ${target.name}")
+                        }
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Download,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                )
+
+                // 删除
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            "删除",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    onClick = {
+                        showContextMenu = false
+                        deleteTarget = target
+                        showDeleteDialog = true
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                )
+            }
+        }
+    }
+
     // 删除确认对话框
     if (showDeleteDialog && deleteTarget != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("确认删除") },
-            text = { Text("确定要删除素材 \"${deleteTarget!!.name}\" 吗？此操作不可撤销。") },
+            text = { Text("确定要删除资源 \"${deleteTarget!!.name}\" 吗？此操作不可撤销。") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         viewModel.deleteAttachment(deleteTarget!!.cid)
                         scope.launch {
-                            snackbarHostState.showSnackbar("已删除素材 \"${deleteTarget!!.name}\"")
+                            snackbarHostState.showSnackbar("已删除资源 \"${deleteTarget!!.name}\"")
                         }
                         showDeleteDialog = false
                         deleteTarget = null
@@ -368,18 +487,22 @@ fun AttachmentsScreen(
 // ═══════════════════════════════════════════════════════
 // 网格卡片 — 毛玻璃悬浮信息层
 // ═══════════════════════════════════════════════════════
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AttachmentGridItem(
     attachment: Attachment,
     onClick: () -> Unit,
-    onDelete: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .clip(DesignSystem.Corner.Thumbnail)
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
     ) {
         // 缩略图
         if (attachment.mime.startsWith("image/") && attachment.url.isNotEmpty()) {
@@ -444,21 +567,6 @@ private fun AttachmentGridItem(
                     color = Color.White.copy(alpha = 0.75f),
                 )
             }
-
-            // 删除按钮（右下角）
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(32.dp),
-            ) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "删除",
-                    tint = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.size(18.dp),
-                )
-            }
         }
     }
 }
@@ -466,17 +574,21 @@ private fun AttachmentGridItem(
 // ═══════════════════════════════════════════════════════
 // 列表项
 // ═══════════════════════════════════════════════════════
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AttachmentListItem(
     attachment: Attachment,
     onClick: () -> Unit,
-    onDelete: () -> Unit,
+    onLongClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(DesignSystem.Corner.Medium)
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
             .background(MaterialTheme.colorScheme.surface)
             .padding(DesignSystem.Spacing.Medium),
         verticalAlignment = Alignment.CenterVertically,
@@ -484,10 +596,10 @@ private fun AttachmentListItem(
         // 缩略图
         if (attachment.mime.startsWith("image/") && attachment.url.isNotEmpty()) {
             AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(attachment.url)
-                        .crossfade(DesignSystem.Animation.CrossfadeDuration)
-                        .build(),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(attachment.url)
+                    .crossfade(DesignSystem.Animation.CrossfadeDuration)
+                    .build(),
                 contentDescription = attachment.name,
                 modifier = Modifier
                     .size(56.dp)
@@ -529,19 +641,6 @@ private fun AttachmentListItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-
-        // 删除按钮
-        IconButton(
-            onClick = onDelete,
-            modifier = Modifier.size(40.dp),
-        ) {
-            Icon(
-                Icons.Default.Delete,
-                contentDescription = "删除",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
-        }
     }
 }
 
@@ -567,10 +666,10 @@ private fun FullScreenPreview(
         // 图片
         if (currentAttachment.url.isNotEmpty()) {
             AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(currentAttachment.url)
-                        .crossfade(DesignSystem.Animation.CrossfadeDuration)
-                        .build(),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(currentAttachment.url)
+                    .crossfade(DesignSystem.Animation.CrossfadeDuration)
+                    .build(),
                 contentDescription = currentAttachment.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit,
@@ -678,4 +777,19 @@ private fun formatFileSize(bytes: Long): String {
 private fun formatTimestamp(timestamp: Long): String {
     val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
+}
+
+private fun formatRelativeTime(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    return when {
+        diff < 60_000 -> "刚刚"
+        diff < 3_600_000 -> "${diff / 60_000} 分钟前"
+        diff < 86_400_000 -> "${diff / 3_600_000} 小时前"
+        diff < 604_800_000 -> "${diff / 86_400_000} 天前"
+        else -> {
+            val sdf = SimpleDateFormat("MM-dd", Locale.getDefault())
+            sdf.format(Date(timestamp))
+        }
+    }
 }

@@ -194,16 +194,23 @@ fun AttachmentsSkeleton() {
         // 标题
         SkeletonBox(
             modifier = Modifier
-                .fillMaxWidth(0.3f)
-                .height(36.dp)
+                .fillMaxWidth(0.4f)
+                .height(28.dp)
+                .padding(horizontal = DesignSystem.Spacing.Large),
+        )
+        // 统计行
+        SkeletonBox(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(14.dp)
                 .padding(horizontal = DesignSystem.Spacing.Large),
         )
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
-        // StatBar
+        // 搜索栏
         SkeletonBox(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(DesignSystem.Component.StatBarHeight)
+                .height(DesignSystem.Component.SearchBarHeight)
                 .padding(horizontal = DesignSystem.Spacing.Large),
         )
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
