@@ -1,5 +1,6 @@
 package com.flypigs.typechomanager.ui.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -83,7 +86,7 @@ import java.util.Locale
 // 布局 (LazyColumn):
 //   1. 问候语 + 博客名
 //   2. 数据概览（4格紧凑横向行）
-//   3. 最新文章 Hero 卡片
+//   3. 最新文章 HorizontalPager（5篇轮播 + 圆点指示器）
 //   4. 最近动态（标题 + 时间线 ×5）
 //   5. 快捷操作（2×2 网格）
 // ═══════════════════════════════════════════════════════════════
@@ -112,9 +115,9 @@ fun HomeScreen(
     var showInspirationSheet by remember { mutableStateOf(false) }
     var inspirationText by remember { mutableStateOf("") }
 
-    // 最新文章（取第一篇作为 Hero）
-    val latestPost = remember(uiState.allPosts) {
-        uiState.allPosts.maxByOrNull { it.created }
+    // 最新文章（取前 5 篇作为 HorizontalPager 页面）
+    val recentPosts = remember(uiState.allPosts) {
+        uiState.allPosts.sortedByDescending { it.created }.take(5)
     }
 
     // 最近动态（按创建时间倒序取前 5 篇）
@@ -170,12 +173,12 @@ fun HomeScreen(
                     )
                 }
 
-                // ─── 3. 最新文章 Hero 卡片 ───
-                if (latestPost != null) {
-                    item(key = "hero") {
-                        ArticleHeroCard(
-                            post = latestPost,
-                            onClick = { onPostClick(latestPost.cid) },
+                // ─── 3. 最新文章 HorizontalPager ───
+                if (recentPosts.isNotEmpty()) {
+                    item(key = "hero_pager") {
+                        ArticleHeroPager(
+                            posts = recentPosts,
+                            onPostClick = { cid -> onPostClick(cid) },
                             modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                         )
                     }
@@ -477,7 +480,60 @@ private fun StatItem(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 3. Article Hero Card — 最新文章大卡片，封面铺满 + 毛玻璃底栏
+// 3. Article Hero Pager — 最新文章 HorizontalPager + 页面指示器
+// ═══════════════════════════════════════════════════════════════
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ArticleHeroPager(
+    posts: List<Post>,
+    onPostClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val pagerState = rememberPagerState(pageCount = { posts.size })
+
+    Column(modifier = modifier) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = DesignSystem.Spacing.Small,
+        ) { page ->
+            ArticleHeroCard(
+                post = posts[page],
+                onClick = { onPostClick(posts[page].cid) },
+            )
+        }
+
+        // 页面指示器（圆点）
+        if (posts.size > 1) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = DesignSystem.Spacing.Small),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                repeat(posts.size) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 3.dp)
+                            .size(if (isSelected) 8.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isSelected) {
+                                    DesignSystem.BrandColors.Primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                }
+                            ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 3b. Article Hero Card — 单篇文章大卡片，封面铺满 + 毛玻璃底栏
 // ═══════════════════════════════════════════════════════════════
 @Composable
 private fun ArticleHeroCard(
