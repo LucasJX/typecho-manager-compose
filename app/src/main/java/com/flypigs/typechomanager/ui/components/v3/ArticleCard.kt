@@ -38,8 +38,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
@@ -51,11 +53,10 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 文章卡片 v2 — 精简版
- * 布局：
- *   封面 + 标题（2行）
- *   分类 · 发布时间（一行）
- *   👁 23  💬 1（一行）
+ * 文章卡片 v3 — 内容管理中心风格
+ * 固定高度 100dp，布局：
+ *   封面 | 标题(2行) + 分类 + 浏览/评论
+ *   右上角状态标签：已发布(绿) / 草稿(黄) / 私密(灰)
  *
  * 支持选中态和长按回调
  */
@@ -85,6 +86,7 @@ fun ArticleCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .height(100.dp)
             .scale(scale)
             .border(borderWidth, borderColor, DesignSystem.Corner.Card)
             .pointerInput(Unit) {
@@ -114,77 +116,79 @@ fun ArticleCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(DesignSystem.Spacing.Large),
-            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
+                .height(100.dp)
+                .padding(DesignSystem.Spacing.Medium),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
         ) {
-            // 左侧缩略图
-            ThumbnailImage(
-                imageUrl = post.cover,
-                title = post.title,
-                category = post.categories.firstOrNull() ?: "",
-                text = post.text,
-                modifier = Modifier.size(DesignSystem.Component.CardThumbnailSize),
-            )
+            // 左侧封面图（正方形，高度撑满）
+            Box(
+                modifier = Modifier
+                    .size(68.dp)
+                    .clip(DesignSystem.Corner.Thumbnail),
+            ) {
+                ThumbnailImage(
+                    imageUrl = post.cover,
+                    title = post.title,
+                    category = post.categories.firstOrNull() ?: "",
+                    text = post.text,
+                    modifier = Modifier.size(68.dp),
+                )
+                // 右上角状态标签
+                StatusBadge(
+                    status = post.status,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp),
+                )
+            }
 
             // 右侧信息
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(68.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // 标题：最多 2 行
                 Text(
                     text = post.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
-
-                // 分类 · 发布时间
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
-                ) {
-                    val category = post.categories.firstOrNull()
-                    if (!category.isNullOrEmpty()) {
-                        Text(
-                            text = category,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = getCategoryColor(category),
-                        )
-                        Text(
-                            text = "·",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                // 分类
+                val category = post.categories.firstOrNull()
+                if (!category.isNullOrEmpty()) {
                     Text(
-                        text = formatRelativeTime(post.created),
+                        text = category,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = getCategoryColor(category),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
 
                 // 👁 23  💬 1
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
+                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                 ) {
                     // 阅读数
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Visibility,
                             contentDescription = null,
-                            modifier = Modifier.size(13.dp),
+                            modifier = Modifier.size(12.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = post.viewsCount.toString(),
+                            text = formatCount(post.viewsCount),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -193,16 +197,16 @@ fun ArticleCard(
                     // 评论数
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.ChatBubbleOutline,
                             contentDescription = null,
-                            modifier = Modifier.size(13.dp),
+                            modifier = Modifier.size(12.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = post.commentCount.toString(),
+                            text = formatCount(post.commentCount),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -210,6 +214,45 @@ fun ArticleCard(
                 }
             }
         }
+    }
+}
+
+/**
+ * 状态标签 — 右上角小圆点+文字
+ * 已发布 = 绿色，草稿 = 黄色，私密 = 灰色
+ */
+@Composable
+private fun StatusBadge(
+    status: String,
+    modifier: Modifier = Modifier,
+) {
+    val (label, color) = when (status) {
+        Post.Companion.Status.PUBLISH.value -> "已发布" to DesignSystem.SemanticColors.Success
+        Post.Companion.Status.DRAFT.value -> "草稿" to DesignSystem.SemanticColors.Warning
+        Post.Companion.Status.PRIVATE.value -> "私密" to MaterialTheme.colorScheme.onSurfaceVariant
+        else -> "草稿" to DesignSystem.SemanticColors.Warning
+    }
+
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color.Black.copy(alpha = 0.55f))
+            .padding(horizontal = 5.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(5.dp)
+                .clip(CircleShape)
+                .background(color),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+            color = Color.White,
+            maxLines = 1,
+        )
     }
 }
 
@@ -270,5 +313,14 @@ private fun formatRelativeTime(date: Long): String {
         diff < 24 * 60 * 60 * 1000 -> "${diff / (60 * 60 * 1000)}小时前"
         diff < 7 * 24 * 60 * 60 * 1000 -> "${diff / (24 * 60 * 60 * 1000)}天前"
         else -> SimpleDateFormat("MM-dd", Locale.getDefault()).format(Date(date))
+    }
+}
+
+/** 格式化数字：1234 → 1.2k */
+private fun formatCount(count: Int): String {
+    return when {
+        count >= 10_000 -> String.format("%.1fw", count / 10_000.0)
+        count >= 1_000 -> String.format("%.1fk", count / 1_000.0)
+        else -> count.toString()
     }
 }

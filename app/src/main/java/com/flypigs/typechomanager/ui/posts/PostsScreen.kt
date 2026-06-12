@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
@@ -44,8 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
@@ -93,6 +93,7 @@ fun PostsScreen(
 
     // 搜索状态
     var searchQuery by remember { mutableStateOf("") }
+    var searchActive by remember { mutableStateOf(false) }
 
     // 多选模式
     var isMultiSelectMode by remember { mutableStateOf(false) }
@@ -226,24 +227,66 @@ fun PostsScreen(
                         }
                     }
 
-                    // 搜索栏
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = { Text("搜索文章…") },
-                        leadingIcon = {
-                            Icon(Icons.Default.Search, contentDescription = "搜索")
+                    // DockedSearchBar
+                    DockedSearchBar(
+                        inputField = {
+                            SearchBarDefaults.InputField(
+                                query = searchQuery,
+                                onQueryChange = { searchQuery = it },
+                                onSearch = { searchActive = false },
+                                expanded = searchActive,
+                                onExpandedChange = { searchActive = it },
+                                placeholder = { Text("搜索文章…") },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Search, contentDescription = "搜索")
+                                },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { searchQuery = "" }) {
+                                            Icon(Icons.Default.Close, contentDescription = "清除")
+                                        }
+                                    }
+                                },
+                            )
                         },
-                        singleLine = true,
-                        shape = DesignSystem.Corner.Input,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        ),
+                        expanded = searchActive,
+                        onExpandedChange = { searchActive = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = DesignSystem.Spacing.Large),
-                    )
+                        shape = DesignSystem.Corner.Input,
+                        colors = SearchBarDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ),
+                    ) {
+                        // 搜索建议（展开时显示匹配结果）
+                        LazyColumn {
+                            items(
+                                filteredPosts.take(5),
+                                key = { "search_${it.cid}" },
+                            ) { post ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                                ) {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Text(
+                                        text = post.title,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
@@ -275,7 +318,7 @@ fun PostsScreen(
                         horizontal = DesignSystem.Spacing.Large,
                         vertical = DesignSystem.Spacing.Small,
                     ),
-                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                     modifier = Modifier.weight(1f),
                 ) {
                     items(
