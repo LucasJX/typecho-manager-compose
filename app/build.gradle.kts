@@ -24,9 +24,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("release-keystore.jks")
-            storePassword = "typecho123"
-            keyAlias = "typecho-companion"
-            keyPassword = "typecho123"
+            storePassword = "blogga123"
+            keyAlias = "blogga"
+            keyPassword = "blogga123"
         }
     }
 
