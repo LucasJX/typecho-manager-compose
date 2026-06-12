@@ -44,8 +44,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
@@ -93,7 +93,6 @@ fun PostsScreen(
 
     // 搜索状态
     var searchQuery by remember { mutableStateOf("") }
-    var isSearchActive by remember { mutableStateOf(false) }
 
     // 多选模式
     var isMultiSelectMode by remember { mutableStateOf(false) }
@@ -228,25 +227,23 @@ fun PostsScreen(
                     }
 
                     // 搜索栏
-                    SearchBar(
-                        query = searchQuery,
-                        onQueryChange = { searchQuery = it },
-                        onSearch = { isSearchActive = false },
-                        active = isSearchActive,
-                        onActiveChange = { isSearchActive = it },
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
                         placeholder = { Text("搜索文章…") },
                         leadingIcon = {
                             Icon(Icons.Default.Search, contentDescription = "搜索")
                         },
-                        trailingIcon = null,
-                        colors = SearchBarDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        singleLine = true,
+                        shape = DesignSystem.Corner.Input,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(DesignSystem.Component.SearchBarHeight),
-                        shape = DesignSystem.Corner.Input,
-                    ) {}
+                            .padding(horizontal = DesignSystem.Spacing.Large),
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))

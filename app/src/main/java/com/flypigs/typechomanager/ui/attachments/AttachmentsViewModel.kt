@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.flypigs.typechomanager.data.local.ConfigDataStore
 import com.flypigs.typechomanager.data.model.Attachment
 import com.flypigs.typechomanager.data.remote.CompanionApiClient
+import com.flypigs.typechomanager.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +36,8 @@ data class AttachmentsUiState(
 @HiltViewModel
 class AttachmentsViewModel @Inject constructor(
     private val apiClient: CompanionApiClient,
-    private val configDataStore: ConfigDataStore
+    private val configDataStore: ConfigDataStore,
+    private val postRepository: PostRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AttachmentsUiState())
@@ -79,29 +81,18 @@ class AttachmentsViewModel @Inject constructor(
      */
     fun loadAttachments() {
         viewModelScope.launch {
-            // 仅在无数据时显示 loading，有缓存时静默加载
-            val showLoading = _uiState.value.attachments.isEmpty()
-            if (showLoading) {
-                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            }
+            // 有缓存数据时直接跳过，不发请求
+            if (_uiState.value.attachments.isNotEmpty()) return@launch
+
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val config = configDataStore.getConfig()
-                val companionBase = config.blogUrl.ifEmpty {
-                    config.endpoint.substringBefore("/index.php")
-                }.trimEnd('/')
-                val (items, totalPages, totalSize) = apiClient.listMedia(
-                    companionBase = companionBase,
-                    username = config.username,
-                    password = config.password,
-                    page = 1,
-                    pageSize = PAGE_SIZE
-                )
+                val items = postRepository.getAttachments(refresh = false)
                 _uiState.value = _uiState.value.copy(
                     attachments = items,
                     total = items.size,
-                    totalSize = totalSize,
+                    totalSize = items.sumOf { it.size },
                     page = 1,
-                    totalPages = totalPages,
+                    totalPages = 1,
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -183,23 +174,13 @@ class AttachmentsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isRefreshing = true, error = null)
             try {
-                val config = configDataStore.getConfig()
-                val companionBase = config.blogUrl.ifEmpty {
-                    config.endpoint.substringBefore("/index.php")
-                }.trimEnd('/')
-                val (items, totalPages, totalSize) = apiClient.listMedia(
-                    companionBase = companionBase,
-                    username = config.username,
-                    password = config.password,
-                    page = 1,
-                    pageSize = PAGE_SIZE
-                )
+                val items = postRepository.getAttachments(refresh = true)
                 _uiState.value = _uiState.value.copy(
                     attachments = items,
                     total = items.size,
-                    totalSize = totalSize,
+                    totalSize = items.sumOf { it.size },
                     page = 1,
-                    totalPages = totalPages,
+                    totalPages = 1,
                     isRefreshing = false
                 )
             } catch (e: Exception) {
