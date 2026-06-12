@@ -22,6 +22,8 @@ data class CreatorUiState(
     val error: String? = null,
     val recentDrafts: List<Post> = emptyList(),
     val isLoadingDrafts: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val totalWordCount: Int = 0,
 )
 
 @HiltViewModel
@@ -39,6 +41,28 @@ class CreatorViewModel @Inject constructor(
         loadRecentDrafts()
     }
 
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isRefreshing = true)
+            try {
+                val posts = postRepository.getRecentPosts()
+                val drafts = posts
+                    .filter { it.status == Post.Companion.Status.DRAFT.value }
+                    .sortedByDescending { it.modified }
+                    .take(5)
+                val totalWords = posts.sumOf { it.text.length }
+                _uiState.value = _uiState.value.copy(
+                    recentDrafts = drafts,
+                    isRefreshing = false,
+                    isLoadingDrafts = false,
+                    totalWordCount = totalWords,
+                )
+            } catch (_: Exception) {
+                _uiState.value = _uiState.value.copy(isRefreshing = false)
+            }
+        }
+    }
+
     private fun loadRecentDrafts() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingDrafts = true)
@@ -48,9 +72,11 @@ class CreatorViewModel @Inject constructor(
                     .filter { it.status == Post.Companion.Status.DRAFT.value }
                     .sortedByDescending { it.modified }
                     .take(5)
+                val totalWords = posts.sumOf { it.text.length }
                 _uiState.value = _uiState.value.copy(
                     recentDrafts = drafts,
                     isLoadingDrafts = false,
+                    totalWordCount = totalWords,
                 )
             } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(isLoadingDrafts = false)

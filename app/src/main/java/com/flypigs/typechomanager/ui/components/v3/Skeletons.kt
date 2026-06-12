@@ -210,6 +210,69 @@ fun PostsSkeleton() {
 }
 
 // ═══════════════════════════════════════════════════════
+// 创作中心骨架
+// ═══════════════════════════════════════════════════════
+@Composable
+fun CreatorSkeleton() {
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = DesignSystem.Spacing.Large),
+        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
+    ) {
+        // 标题区
+        item {
+            Column(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large)) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.4f)
+                        .height(48.dp),
+                )
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.3f)
+                        .height(16.dp),
+                )
+            }
+        }
+        // 操作按钮 2×2
+        item {
+            Column(
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)) {
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)) {
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
+                }
+            }
+        }
+        // 最近草稿标题 + 列表
+        item {
+            Column(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large)) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.25f)
+                        .height(24.dp),
+                )
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                repeat(3) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp),
+                    )
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
 // 附件网格骨架
 // ═══════════════════════════════════════════════════════
 @Composable
