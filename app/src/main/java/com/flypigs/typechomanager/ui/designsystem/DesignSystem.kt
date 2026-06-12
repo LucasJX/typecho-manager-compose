@@ -8,55 +8,71 @@ import androidx.compose.ui.unit.sp
 /**
  * Design System v3 — Blogga 移动博客工作台
  * Material 3 Expressive 视觉规范
+ *
+ * 全局规范（所有页面必须遵守）：
+ * - 间距只允许 8/16/24/32，禁止随机值
+ * - 圆角：按钮 20dp，卡片 24dp，输入框 16dp
+ * - 字体：Display 36, Headline 28, Title 20, Body 16, Label 12
+ * - 动效：页面切换 300ms，卡片点击 scale 0.97
  */
 object DesignSystem {
 
     // ═══════════════════════════════════════════════════════
-    // 间距系统（8dp 基准）
+    // 间距系统（只允许 8/16/24/32）
     // ═══════════════════════════════════════════════════════
     object Spacing {
+        val Small = 8.dp           // 紧凑间距
+        val Medium = 16.dp         // 标准间距
+        val Large = 24.dp          // 区域间距
+        val ExtraLarge = 32.dp     // 页面边距 / Hero 区域
+        val CardPadding = 16.dp    // 卡片内边距
+        val CardGap = 8.dp         // 卡片间距
+        val SectionGap = 24.dp     // 区块间距
+        val PageHorizontal = 16.dp // 页面水平边距
+
+        // 兼容旧值（逐步迁移）
+        @Deprecated("Use Small (8dp)", ReplaceWith("Small"))
         val ExtraSmall = 4.dp
-        val Small = 8.dp
-        val Medium = 12.dp
-        val Large = 16.dp
-        val ExtraLarge = 20.dp
+        @Deprecated("Use Large (24dp)", ReplaceWith("Large"))
         val XXLarge = 24.dp
+        @Deprecated("Use ExtraLarge (32dp)", ReplaceWith("ExtraLarge"))
         val XXXLarge = 32.dp
-        val SectionGap = 24.dp
-        val CardPadding = 16.dp
-        val CardGap = 12.dp
-        val PageHorizontal = 16.dp
     }
 
     // ═══════════════════════════════════════════════════════
-    // 圆角系统
+    // 圆角系统（按钮 20dp，卡片 24dp，输入框 16dp）
     // ═══════════════════════════════════════════════════════
     object Corner {
-        // 小型组件（Chip、小按钮、输入框）
+        // 按钮类
+        val Button = RoundedCornerShape(20.dp)
         val Chip = RoundedCornerShape(20.dp)
-        val SmallButton = RoundedCornerShape(20.dp)
-        val Input = RoundedCornerShape(20.dp)
-
-        // 标准卡片
-        val Card = RoundedCornerShape(24.dp)
-        val StatBar = RoundedCornerShape(24.dp)
-
-        // 大容器（Hero、阅读头图）
-        val Hero = RoundedCornerShape(28.dp)
-        val LargeContainer = RoundedCornerShape(28.dp)
-
-        // FAB
         val Fab = RoundedCornerShape(20.dp)
 
-        // 缩略图
-        val Thumbnail = RoundedCornerShape(12.dp)
-        val ImageSmall = RoundedCornerShape(12.dp)
+        // 卡片类
+        val Card = RoundedCornerShape(24.dp)
+        val StatBar = RoundedCornerShape(24.dp)
+        val Hero = RoundedCornerShape(24.dp)
 
-        // 通用
-        val Small = RoundedCornerShape(8.dp)
-        val Medium = RoundedCornerShape(12.dp)
+        // 输入框类
+        val Input = RoundedCornerShape(16.dp)
+
+        // 兼容旧值（逐步迁移）
+        @Deprecated("Use Button", ReplaceWith("Button"))
+        val SmallButton = Button
+        @Deprecated("Use Card", ReplaceWith("Card"))
+        val LargeContainer = Card
+        @Deprecated("Use Card", ReplaceWith("Card"))
+        val Thumbnail = RoundedCornerShape(24.dp)
+        @Deprecated("Use Card", ReplaceWith("Card"))
+        val ImageSmall = RoundedCornerShape(24.dp)
+        @Deprecated("Use Button", ReplaceWith("Button"))
+        val Small = RoundedCornerShape(20.dp)
+        @Deprecated("Use Input", ReplaceWith("Input"))
+        val Medium = RoundedCornerShape(16.dp)
+        @Deprecated("Use Input", ReplaceWith("Input"))
         val Large = RoundedCornerShape(16.dp)
-        val ExtraLarge = RoundedCornerShape(20.dp)
+        @Deprecated("Use Button", ReplaceWith("Button"))
+        val ExtraLarge = Button
     }
 
     // ═══════════════════════════════════════════════════════
@@ -128,7 +144,7 @@ object DesignSystem {
         val HeatmapHeight = 120.dp
 
         // 首页统计卡
-        val StatCardHeight = 100.dp
+        val StatCardHeight = 96.dp
 
         // 首页横滑文章卡
         val ArticleCarouselWidth = 200.dp
@@ -139,23 +155,45 @@ object DesignSystem {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 排版
+    // 排版（Display 36, Headline 28, Title 20, Body 16, Label 12）
     // ═══════════════════════════════════════════════════════
     object Typography {
-        val DisplayLarge = 48.sp
-        val DisplayMedium = 40.sp
-        val DisplaySmall = 36.sp
-        val HeadlineLarge = 36.sp
-        val HeadlineMedium = 28.sp
+        val Display = 36.sp
+        val Headline = 28.sp
+        val Title = 20.sp
+        val Body = 16.sp
+        val Label = 12.sp
+
+        // 兼容旧 M3 命名（逐步迁移）
+        @Deprecated("Use Display", ReplaceWith("Display"))
+        val DisplayLarge = Display
+        @Deprecated("Use Display", ReplaceWith("Display"))
+        val DisplayMedium = Display
+        @Deprecated("Use Display", ReplaceWith("Display"))
+        val DisplaySmall = Display
+        @Deprecated("Use Headline", ReplaceWith("Headline"))
+        val HeadlineLarge = Headline
+        @Deprecated("Use Headline", ReplaceWith("Headline"))
+        val HeadlineMedium = Headline
+        @Deprecated("Use Headline", ReplaceWith("Headline"))
         val HeadlineSmall = 24.sp
-        val TitleLarge = 24.sp
-        val TitleMedium = 20.sp
-        val TitleSmall = 16.sp
-        val BodyLarge = 16.sp
+        @Deprecated("Use Title", ReplaceWith("Title"))
+        val TitleLarge = Title
+        @Deprecated("Use Title", ReplaceWith("Title"))
+        val TitleMedium = Title
+        @Deprecated("Use Body", ReplaceWith("Body"))
+        val TitleSmall = Body
+        @Deprecated("Use Body", ReplaceWith("Body"))
+        val BodyLarge = Body
+        @Deprecated("Use Body", ReplaceWith("Body"))
         val BodyMedium = 14.sp
-        val BodySmall = 12.sp
+        @Deprecated("Use Label", ReplaceWith("Label"))
+        val BodySmall = Label
+        @Deprecated("Use Body", ReplaceWith("Body"))
         val LabelLarge = 14.sp
-        val LabelMedium = 12.sp
+        @Deprecated("Use Label", ReplaceWith("Label"))
+        val LabelMedium = Label
+        @Deprecated("Use Label", ReplaceWith("Label"))
         val LabelSmall = 11.sp
     }
 
@@ -163,14 +201,14 @@ object DesignSystem {
     // 动效
     // ═══════════════════════════════════════════════════════
     object Animation {
-        val CardPressScale = 0.97f
-        val CardPressDuration = 100
-        val NumberScrollDuration = 800
-        val FabSpringDamping = 0.6f
-        val FabSpringStiffness = 400f
-        val NavigationTransitionDuration = 300
-        val ShimmerDuration = 2000
-        val CrossfadeDuration = 300
+        val CardPressScale = 0.97f          // 卡片点击缩放
+        val CardPressDuration = 100         // 卡片点击时长 ms
+        val PageTransitionDuration = 300    // 页面切换 300ms
+        val NumberScrollDuration = 800      // 数字 CountUp
+        val CrossfadeDuration = 300         // 图片 CrossFade
+        val ShimmerDuration = 2000          // 骨架屏微光
+        val FabSpringDamping = 0.6f         // FAB Morph 弹簧阻尼
+        val FabSpringStiffness = 400f       // FAB Morph 弹簧刚度
     }
 
     // ═══════════════════════════════════════════════════════
