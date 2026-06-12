@@ -1,6 +1,7 @@
 package com.flypigs.typechomanager.ui.designsystem
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -159,6 +160,83 @@ object DesignSystem {
         val ShimmerDuration = 2000          // 骨架屏微光
         val FabSpringDamping = 0.6f         // FAB Morph 弹簧阻尼
         val FabSpringStiffness = 400f       // FAB Morph 弹簧刚度
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 渐变图标徽章系统（V3 核心视觉模式）
+    // ═══════════════════════════════════════════════════════
+    object GradientBadge {
+        // 标题区大徽章
+        val TitleSize = 56.dp
+        val TitleIconSize = 28.dp
+
+        // 统计卡/操作按钮徽章
+        val StatCardSize = 40.dp
+        val StatCardIconSize = 20.dp
+
+        // 设置项/列表项小徽章
+        val ListItemSize = 36.dp
+        val ListItemIconSize = 18.dp
+
+        // 渐变方向：Primary → Tertiary（左上→右下）
+        @Composable
+        fun defaultBrush() = listOf(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.tertiary,
+        )
+
+        // FAB/操作按钮独立渐变色
+        object ActionColors {
+            val Write = listOf(Color(0xFF5B6EFF), Color(0xFF7C8FFF))     // 蓝
+            val AI = listOf(Color(0xFF9B65D6), Color(0xFFB388FF))        // 紫
+            val Draft = listOf(Color(0xFFFF9800), Color(0xFFFFB74D))     // 橙
+            val Upload = listOf(Color(0xFF4CAF50), Color(0xFF81C784))    // 绿
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 入场动画系统（V3 核心动效模式）
+    // ═══════════════════════════════════════════════════════
+    object Entrance {
+        // 区块级入场（AnimatedVisibility + MutableTransitionState）
+        val SectionDuration = 500           // 区块淡入时长 ms
+        val SectionDelay = 100              // 区块间错开延迟 ms
+        val SectionSlideOffset = 40         // 上滑偏移量 dp
+
+        // 列表项级入场（itemEnterAnimation）
+        val ItemDuration = 300              // 列表项淡入时长 ms
+        val ItemDelay = 50                  // 列表项间错开延迟 ms
+        val ItemSlideOffset = 40f           // 上滑偏移量 dp
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 骨架屏系统
+    // ═══════════════════════════════════════════════════════
+    object Skeleton {
+        val ShimmerMinAlpha = 0.3f          // 闪烁最低透明度
+        val ShimmerMaxAlpha = 0.7f          // 闪烁最高透明度
+        val ShimmerDuration = 1000          // 闪烁周期 ms
+        @Composable
+        fun placeholderColor() = MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 页面布局模板（V3 标准页面结构）
+    // ═══════════════════════════════════════════════════════
+    object PageTemplate {
+        // 标题区高度范围
+        val TitleBadgeSize = 56.dp          // 标题图标徽章
+        val TitleGap = 8.dp                 // 标题与副标题间距
+        val SectionSpacing = 24.dp          // 区块间距
+
+        // 数据统计卡
+        val StatCardMinHeight = 88.dp       // 统计卡最小高度
+        val StatCardColumns = 4             // 首页统计卡列数
+        val StatCardColumnsProfile = 3      // 个人页统计卡列数
+
+        // 搜索栏 + 筛选
+        val SearchBarHeight = 56.dp         // 搜索栏高度
+        val FilterChipHeight = 36.dp        // 筛选标签高度
     }
 
     // ═══════════════════════════════════════════════════════
