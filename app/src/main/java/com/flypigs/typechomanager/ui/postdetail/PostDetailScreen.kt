@@ -93,7 +93,7 @@ fun PostDetailScreen(
             val firstVisibleIndex = scrollState.firstVisibleItemIndex
             val firstVisibleOffset = scrollState.firstVisibleItemScrollOffset
             if (firstVisibleIndex == 0) {
-                (firstVisibleOffset / 200f).coerceIn(0f, 1f)
+                (firstVisibleOffset / 160f).coerceIn(0f, 1f)
             } else {
                 1f
             }
@@ -118,7 +118,7 @@ fun PostDetailScreen(
                     state = scrollState,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    // 头图
+                    // 头图（紧凑高度）
                     item(key = "header_image") {
                         if (coverUrl != null) {
                             AsyncImage(
@@ -126,11 +126,9 @@ fun PostDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(200.dp),
+                                    .height(160.dp),
                                 contentScale = ContentScale.Crop,
                             )
-                        } else {
-                            Spacer(modifier = Modifier.height(80.dp))
                         }
                     }
 
