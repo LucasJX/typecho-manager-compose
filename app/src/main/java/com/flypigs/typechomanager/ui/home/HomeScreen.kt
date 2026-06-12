@@ -1,10 +1,7 @@
 package com.flypigs.typechomanager.ui.home
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,14 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Lightbulb
@@ -37,6 +32,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,12 +55,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -75,7 +69,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Post
-import com.flypigs.typechomanager.ui.components.v3.CollapsingTitle
 import com.flypigs.typechomanager.ui.components.v3.HomeSkeleton
 import com.flypigs.typechomanager.ui.components.v3.MorphingFab
 import com.flypigs.typechomanager.ui.components.v3.rememberCountUpState
@@ -87,6 +80,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,36 +97,23 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // 计算滚动进度（0f = 完全展开, 1f = 完全折叠）
-    val scrollProgress by remember {
-        derivedStateOf {
-            val firstVisibleIndex = listState.firstVisibleItemIndex
-            val firstVisibleOffset = listState.firstVisibleItemScrollOffset
-            if (firstVisibleIndex == 0) {
-                (firstVisibleOffset / 200f).coerceIn(0f, 1f)
-            } else {
-                1f
-            }
-        }
-    }
-
-    // FAB 可见性
+    // FAB visibility
     val fabVisible by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex < 2
         }
     }
 
-    // 灵感浮窗
+    // Inspiration sheet state
     var showInspirationSheet by remember { mutableStateOf(false) }
     var inspirationText by remember { mutableStateOf("") }
 
-    // 最近发布的文章（用于动态时间线，取最近 5 篇）
+    // Recent activity timeline (latest 5 posts)
     val recentActivity = remember(uiState.allPosts) {
         uiState.allPosts.sortedByDescending { it.created }.take(5)
     }
 
-    // 横滑文章（取前 5 篇有封面的）
+    // Carousel posts (first 5 posts)
     val carouselPosts = remember(uiState.allPosts) {
         uiState.allPosts.sortedByDescending { it.created }.take(5)
     }
@@ -141,7 +122,7 @@ fun HomeScreen(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
     ) {
-        // 骨架屏
+        // Skeleton
         if (uiState.isLoading && uiState.allPosts.isEmpty()) {
             HomeSkeleton()
             return@PullToRefreshBox
@@ -151,7 +132,6 @@ fun HomeScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
-                // FAB Morph：滚动时从 Extended 变形为 Small FAB
                 MorphingFab(
                     extended = fabVisible,
                     onClick = onWriteClick,
@@ -167,26 +147,17 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
             ) {
                 // ═══════════════════════════════════════════
-                // 1. 可折叠大标题
-                // ═══════════════════════════════════════════
-                item(key = "collapsing_title") {
-                    CollapsingTitle(scrollProgress = scrollProgress, blogName = uiState.blogName)
-                }
-
-                // ═══════════════════════════════════════════
-                // 2. Greeting
+                // 1. Greeting — HeadlineLarge (36sp)
                 // ═══════════════════════════════════════════
                 item(key = "greeting") {
                     GreetingSection(
                         userName = uiState.userName,
-                        postCount = uiState.allPosts.size,
-                        allPosts = uiState.allPosts,
                         modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                     )
                 }
 
                 // ═══════════════════════════════════════════
-                // 3. 2×2 统计卡片
+                // 2. 2×2 Stats Grid
                 // ═══════════════════════════════════════════
                 item(key = "stats_grid") {
                     StatsGrid(
@@ -199,26 +170,18 @@ fun HomeScreen(
                 }
 
                 // ═══════════════════════════════════════════
-                // 4. 最近文章（横滑）
+                // 3. Recent Articles — HorizontalPager with Scale Parallax
                 // ═══════════════════════════════════════════
                 item(key = "carousel") {
-                    RecentArticlesCarousel(
+                    RecentArticlesPager(
                         posts = carouselPosts,
                         onPostClick = onPostClick,
                     )
                 }
 
                 // ═══════════════════════════════════════════
-                // 5. 最近动态时间线
+                // 4. Recent Activity — Timeline (no header)
                 // ═══════════════════════════════════════════
-                item(key = "timeline_header") {
-                    Text(
-                        text = "最近动态",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                    )
-                }
-
                 itemsIndexed(
                     items = recentActivity,
                     key = { _, post -> "activity_${post.cid}" },
@@ -226,12 +189,14 @@ fun HomeScreen(
                     ActivityTimelineItem(
                         post = post,
                         onClick = { onPostClick(post.cid) },
-                        modifier = Modifier.itemEnterAnimation(index),
+                        modifier = Modifier
+                            .padding(horizontal = DesignSystem.Spacing.Large)
+                            .itemEnterAnimation(index),
                     )
                 }
 
                 // ═══════════════════════════════════════════
-                // 6. 快速操作
+                // 5. Quick Actions (no header)
                 // ═══════════════════════════════════════════
                 item(key = "quick_actions") {
                     QuickActionsRow(
@@ -243,16 +208,14 @@ fun HomeScreen(
                     )
                 }
 
-                // 底部间距
+                // Bottom spacer
                 item(key = "bottom_spacer") {
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
                 }
             }
         }
 
-        // ═══════════════════════════════════════════
-        // 7. 灵感浮窗 Chip（吸附在右下角）
-        // ═══════════════════════════════════════════
+        // Inspiration FAB (bottom-right corner)
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.BottomEnd,
@@ -277,7 +240,7 @@ fun HomeScreen(
         }
     }
 
-    // 灵感浮窗底部弹窗
+    // Inspiration bottom sheet
     if (showInspirationSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -321,7 +284,6 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
                     TextButton(
                         onClick = {
-                            // TODO: 保存灵感为草稿
                             scope.launch {
                                 snackbarHostState.showSnackbar("灵感已保存为草稿")
                             }
@@ -339,35 +301,24 @@ fun HomeScreen(
 }
 
 // ═══════════════════════════════════════════════════════
-// Greeting
+// Greeting — "晚上好 👋 flypigs" (HeadlineLarge = 36sp)
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun GreetingSection(
     userName: String,
-    postCount: Int,
-    allPosts: List<Post>,
     modifier: Modifier = Modifier,
 ) {
     val greeting = remember { getGreeting() }
-    val latestUpdate = remember(allPosts) {
-        if (allPosts.isEmpty()) "暂无更新"
-        else formatRelativeTime(allPosts.maxOf { it.created })
-    }
 
-    Column(modifier = modifier) {
-        Text(
-            text = "$greeting，$userName 👋",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = "今天有 $postCount 篇文章，最近更新 $latestUpdate",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
-        )
-    }
+    Text(
+        text = "$greeting 👋 $userName",
+        style = MaterialTheme.typography.headlineLarge.copy(
+            fontSize = DesignSystem.Typography.Display, // 36sp = HeadlineLarge
+        ),
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = modifier,
+    )
 }
 
 private fun getGreeting(): String {
@@ -381,7 +332,7 @@ private fun getGreeting(): String {
 }
 
 // ═══════════════════════════════════════════════════════
-// 2×2 统计卡片
+// 2×2 Stats Grid — numbers at 36sp
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun StatsGrid(
@@ -440,7 +391,7 @@ private fun StatCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(DesignSystem.Component.StatCardHeight),
+        modifier = modifier.height(DesignSystem.Component.StatCardHeight), // 96dp
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -457,13 +408,17 @@ private fun StatCard(
             Column {
                 Text(
                     text = rememberCountUpState(value).toString(),
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontSize = DesignSystem.Typography.Display, // 36sp
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontSize = DesignSystem.Typography.Label,
+                    ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -471,58 +426,74 @@ private fun StatCard(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                tint = DesignSystem.BrandColors.Primary.copy(alpha = 0.6f),
             )
         }
     }
 }
 
 // ═══════════════════════════════════════════════════════
-// 最近文章（横滑）
+// Recent Articles — HorizontalPager with Scale Parallax
 // ═══════════════════════════════════════════════════════
 @Composable
-private fun RecentArticlesCarousel(
+private fun RecentArticlesPager(
     posts: List<Post>,
     onPostClick: (Int) -> Unit,
 ) {
+    if (posts.isEmpty()) return
+
+    val pagerState = rememberPagerState(pageCount = { posts.size })
+
     Column {
         Text(
             text = "最近文章",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontSize = DesignSystem.Typography.Title,
+            ),
             modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
         )
 
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(start = DesignSystem.Spacing.Large),
-            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-        ) {
-            posts.forEach { post ->
-                ArticleCarouselCard(
-                    post = post,
-                    onClick = { onPostClick(post.cid) },
-                )
-            }
+        HorizontalPager(
+            state = pagerState,
+            contentPadding = PaddingValues(horizontal = DesignSystem.Spacing.Large),
+            pageSpacing = DesignSystem.Spacing.Medium,
+            modifier = Modifier.fillMaxWidth(),
+        ) { page ->
+            val pageOffset = (
+                (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+            ).absoluteValue
+
+            // Scale parallax effect: center page = 1.0, side pages scale down
+            val scale = 1f - (pageOffset * 0.1f).coerceIn(0f, 0.1f)
+            val alpha = 1f - (pageOffset * 0.3f).coerceIn(0f, 0.3f)
+
+            ArticlePagerCard(
+                post = posts[page],
+                onClick = { onPostClick(posts[page].cid) },
+                modifier = Modifier
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        this.alpha = alpha
+                    }
+                    .fillMaxWidth(),
+            )
         }
     }
 }
 
 @Composable
-private fun ArticleCarouselCard(
+private fun ArticlePagerCard(
     post: Post,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val coverUrl = post.cover.takeIf { it.isNotEmpty() } ?: extractFirstImageUrl(post.text)
     Card(
-        modifier = Modifier
-            .size(
-                width = DesignSystem.Component.ArticleCarouselWidth,
-                height = DesignSystem.Component.ArticleCarouselHeight,
-            )
+        modifier = modifier
+            .height(DesignSystem.Component.ArticleCarouselHeight)
             .clickable(onClick = onClick),
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
@@ -531,7 +502,7 @@ private fun ArticleCarouselCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // 封面图或渐变占位
+            // Cover image or gradient placeholder
             if (coverUrl != null) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -549,7 +520,7 @@ private fun ArticleCarouselCard(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                    DesignSystem.BrandColors.Primary.copy(alpha = 0.15f),
                                     MaterialTheme.colorScheme.surfaceContainerHigh,
                                 )
                             )
@@ -557,7 +528,7 @@ private fun ArticleCarouselCard(
                 )
             }
 
-            // 底部渐变遮罩
+            // Bottom gradient overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -572,7 +543,7 @@ private fun ArticleCarouselCard(
                     ),
             )
 
-            // 底部信息
+            // Bottom info: title + date
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -580,14 +551,18 @@ private fun ArticleCarouselCard(
             ) {
                 Text(
                     text = post.title,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontSize = DesignSystem.Typography.Title,
+                    ),
                     color = Color.White,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = formatRelativeTime(post.created),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = DesignSystem.Typography.Label,
+                    ),
                     color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
                 )
@@ -597,7 +572,7 @@ private fun ArticleCarouselCard(
 }
 
 // ═══════════════════════════════════════════════════════
-// 动态时间线项（时间轴样式）
+// Activity Timeline — "● 发布文章 2小时前 《标题》"
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun ActivityTimelineItem(
@@ -605,53 +580,56 @@ private fun ActivityTimelineItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val formattedTime = remember(post.created) {
-        formatExactTime(post.created)
+    val relativeTime = remember(post.created) {
+        formatRelativeTime(post.created)
     }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(
-                horizontal = DesignSystem.Spacing.Large,
-                vertical = DesignSystem.Spacing.Small,
-            ),
-        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+            .padding(vertical = DesignSystem.Spacing.Small),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
     ) {
-        // 时间
+        // Bullet dot
         Text(
-            text = formattedTime,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(48.dp),
+            text = "●",
+            fontSize = 8.sp,
+            color = DesignSystem.BrandColors.Primary,
         )
-
-        // 时间轴竖线
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(top = DesignSystem.Spacing.Small)
-                    .size(8.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape),
-            )
-        }
-
-        // 动态描述
+        // Action label
         Text(
-            text = "发布《${post.title}》",
-            style = MaterialTheme.typography.bodyMedium,
+            text = "发布文章",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = DesignSystem.Typography.Body,
+            ),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        // Relative time
+        Text(
+            text = relativeTime,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontSize = DesignSystem.Typography.Label,
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        // Article title in quotes
+        Text(
+            text = "《${post.title}》",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = DesignSystem.Typography.Body,
+            ),
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
         )
     }
 }
 
 // ═══════════════════════════════════════════════════════
-// 快速操作行
+// Quick Actions Row (no section header)
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun QuickActionsRow(
@@ -661,42 +639,34 @@ private fun QuickActionsRow(
     onViewStatsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
-        Text(
-            text = "快速操作",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = DesignSystem.Spacing.Medium),
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+    ) {
+        QuickActionButton(
+            label = "写文章",
+            icon = Icons.Default.Edit,
+            onClick = onWriteClick,
+            modifier = Modifier.weight(1f),
         )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-        ) {
-            QuickActionButton(
-                label = "写文章",
-                icon = Icons.Default.Edit,
-                onClick = onWriteClick,
-                modifier = Modifier.weight(1f),
-            )
-            QuickActionButton(
-                label = "上传图片",
-                icon = Icons.Default.Image,
-                onClick = onUploadImageClick,
-                modifier = Modifier.weight(1f),
-            )
-            QuickActionButton(
-                label = "新建草稿",
-                icon = Icons.AutoMirrored.Filled.NoteAdd,
-                onClick = onNewDraftClick,
-                modifier = Modifier.weight(1f),
-            )
-            QuickActionButton(
-                label = "查看统计",
-                icon = Icons.Default.QueryStats,
-                onClick = onViewStatsClick,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        QuickActionButton(
+            label = "上传图片",
+            icon = Icons.Default.Image,
+            onClick = onUploadImageClick,
+            modifier = Modifier.weight(1f),
+        )
+        QuickActionButton(
+            label = "新建草稿",
+            icon = Icons.AutoMirrored.Filled.NoteAdd,
+            onClick = onNewDraftClick,
+            modifier = Modifier.weight(1f),
+        )
+        QuickActionButton(
+            label = "查看统计",
+            icon = Icons.Default.QueryStats,
+            onClick = onViewStatsClick,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
@@ -707,28 +677,13 @@ private fun QuickActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier
-            .height(DesignSystem.Component.QuickActionHeight)
-            .clickable(onClick = onClick),
-        shape = DesignSystem.Corner.Card,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = CardDefaults.outlinedCardBorder().copy(
-            brush = Brush.linearGradient(
-                colors = listOf(
-                    MaterialTheme.colorScheme.outlineVariant,
-                    MaterialTheme.colorScheme.outlineVariant,
-                )
-            )
-        ),
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier.height(DesignSystem.Component.QuickActionHeight),
+        shape = DesignSystem.Corner.Button,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(DesignSystem.Spacing.Medium),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -736,12 +691,13 @@ private fun QuickActionButton(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = DesignSystem.Typography.Label,
+                ),
                 modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
             )
         }
@@ -749,7 +705,7 @@ private fun QuickActionButton(
 }
 
 // ═══════════════════════════════════════════════════════
-// 工具函数
+// Utility functions
 // ═══════════════════════════════════════════════════════
 private fun formatRelativeTime(date: Long): String {
     val now = System.currentTimeMillis()
@@ -762,8 +718,4 @@ private fun formatRelativeTime(date: Long): String {
         diff < 7 * 24 * 60 * 60 * 1000 -> "${diff / (24 * 60 * 60 * 1000)}天前"
         else -> SimpleDateFormat("MM-dd", Locale.getDefault()).format(Date(date))
     }
-}
-
-private fun formatExactTime(timestamp: Long): String {
-    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
 }

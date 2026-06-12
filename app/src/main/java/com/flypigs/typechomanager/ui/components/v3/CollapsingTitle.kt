@@ -17,17 +17,17 @@ import androidx.compose.ui.unit.sp
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 /**
- * 可折叠大标题 - 首页显示博客名称
- * 初始 48sp，颜色 primary
- * 向上滚动时：字号缩小到 24sp，颜色变为 onSurface，透明度降低到 0.6
+ * Collapsing title — reserved for future use.
+ * Currently unused on home screen (replaced by GreetingSection).
  */
 @Composable
 fun CollapsingTitle(
-    scrollProgress: Float, // 0f = 完全展开, 1f = 完全折叠
-    blogName: String = "Blogga",
+    scrollProgress: Float,
+    blogName: String = "",
     modifier: Modifier = Modifier,
 ) {
-    // 字号动画：48sp → 24sp
+    if (blogName.isBlank()) return
+
     val fontSize by animateFloatAsState(
         targetValue = if (scrollProgress < 0.5f) {
             DesignSystem.Constants.HomeTitleInitialSize.value
@@ -38,14 +38,12 @@ fun CollapsingTitle(
         label = "titleFontSize"
     )
 
-    // 透明度动画：1f → 0.6f
     val alpha by animateFloatAsState(
         targetValue = if (scrollProgress < 0.5f) 1f else DesignSystem.Constants.HomeTitleCollapsedAlpha,
         animationSpec = tween(durationMillis = 300),
         label = "titleAlpha"
     )
 
-    // 颜色：primary → onSurface
     val color = if (scrollProgress < 0.5f) {
         MaterialTheme.colorScheme.primary
     } else {
@@ -58,7 +56,7 @@ fun CollapsingTitle(
             .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.ExtraSmall)
     ) {
         Text(
-            text = blogName.ifEmpty { "Blogga" },
+            text = blogName,
             style = MaterialTheme.typography.displayLarge.copy(
                 fontSize = fontSize.sp,
             ),
@@ -66,7 +64,6 @@ fun CollapsingTitle(
             modifier = Modifier
                 .alpha(alpha)
                 .graphicsLayer {
-                    // 轻微视差效果
                     translationY = scrollProgress * 20f
                 },
         )
