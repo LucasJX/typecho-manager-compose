@@ -286,8 +286,9 @@ fun ProfileSkeleton() {
         item {
             Row(
                 modifier = Modifier.padding(
-                    horizontal = DesignSystem.Spacing.Large,
+                    start = DesignSystem.Spacing.Large,
                     top = DesignSystem.Spacing.Large,
+                    end = DesignSystem.Spacing.Large,
                 ),
                 horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                 verticalAlignment = Alignment.CenterVertically,

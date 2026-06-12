@@ -128,8 +128,9 @@ fun ProfileScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
-                                horizontal = DesignSystem.Spacing.Large,
+                                start = DesignSystem.Spacing.Large,
                                 top = DesignSystem.Spacing.Large,
+                                end = DesignSystem.Spacing.Large,
                             ),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

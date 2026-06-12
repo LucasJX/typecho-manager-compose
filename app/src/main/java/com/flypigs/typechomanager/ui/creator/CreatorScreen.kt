@@ -132,8 +132,9 @@ fun CreatorScreen(
                     Row(
                         modifier = Modifier
                             .padding(
-                                horizontal = DesignSystem.Spacing.Large,
+                                start = DesignSystem.Spacing.Large,
                                 top = DesignSystem.Spacing.Large,
+                                end = DesignSystem.Spacing.Large,
                             )
                             .itemEnterAnimation(0),
                         verticalAlignment = Alignment.CenterVertically,

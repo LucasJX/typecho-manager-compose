@@ -24,7 +24,7 @@ fun EmptyState(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(DesignSystem.Spacing.XXXLarge),
+            .padding(DesignSystem.Spacing.XXLarge),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
