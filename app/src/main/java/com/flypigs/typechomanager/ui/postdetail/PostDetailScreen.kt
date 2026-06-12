@@ -113,10 +113,10 @@ fun PostDetailScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = p.title.ifBlank { "(无标题)" },
-                                        style = MaterialTheme.typography.displaySmall,
+                                        style = MaterialTheme.typography.headlineMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 2,
+                                        maxLines = 3,
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                 }
