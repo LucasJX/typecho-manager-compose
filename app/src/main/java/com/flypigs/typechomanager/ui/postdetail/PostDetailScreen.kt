@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import com.flypigs.typechomanager.ui.editor.MarkdownPreview
-import com.flypigs.typechomanager.util.formatDate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
