@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -266,6 +267,92 @@ fun CreatorSkeleton() {
                             .height(64.dp),
                     )
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// 我的页面骨架
+// ═══════════════════════════════════════════════════════
+@Composable
+fun ProfileSkeleton() {
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = DesignSystem.Spacing.Large),
+        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
+    ) {
+        // 标题区
+        item {
+            Row(
+                modifier = Modifier.padding(
+                    horizontal = DesignSystem.Spacing.Large,
+                    top = DesignSystem.Spacing.Large,
+                ),
+                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SkeletonBox(modifier = Modifier.size(56.dp).clip(CircleShape))
+                Column(verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)) {
+                    SkeletonBox(modifier = Modifier.width(80.dp).height(28.dp))
+                    SkeletonBox(modifier = Modifier.width(120.dp).height(16.dp))
+                }
+            }
+        }
+        // 用户信息卡
+        item {
+            Row(
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SkeletonBox(modifier = Modifier.size(72.dp).clip(CircleShape))
+                Column(verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)) {
+                    SkeletonBox(modifier = Modifier.width(120.dp).height(24.dp))
+                    SkeletonBox(modifier = Modifier.width(80.dp).height(16.dp))
+                    SkeletonBox(modifier = Modifier.width(60.dp).height(12.dp))
+                }
+            }
+        }
+        // 数据概览 — 3 格
+        item {
+            Row(
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+            ) {
+                repeat(3) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(DesignSystem.Component.StatCardHeight),
+                    )
+                }
+            }
+        }
+        // 热力图
+        item {
+            Column(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large)) {
+                SkeletonBox(modifier = Modifier.width(100.dp).height(24.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(DesignSystem.Component.HeatmapHeight),
+                )
+            }
+        }
+        // 设置卡片 ×3
+        item {
+            Column(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large)) {
+                SkeletonBox(modifier = Modifier.width(60.dp).height(20.dp))
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+                repeat(3) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                    )
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.ExtraSmall))
                 }
             }
         }
