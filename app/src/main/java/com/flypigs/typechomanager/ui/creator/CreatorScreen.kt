@@ -210,4 +210,3 @@ private fun CreatorEntryCard(
         }
     }
 }
-                modifier = Modifier.padding(bottom = DesignSystem.Spacing.XXLarge),
