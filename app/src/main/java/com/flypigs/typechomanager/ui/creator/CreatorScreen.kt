@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.CloudUpload
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,8 +36,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -53,7 +50,6 @@ import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 fun CreatorScreen(
     onWriteArticle: () -> Unit = {},
     onNewDraft: () -> Unit = {},
-    onAIAssist: () -> Unit = {},
     onMaterialLibrary: () -> Unit = {},
     onBack: () -> Unit = {},
     viewModel: CreatorViewModel = hiltViewModel(),
@@ -61,7 +57,6 @@ fun CreatorScreen(
     BackHandler(onBack = onBack)
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     // 图片选择器
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -126,22 +121,6 @@ fun CreatorScreen(
                         subtitle = "上传到素材库",
                         onClick = { if (!uiState.isUploading) imagePickerLauncher.launch("image/*") },
                         isLoading = uiState.isUploading,
-                    )
-                }
-                item {
-                    CreatorEntryCard(
-                        icon = Icons.Default.AutoAwesome,
-                        title = "AI 辅助",
-                        subtitle = "智能创作",
-                        onClick = {
-                            onAIAssist()
-                            // AI 功能尚未实现，给用户反馈
-                            snackbarHostState.let { state ->
-                                scope.launch {
-                                    state.showSnackbar("AI 辅助功能即将上线")
-                                }
-                            }
-                        },
                     )
                 }
                 item {

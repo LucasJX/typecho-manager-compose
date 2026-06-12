@@ -79,7 +79,11 @@ class AttachmentsViewModel @Inject constructor(
      */
     fun loadAttachments() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            // 仅在无数据时显示 loading，有缓存时静默加载
+            val showLoading = _uiState.value.attachments.isEmpty()
+            if (showLoading) {
+                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            }
             try {
                 val config = configDataStore.getConfig()
                 val companionBase = config.blogUrl.ifEmpty {

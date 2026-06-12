@@ -175,9 +175,6 @@ fun NavGraph(
                     onNewDraft = {
                         navController.navigate(Screen.Editor.createRoute())
                     },
-                    onAIAssist = {
-                        // TODO: AI 辅助
-                    },
                     onMaterialLibrary = {
                         navController.navigate(Screen.Attachments.route) {
                             popUpTo(navController.graph.startDestinationId) { saveState = true }

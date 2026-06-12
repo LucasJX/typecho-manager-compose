@@ -70,7 +70,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.data.model.Post
-import com.flypigs.typechomanager.ui.components.PageHeaderWithSubtitle
 import com.flypigs.typechomanager.ui.components.v3.ArticleCard
 import com.flypigs.typechomanager.ui.components.v3.FilterChipRow
 import com.flypigs.typechomanager.ui.components.v3.FilterItem
@@ -197,11 +196,36 @@ fun PostsScreen(
                         }
                     }
                 } else {
-                    // 大标题（与其他页面一致）
-                    PageHeaderWithSubtitle(
-                        title = "文章",
-                        subtitle = "共 ${filteredPosts.size} 篇",
-                    )
+                    // 大标题（与素材库/设置页一致）
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall)
+                            .padding(horizontal = DesignSystem.Spacing.Large),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "文章",
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = "共 ${filteredPosts.size} 篇",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        // 视图切换按钮
+                        IconButton(onClick = { isListView = !isListView }) {
+                            Icon(
+                                imageVector = if (isListView) Icons.Default.ViewModule else Icons.Default.ViewList,
+                                contentDescription = if (isListView) "网格模式" else "列表模式",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
 
                     // 搜索栏
                     SearchBar(
@@ -214,20 +238,12 @@ fun PostsScreen(
                         leadingIcon = {
                             Icon(Icons.Default.Search, contentDescription = "搜索")
                         },
-                        trailingIcon = {
-                            IconButton(onClick = { isListView = !isListView }) {
-                                Icon(
-                                    imageVector = if (isListView) Icons.Default.ViewModule else Icons.Default.ViewList,
-                                    contentDescription = if (isListView) "网格模式" else "列表模式",
-                                )
-                            }
-                        },
+                        trailingIcon = null,
                         colors = SearchBarDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = DesignSystem.Spacing.Large)
                             .height(DesignSystem.Component.SearchBarHeight),
                         shape = DesignSystem.Corner.Input,
                     ) {}
