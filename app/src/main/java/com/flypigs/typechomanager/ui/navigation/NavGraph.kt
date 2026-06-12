@@ -175,12 +175,11 @@ fun NavGraph(
                     onNewDraft = {
                         navController.navigate(Screen.Editor.createRoute())
                     },
-                    onMaterialLibrary = {
-                        navController.navigate(Screen.Attachments.route) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                    onAIClick = {
+                        // TODO: AI辅助写作
+                    },
+                    onDraftClick = { cid ->
+                        navController.navigate(Screen.Editor.createRoute(cid.toString()))
                     },
                     onBack = {
                         navController.navigate(Screen.Home.route) {

@@ -5,7 +5,9 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flypigs.typechomanager.data.local.ConfigDataStore
+import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.data.remote.CompanionApiClient
+import com.flypigs.typechomanager.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,8 @@ data class CreatorUiState(
     val isUploading: Boolean = false,
     val uploadResult: String? = null,
     val error: String? = null,
+    val recentDrafts: List<Post> = emptyList(),
+    val isLoadingDrafts: Boolean = false,
 )
 
 @HiltViewModel
@@ -25,10 +29,34 @@ class CreatorViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val companionApiClient: CompanionApiClient,
     private val configDataStore: ConfigDataStore,
+    private val postRepository: PostRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreatorUiState())
     val uiState: StateFlow<CreatorUiState> = _uiState.asStateFlow()
+
+    init {
+        loadRecentDrafts()
+    }
+
+    private fun loadRecentDrafts() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingDrafts = true)
+            try {
+                val posts = postRepository.getRecentPosts()
+                val drafts = posts
+                    .filter { it.status == Post.Companion.Status.DRAFT.value }
+                    .sortedByDescending { it.modified }
+                    .take(5)
+                _uiState.value = _uiState.value.copy(
+                    recentDrafts = drafts,
+                    isLoadingDrafts = false,
+                )
+            } catch (_: Exception) {
+                _uiState.value = _uiState.value.copy(isLoadingDrafts = false)
+            }
+        }
+    }
 
     fun uploadImage(uri: Uri) {
         viewModelScope.launch {
