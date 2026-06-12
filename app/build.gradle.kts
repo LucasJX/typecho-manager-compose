@@ -15,8 +15,8 @@ android {
         applicationId = "com.flypigs.typechomanager"
         minSdk = 26
         targetSdk = 35
-        versionCode = 19
-        versionName = "2.0.6"
+        versionCode = 20
+        versionName = "2.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
