@@ -91,7 +91,7 @@ fun ArticleCardSkeleton() {
 }
 
 // ═══════════════════════════════════════════════════════
-// 首页骨架（标题 + 2×2卡片 + 横滑文章 + 时间线）
+// 首页骨架（标题 + 数据概览 + Hero + 时间线 + 快捷操作）
 // ═══════════════════════════════════════════════════════
 @Composable
 fun HomeSkeleton() {
@@ -99,56 +99,80 @@ fun HomeSkeleton() {
         contentPadding = PaddingValues(bottom = DesignSystem.Component.FabBottomPadding),
         verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
     ) {
-        // 标题
+        // 问候语
+        item {
+            Column(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large)) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .height(48.dp),
+                )
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.3f)
+                        .height(16.dp),
+                )
+            }
+        }
+        // 数据概览 — 单行 4 格
+        item {
+            Row(
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+            ) {
+                repeat(4) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(DesignSystem.Component.StatCardHeight),
+                    )
+                }
+            }
+        }
+        // Hero 卡片
         item {
             SkeletonBox(
                 modifier = Modifier
-                    .fillMaxWidth(0.4f)
-                    .height(48.dp)
+                    .fillMaxWidth()
+                    .height(DesignSystem.Component.HeroHeight)
                     .padding(horizontal = DesignSystem.Spacing.Large),
             )
         }
-        // 2×2 统计卡片
+        // 最近动态标题 + 时间线 ×3
+        item {
+            Column(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large)) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.25f)
+                        .height(24.dp),
+                )
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                repeat(3) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                        modifier = Modifier.padding(vertical = DesignSystem.Spacing.Small),
+                    ) {
+                        SkeletonBox(modifier = Modifier.size(8.dp))
+                        SkeletonBox(modifier = Modifier.weight(1f).height(16.dp))
+                    }
+                }
+            }
+        }
+        // 快捷操作 2×2
         item {
             Column(
                 modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                 verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)) {
-                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
-                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)) {
-                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
-                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.QuickActionHeight))
                 }
-            }
-        }
-        // 横滑文章卡片
-        item {
-            Row(
-                modifier = Modifier.padding(start = DesignSystem.Spacing.Large),
-                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-            ) {
-                repeat(3) {
-                    SkeletonBox(
-                        modifier = Modifier
-                            .size(
-                                width = DesignSystem.Component.ArticleCarouselWidth,
-                                height = DesignSystem.Component.ArticleCarouselHeight,
-                            ),
-                    )
-                }
-            }
-        }
-        // 时间线 ×3
-        items(3) {
-            Row(
-                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-            ) {
-                SkeletonBox(modifier = Modifier.size(8.dp))
-                SkeletonBox(modifier = Modifier.weight(1f).height(14.dp))
             }
         }
     }
