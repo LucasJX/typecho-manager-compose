@@ -93,7 +93,7 @@ fun PostDetailScreen(
             val firstVisibleIndex = scrollState.firstVisibleItemIndex
             val firstVisibleOffset = scrollState.firstVisibleItemScrollOffset
             if (firstVisibleIndex == 0) {
-                (firstVisibleOffset / 160f).coerceIn(0f, 1f)
+                (firstVisibleOffset / 120f).coerceIn(0f, 1f)
             } else {
                 1f
             }
@@ -126,7 +126,7 @@ fun PostDetailScreen(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(160.dp),
+                                    .height(120.dp),
                                 contentScale = ContentScale.Crop,
                             )
                         }
