@@ -1,8 +1,11 @@
 package com.flypigs.typechomanager.ui.navigation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,13 +33,18 @@ import com.flypigs.typechomanager.data.repository.PostRepository
 import com.flypigs.typechomanager.ui.attachments.AttachmentsScreen
 import com.flypigs.typechomanager.ui.changelog.ChangelogScreen
 import com.flypigs.typechomanager.ui.components.BottomNavBar
+import com.flypigs.typechomanager.ui.creator.CreatorScreen
 import com.flypigs.typechomanager.ui.home.HomeScreen
 import com.flypigs.typechomanager.ui.postdetail.PostDetailScreen
 import com.flypigs.typechomanager.ui.posts.PostsScreen
 import com.flypigs.typechomanager.ui.editor.EditorScreen
-import com.flypigs.typechomanager.ui.settings.SettingsScreen
+import com.flypigs.typechomanager.ui.profile.ProfileScreen
 import com.flypigs.typechomanager.ui.setup.SetupScreen
+import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import kotlinx.coroutines.delay
+
+// 页面转场动画时长
+private const val TRANSITION_DURATION = 300
 
 @Composable
 fun NavGraph(
@@ -50,8 +58,9 @@ fun NavGraph(
     val showBottomBar = currentRoute in listOf(
         Screen.Home.route,
         Screen.Posts.route,
+        Screen.Creator.route,
         Screen.Attachments.route,
-        Screen.Settings.route,
+        Screen.Profile.route,
     )
 
     Scaffold(
@@ -69,6 +78,30 @@ fun NavGraph(
             navController = navController,
             startDestination = Screen.Splash.route,
             modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(TRANSITION_DURATION)
+                ) + fadeIn(animationSpec = tween(TRANSITION_DURATION))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it / 3 },
+                    animationSpec = tween(TRANSITION_DURATION)
+                ) + fadeOut(animationSpec = tween(TRANSITION_DURATION))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it / 3 },
+                    animationSpec = tween(TRANSITION_DURATION)
+                ) + fadeIn(animationSpec = tween(TRANSITION_DURATION))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(TRANSITION_DURATION)
+                ) + fadeOut(animationSpec = tween(TRANSITION_DURATION))
+            },
         ) {
             composable(Screen.Splash.route) {
                 SplashScreen(
@@ -103,7 +136,16 @@ fun NavGraph(
                     },
                     onWriteClick = {
                         navController.navigate(Screen.Editor.createRoute())
-                    }
+                    },
+                    onUploadImageClick = {
+                        // TODO: 上传图片
+                    },
+                    onNewDraftClick = {
+                        navController.navigate(Screen.Editor.createRoute())
+                    },
+                    onViewStatsClick = {
+                        // TODO: 查看统计
+                    },
                 )
             }
 
@@ -118,14 +160,31 @@ fun NavGraph(
                 )
             }
 
+            composable(Screen.Creator.route) {
+                CreatorScreen(
+                    onWriteArticle = {
+                        navController.navigate(Screen.Editor.createRoute())
+                    },
+                    onNewDraft = {
+                        navController.navigate(Screen.Editor.createRoute())
+                    },
+                    onUploadImage = {
+                        // TODO: 上传图片
+                    },
+                    onAIAssist = {
+                        // TODO: AI 辅助
+                    },
+                )
+            }
+
             composable(Screen.Attachments.route) {
                 AttachmentsScreen(
                     onBack = { navController.popBackStack() }
                 )
             }
 
-            composable(Screen.Settings.route) {
-                SettingsScreen(
+            composable(Screen.Profile.route) {
+                ProfileScreen(
                     onNavigateToChangelog = {
                         navController.navigate(Screen.Changelog.route)
                     }

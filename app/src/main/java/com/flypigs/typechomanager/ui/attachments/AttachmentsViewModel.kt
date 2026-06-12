@@ -9,8 +9,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+/** 素材库视图模式 */
+enum class ViewMode { GRID, LIST }
 
 data class AttachmentsUiState(
     val attachments: List<Attachment> = emptyList(),
@@ -21,7 +27,9 @@ data class AttachmentsUiState(
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val isRefreshing: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val searchQuery: String = "",
+    val viewMode: ViewMode = ViewMode.GRID,
 )
 
 @HiltViewModel
@@ -33,12 +41,37 @@ class AttachmentsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AttachmentsUiState())
     val uiState: StateFlow<AttachmentsUiState> = _uiState.asStateFlow()
 
+    /** 搜索后的过滤结果 */
+    val filteredAttachments: StateFlow<List<Attachment>> = _uiState
+        .map { state -> filterAttachments(state) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     companion object {
         private const val PAGE_SIZE = 20
     }
 
     init {
         loadAttachments()
+    }
+
+    /** 更新搜索关键词 */
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
+    /** 切换视图模式 */
+    fun toggleViewMode() {
+        val newMode = if (_uiState.value.viewMode == ViewMode.GRID) ViewMode.LIST else ViewMode.GRID
+        _uiState.value = _uiState.value.copy(viewMode = newMode)
+    }
+
+    private fun filterAttachments(state: AttachmentsUiState): List<Attachment> {
+        val query = state.searchQuery.trim().lowercase()
+        if (query.isEmpty()) return state.attachments
+        return state.attachments.filter { attachment ->
+            attachment.name.lowercase().contains(query) ||
+            attachment.type.lowercase().contains(query)
+        }
     }
 
     /**

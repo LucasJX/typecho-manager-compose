@@ -19,6 +19,8 @@ data class HomeUiState(
     val categories: List<Category> = emptyList(),
     val attachmentCount: Int = 0,
     val blogName: String = "",
+    val userName: String = "Flypigs",
+    val draftCount: Int = 0,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,
@@ -43,7 +45,10 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val config = configDataStore.getConfig()
-                _uiState.value = _uiState.value.copy(blogName = config.blogName ?: "")
+                _uiState.value = _uiState.value.copy(
+                    blogName = config.blogName ?: "",
+                    userName = config.username.ifEmpty { config.blogName ?: "Flypigs" }
+                )
             } catch (_: Exception) {}
         }
     }
@@ -69,6 +74,7 @@ class HomeViewModel @Inject constructor(
                     posts = applyFilter(posts, _uiState.value.selectedCategorySlug),
                     categories = categories,
                     attachmentCount = attachmentCount,
+                    draftCount = posts.count { it.status == "draft" },
                     isLoading = false
                 )
             } catch (e: Exception) {
@@ -101,6 +107,7 @@ class HomeViewModel @Inject constructor(
                     posts = applyFilter(posts, _uiState.value.selectedCategorySlug),
                     categories = categories,
                     attachmentCount = attachmentCount,
+                    draftCount = posts.count { it.status == "draft" },
                     isRefreshing = false
                 )
             } catch (e: Exception) {

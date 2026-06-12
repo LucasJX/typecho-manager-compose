@@ -1,8 +1,6 @@
 package com.flypigs.typechomanager.ui.attachments
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -22,19 +20,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,7 +44,8 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -59,7 +62,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -70,10 +72,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
 import com.flypigs.typechomanager.data.model.Attachment
 import com.flypigs.typechomanager.ui.components.v3.AttachmentsSkeleton
-import com.flypigs.typechomanager.ui.components.v3.StatBar
-import com.flypigs.typechomanager.ui.components.v3.StatItem
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -87,7 +89,9 @@ fun AttachmentsScreen(
     viewModel: AttachmentsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val filteredAttachments by viewModel.filteredAttachments.collectAsState()
     val gridState = rememberLazyGridState()
+    val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -102,16 +106,19 @@ fun AttachmentsScreen(
     // FAB 可见性
     val fabVisible by remember {
         derivedStateOf {
-            gridState.firstVisibleItemIndex < 4
+            if (uiState.viewMode == ViewMode.GRID) {
+                gridState.firstVisibleItemIndex < 4
+            } else {
+                listState.firstVisibleItemIndex < 4
+            }
         }
     }
 
-    // 统计数据
-    val imageCount = remember(uiState.attachments) {
-        uiState.attachments.count { it.mime.startsWith("image/") }
-    }
-    val totalSize = remember(uiState.attachments) {
-        uiState.attachments.sumOf { it.size }
+    // 统计文本
+    val statText = remember(uiState.attachments, uiState.totalSize) {
+        val count = uiState.attachments.size
+        val size = formatFileSize(uiState.totalSize)
+        "$count 个文件 · $size"
     }
 
     PullToRefreshBox(
@@ -144,84 +151,169 @@ fun AttachmentsScreen(
                 }
             },
         ) { paddingValues ->
-            LazyVerticalGrid(
-                state = gridState,
-                columns = GridCells.Fixed(DesignSystem.Component.AttachmentGridColumns),
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(
-                    start = DesignSystem.Spacing.Large,
-                    end = DesignSystem.Spacing.Large,
-                    top = DesignSystem.Spacing.Medium,
-                    bottom = DesignSystem.Component.FabBottomPadding,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-                verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                    .padding(paddingValues)
+                    .padding(horizontal = DesignSystem.Spacing.Large),
             ) {
                 // ═══════════════════════════════════════════
-                // 页面标题（跨列）
+                // 标题行：素材库 + 统计 + 视图切换
                 // ═══════════════════════════════════════════
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = "附件",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = DesignSystem.Spacing.Small),
-                    )
-                }
-
-                // ═══════════════════════════════════════════
-                // 错误提示（跨列）
-                // ═══════════════════════════════════════════
-                if (uiState.error != null) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "⚠ ${uiState.error}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(vertical = DesignSystem.Spacing.Small),
+                            text = "素材库",
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = statText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    // 视图切换按钮
+                    IconButton(onClick = { viewModel.toggleViewMode() }) {
+                        Icon(
+                            imageVector = if (uiState.viewMode == ViewMode.GRID)
+                                Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                            contentDescription = if (uiState.viewMode == ViewMode.GRID) "列表视图" else "网格视图",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
 
                 // ═══════════════════════════════════════════
-                // StatBar（跨列）
+                // 搜索栏
                 // ═══════════════════════════════════════════
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    StatBar(
-                        stats = listOf(
-                            StatItem(value = uiState.attachments.size, label = "附件"),
-                            StatItem(value = imageCount, label = "图片"),
-                            StatItem(value = formatFileSize(totalSize).split(" ").first().toIntOrNull() ?: 0, label = formatFileSize(totalSize).split(" ").getOrElse(1) { "KB" }),
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = { viewModel.updateSearchQuery(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = DesignSystem.Spacing.Small),
+                    placeholder = {
+                        Text(
+                            "搜索素材...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                    shape = DesignSystem.Corner.Input,
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    ),
+                )
+
+                // ═══════════════════════════════════════════
+                // 错误提示
+                // ═══════════════════════════════════════════
+                if (uiState.error != null) {
+                    Text(
+                        text = "⚠ ${uiState.error}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(vertical = DesignSystem.Spacing.Small),
+                    )
+                }
+
+                // ═══════════════════════════════════════════
+                // 内容区 — 根据视图模式切换
+                // ═══════════════════════════════════════════
+                if (filteredAttachments.isEmpty() && uiState.searchQuery.isNotEmpty()) {
+                    // 搜索无结果
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "没有找到匹配的素材",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                } else if (uiState.viewMode == ViewMode.GRID) {
+                    // ── 网格视图 ──
+                    LazyVerticalGrid(
+                        state = gridState,
+                        columns = GridCells.Fixed(DesignSystem.Component.AttachmentGridColumns),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            top = DesignSystem.Spacing.Small,
+                            bottom = DesignSystem.Component.FabBottomPadding,
                         ),
-                    )
-                }
-
-                // ═══════════════════════════════════════════
-                // 附件网格
-                // ═══════════════════════════════════════════
-                items(
-                    items = uiState.attachments,
-                    key = { it.cid },
-                ) { attachment ->
-                    AttachmentGridItem(
-                        attachment = attachment,
-                        onClick = {
-                            previewIndex = uiState.attachments.indexOf(attachment)
-                            showPreview = true
-                        },
-                        onDelete = {
-                            deleteTarget = attachment
-                            showDeleteDialog = true
-                        },
-                    )
-                }
-
-                // 底部间距
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                    ) {
+                        items(
+                            items = filteredAttachments,
+                            key = { it.cid },
+                        ) { attachment ->
+                            AttachmentGridItem(
+                                attachment = attachment,
+                                onClick = {
+                                    previewIndex = filteredAttachments.indexOf(attachment)
+                                    showPreview = true
+                                },
+                                onDelete = {
+                                    deleteTarget = attachment
+                                    showDeleteDialog = true
+                                },
+                            )
+                        }
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+                        }
+                    }
+                } else {
+                    // ── 列表视图 ──
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            top = DesignSystem.Spacing.Small,
+                            bottom = DesignSystem.Component.FabBottomPadding,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                    ) {
+                        items(
+                            items = filteredAttachments,
+                            key = { it.cid },
+                        ) { attachment ->
+                            AttachmentListItem(
+                                attachment = attachment,
+                                onClick = {
+                                    previewIndex = filteredAttachments.indexOf(attachment)
+                                    showPreview = true
+                                },
+                                onDelete = {
+                                    deleteTarget = attachment
+                                    showDeleteDialog = true
+                                },
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+                        }
+                    }
                 }
             }
         }
@@ -230,9 +322,9 @@ fun AttachmentsScreen(
     // ═══════════════════════════════════════════════════════
     // 全屏预览（支持左右滑动）
     // ═══════════════════════════════════════════════════════
-    if (showPreview && uiState.attachments.isNotEmpty()) {
+    if (showPreview && filteredAttachments.isNotEmpty()) {
         FullScreenPreview(
-            attachments = uiState.attachments,
+            attachments = filteredAttachments,
             initialIndex = previewIndex,
             onDismiss = { showPreview = false },
             onDelete = { attachment ->
@@ -247,13 +339,13 @@ fun AttachmentsScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             title = { Text("确认删除") },
-            text = { Text("确定要删除附件 \"${deleteTarget!!.name}\" 吗？此操作不可撤销。") },
+            text = { Text("确定要删除素材 \"${deleteTarget!!.name}\" 吗？此操作不可撤销。") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         viewModel.deleteAttachment(deleteTarget!!.cid)
                         scope.launch {
-                            snackbarHostState.showSnackbar("已删除附件 \"${deleteTarget!!.name}\"")
+                            snackbarHostState.showSnackbar("已删除素材 \"${deleteTarget!!.name}\"")
                         }
                         showDeleteDialog = false
                         deleteTarget = null
@@ -272,7 +364,7 @@ fun AttachmentsScreen(
 }
 
 // ═══════════════════════════════════════════════════════
-// 附件网格项
+// 网格卡片 — 毛玻璃悬浮信息层
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun AttachmentGridItem(
@@ -290,7 +382,10 @@ private fun AttachmentGridItem(
         // 缩略图
         if (attachment.mime.startsWith("image/") && attachment.url.isNotEmpty()) {
             AsyncImage(
-                model = attachment.url,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(attachment.url)
+                    .crossfade(DesignSystem.Animation.CrossfadeDuration)
+                    .build(),
                 contentDescription = attachment.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -312,49 +407,138 @@ private fun AttachmentGridItem(
             }
         }
 
-        // 底部半透明渐变
+        // 毛玻璃悬浮信息层 — 底部渐变 + 文件名 + 大小
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(80.dp)
+                .height(72.dp)
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
+                            Color.Black.copy(alpha = 0.45f),
                             Color.Black.copy(alpha = 0.7f),
                         )
                     )
-                ),
-        )
-
-        // 底部信息
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(DesignSystem.Spacing.Small),
+                )
+                .padding(horizontal = DesignSystem.Spacing.Small, vertical = DesignSystem.Spacing.ExtraSmall),
         ) {
-            Text(
-                text = attachment.name,
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+            // 毛玻璃文字信息
+            Column(
+                modifier = Modifier.align(Alignment.BottomStart),
             ) {
+                Text(
+                    text = attachment.name,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontWeight = FontWeight.Medium,
+                )
                 Text(
                     text = formatFileSize(attachment.size),
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.8f),
-                )
-                Text(
-                    text = attachment.type.split("/").last().uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = Color.White.copy(alpha = 0.75f),
                 )
             }
+
+            // 删除按钮（右下角）
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(32.dp),
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "删除",
+                    tint = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// 列表项
+// ═══════════════════════════════════════════════════════
+@Composable
+private fun AttachmentListItem(
+    attachment: Attachment,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(DesignSystem.Corner.Medium)
+            .clickable(onClick = onClick)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(DesignSystem.Spacing.Medium),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // 缩略图
+        if (attachment.mime.startsWith("image/") && attachment.url.isNotEmpty()) {
+            AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(attachment.url)
+                        .crossfade(DesignSystem.Animation.CrossfadeDuration)
+                        .build(),
+                contentDescription = attachment.name,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(DesignSystem.Corner.Thumbnail),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(DesignSystem.Corner.Thumbnail)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Image,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+
+        // 文件信息
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = attachment.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = "${formatFileSize(attachment.size)} · ${attachment.type.split("/").last().uppercase()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        // 删除按钮
+        IconButton(
+            onClick = onDelete,
+            modifier = Modifier.size(40.dp),
+        ) {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "删除",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }
@@ -379,9 +563,12 @@ private fun FullScreenPreview(
             .background(Color.Black),
     ) {
         // 图片
-        if (currentAttachment.url != null) {
+        if (currentAttachment.url.isNotEmpty()) {
             AsyncImage(
-                model = currentAttachment.url,
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(currentAttachment.url)
+                        .crossfade(DesignSystem.Animation.CrossfadeDuration)
+                        .build(),
                 contentDescription = currentAttachment.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit,
@@ -399,7 +586,7 @@ private fun FullScreenPreview(
         ) {
             IconButton(onClick = onDismiss) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "返回",
                     tint = Color.White,
                 )
@@ -447,7 +634,7 @@ private fun FullScreenPreview(
                     .padding(DesignSystem.Spacing.Medium),
             ) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "上一张",
                     tint = Color.White,
                     modifier = Modifier.size(36.dp),
@@ -462,7 +649,7 @@ private fun FullScreenPreview(
                     .padding(DesignSystem.Spacing.Medium),
             ) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "下一张",
                     tint = Color.White,
                     modifier = Modifier

@@ -1,4 +1,4 @@
-package com.flypigs.typechomanager.ui.settings
+package com.flypigs.typechomanager.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +20,7 @@ data class HeatmapDay(
     val count: Int,
 )
 
-data class SettingsUiState(
+data class ProfileUiState(
     val blogName: String = "",
     val blogUrl: String = "",
     val endpoint: String = "",
@@ -35,7 +35,6 @@ data class SettingsUiState(
     val categoryCount: Int = 0,
     val attachmentCount: Int = 0,
     val isLoadingStats: Boolean = false,
-    val cacheSize: String = "0 KB",
     val pullToRefreshEnabled: Boolean = true,
     val imageQuality: String = "高质量",
     val versionName: String = "1.8.0",
@@ -43,13 +42,13 @@ data class SettingsUiState(
 )
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
+class ProfileViewModel @Inject constructor(
     private val configDataStore: ConfigDataStore,
     private val postRepository: PostRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
-    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ProfileUiState())
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     init {
         loadConfig()
@@ -116,17 +115,15 @@ class SettingsViewModel @Inject constructor(
                 val posts = postRepository.getRecentPosts()
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-                // 统计过去 12 周每天的文章操作次数
                 val calendar = Calendar.getInstance()
                 val heatmapData = mutableListOf<HeatmapDay>()
 
-                // 从 12 周前开始
                 calendar.add(Calendar.WEEK_OF_YEAR, -12)
                 calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
 
                 val postDates = posts.groupBy { dateFormat.format(it.created) }
 
-                repeat(84) { // 12 周 * 7 天
+                repeat(84) {
                     val dateStr = dateFormat.format(calendar.time)
                     val count = postDates[dateStr]?.size ?: 0
                     heatmapData.add(HeatmapDay(date = dateStr, count = count))
@@ -135,7 +132,7 @@ class SettingsViewModel @Inject constructor(
 
                 _uiState.value = _uiState.value.copy(heatmapData = heatmapData)
             } catch (_: Exception) {
-                // 忽略错误
+                // ignore
             }
         }
     }
@@ -171,13 +168,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             configDataStore.setImageQuality(newQuality)
             _uiState.value = _uiState.value.copy(imageQuality = newQuality)
-        }
-    }
-
-    fun clearCache() {
-        viewModelScope.launch {
-            // TODO: 实现缓存清理
-            _uiState.value = _uiState.value.copy(cacheSize = "0 KB")
         }
     }
 }

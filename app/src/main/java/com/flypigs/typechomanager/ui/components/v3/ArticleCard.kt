@@ -3,7 +3,7 @@ package com.flypigs.typechomanager.ui.components.v3
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -39,6 +41,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import java.text.SimpleDateFormat
@@ -46,15 +50,21 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 文章卡片 - 管理型 + 可读型融合
- * 左侧缩略图 80x80，右侧标题+元数据+底部统计
- * 点击缩放到 0.97
+ * 文章卡片 v2 — 精简版
+ * 布局：
+ *   封面 + 标题（2行）
+ *   分类 · 发布时间（一行）
+ *   👁 23  💬 1（一行）
+ *
+ * 支持选中态和长按回调
  */
 @Composable
 fun ArticleCard(
     post: Post,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -63,10 +73,19 @@ fun ArticleCard(
         label = "cardScale"
     )
 
+    // 选中态边框
+    val borderColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.outlineVariant
+    }
+    val borderWidth = if (isSelected) 2.dp else 1.dp
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .scale(scale)
+            .border(borderWidth, borderColor, DesignSystem.Corner.Card)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
@@ -77,22 +96,19 @@ fun ArticleCard(
                             isPressed = false
                         }
                     },
-                    onTap = { onClick() }
+                    onTap = { onClick() },
+                    onLongPress = { onLongClick?.invoke() }
                 )
             },
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = CardDefaults.outlinedCardBorder().copy(
-            brush = Brush.linearGradient(
-                colors = listOf(
-                    MaterialTheme.colorScheme.outlineVariant,
-                    MaterialTheme.colorScheme.outlineVariant,
-                )
-            )
-        ),
     ) {
         Row(
             modifier = Modifier
@@ -100,7 +116,7 @@ fun ArticleCard(
                 .padding(DesignSystem.Spacing.Large),
             horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
         ) {
-            // 左侧缩略图 80x80
+            // 左侧缩略图
             ThumbnailImage(
                 imageUrl = post.cover,
                 title = post.title,
@@ -111,68 +127,81 @@ fun ArticleCard(
             // 右侧信息
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
             ) {
                 // 标题：最多 2 行
                 Text(
                     text = post.title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
-                // 元数据：分类标签 + 状态
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // 分类标签
-                    if (post.categories.isNotEmpty()) {
-                        CategoryChip(category = post.categories.first())
-                    }
+                Spacer(modifier = Modifier.height(2.dp))
 
-                    // 状态圆点 + 文字
-                    StatusIndicator(status = post.status)
+                // 分类 · 发布时间
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    val category = post.categories.firstOrNull()
+                    if (!category.isNullOrEmpty()) {
+                        Text(
+                            text = category,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = getCategoryColor(category),
+                        )
+                        Text(
+                            text = "·",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = formatRelativeTime(post.created),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
 
-                // 底部：阅读数 + 编辑时间
+                // 👁 23  💬 1
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
                 ) {
                     // 阅读数
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Visibility,
                             contentDescription = null,
-                            modifier = Modifier.size(14.dp),
+                            modifier = Modifier.size(13.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             text = post.viewsCount.toString(),
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
-                    // 编辑时间
+                    // 评论数
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Schedule,
+                            imageVector = Icons.Default.ChatBubbleOutline,
                             contentDescription = null,
-                            modifier = Modifier.size(14.dp),
+                            modifier = Modifier.size(13.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            text = formatRelativeTime(post.created),
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = post.commentCount.toString(),
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -191,7 +220,10 @@ private fun ThumbnailImage(
 ) {
     if (!imageUrl.isNullOrEmpty()) {
         AsyncImage(
-            model = imageUrl,
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(imageUrl)
+                .crossfade(DesignSystem.Animation.CrossfadeDuration)
+                .build(),
             contentDescription = title,
             modifier = modifier.clip(DesignSystem.Corner.Thumbnail),
             contentScale = ContentScale.Crop,
@@ -210,45 +242,6 @@ private fun ThumbnailImage(
                 color = Color.White,
             )
         }
-    }
-}
-
-@Composable
-private fun CategoryChip(category: String) {
-    Text(
-        text = category,
-        style = MaterialTheme.typography.labelSmall,
-        color = getCategoryColor(category),
-        modifier = Modifier
-            .clip(DesignSystem.Corner.Chip)
-            .background(getCategoryColor(category).copy(alpha = 0.1f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-    )
-}
-
-@Composable
-private fun StatusIndicator(status: String) {
-    val (color, text) = when (status) {
-        "publish" -> MaterialTheme.colorScheme.primary to "已发布"
-        "draft" -> MaterialTheme.colorScheme.error to "草稿"
-        "private" -> MaterialTheme.colorScheme.tertiary to "私密"
-        else -> MaterialTheme.colorScheme.onSurfaceVariant to status
-    }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(color, shape = MaterialTheme.shapes.small)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-        )
     }
 }
 

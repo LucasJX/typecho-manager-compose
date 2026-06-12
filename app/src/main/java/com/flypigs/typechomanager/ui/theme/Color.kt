@@ -7,18 +7,18 @@ import androidx.compose.ui.graphics.Color
 // ═══════════════════════════════════════════════════════
 
 // 品牌主色组
-val BrandPrimary = Color(0xFF7C8CFF)      // Primary
+val BrandPrimary = Color(0xFF5B6EFF)      // Primary
 val BrandSecondary = Color(0xFF5CC8FF)    // Secondary
 val BrandTertiary = Color(0xFFB388FF)     // Tertiary
 
-// Primary 色阶（浅色/深色模式）
-val Primary10 = Color(0xFF001551)
-val Primary20 = Color(0xFF002783)
-val Primary30 = Color(0xFF3B4DB5)
-val Primary40 = Color(0xFF5A6DD6)
-val Primary80 = Color(0xFFBFC5FF)
-val Primary90 = Color(0xFFDDE0FF)
-val Primary95 = Color(0xFFEEF0FF)
+// Primary 色阶（基于 #5B6EFF）
+val Primary10 = Color(0xFF000E56)
+val Primary20 = Color(0xFF1A2F8A)
+val Primary30 = Color(0xFF3A4FCC)
+val Primary40 = Color(0xFF5B6EFF)
+val Primary80 = Color(0xFFB3BBFF)
+val Primary90 = Color(0xFFD6DAFF)
+val Primary95 = Color(0xFFECEDFF)
 
 // Secondary 色阶
 val Secondary10 = Color(0xFF001F2A)
@@ -47,6 +47,13 @@ val Error90 = Color(0xFFFFDAD6)
 // 语义色
 val SuccessColor = Color(0xFF4CAF50)   // Success
 val WarningColor = Color(0xFFFFB020)   // Warning
+
+// 背景与表面
+val BackgroundColor = Color(0xFFF6F7FB)
+val SurfaceColor = Color(0xFFFFFFFF)
+val SurfaceVariantColor = Color(0xFFF0F1F5)
+val OnSurfaceColor = Color(0xFF1D1B20)
+val OnSurfaceVariantColor = Color(0xFF605D64)
 
 // Neutral
 val Neutral10 = Color(0xFF1D1B20)

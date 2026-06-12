@@ -11,12 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// Material 3 Expressive 调色板
+// Material 3 Expressive — Blogga 配色方案
+// 主色 #5B6EFF、背景 #F6F7FB、卡片 #FFFFFF
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF7C8CFF),
+    primary = Color(0xFF5B6EFF),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFE8EAFF),
-    onPrimaryContainer = Color(0xFF001551),
+    primaryContainer = Color(0xFFE0E2FF),
+    onPrimaryContainer = Color(0xFF00105C),
     secondary = Color(0xFF5CC8FF),
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFD6EDFF),
@@ -29,12 +30,15 @@ private val LightColors = lightColorScheme(
     onError = Color.White,
     errorContainer = Color(0xFFFFDAD6),
     onErrorContainer = Color(0xFF410002),
-    background = Color(0xFFF8F9FF),
+    background = Color(0xFFF6F7FB),
     onBackground = Color(0xFF1A1C20),
     surface = Color.White,
     onSurface = Color(0xFF1A1C20),
     surfaceVariant = Color(0xFFE7E8F0),
     onSurfaceVariant = Color(0xFF444650),
+    surfaceContainerHigh = Color(0xFFF0F1F5),
+    surfaceContainer = Color(0xFFF6F7FB),
+    surfaceContainerLow = Color(0xFFFBFBFE),
     outline = Color(0xFF747680),
     outlineVariant = Color(0xFFC4C6D0),
     inverseSurface = Color(0xFF2F3038),
@@ -46,7 +50,7 @@ private val DarkColors = darkColorScheme(
     primary = Color(0xFFB8C3FF),
     onPrimary = Color(0xFF002579),
     primaryContainer = Color(0xFF0039A8),
-    onPrimaryContainer = Color(0xFFE8EAFF),
+    onPrimaryContainer = Color(0xFFE0E2FF),
     secondary = Color(0xFF8ED4FF),
     onSecondary = Color(0xFF003550),
     secondaryContainer = Color(0xFF004C73),
@@ -65,6 +69,9 @@ private val DarkColors = darkColorScheme(
     onSurface = Color(0xFFE2E2EC),
     surfaceVariant = Color(0xFF444650),
     onSurfaceVariant = Color(0xFFC4C6D0),
+    surfaceContainerHigh = Color(0xFF2A2C32),
+    surfaceContainer = Color(0xFF1F2125),
+    surfaceContainerLow = Color(0xFF1A1C20),
     outline = Color(0xFF8E9099),
     outlineVariant = Color(0xFF444650),
     inverseSurface = Color(0xFFE2E2EC),
@@ -75,7 +82,7 @@ private val DarkColors = darkColorScheme(
 @Composable
 fun TypechoManagerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,  // 默认关闭动态取色，保持品牌色
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

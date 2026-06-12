@@ -91,7 +91,7 @@ fun ArticleCardSkeleton() {
 }
 
 // ═══════════════════════════════════════════════════════
-// 首页骨架（标题 + Hero + StatBar + 列表）
+// 首页骨架（标题 + 2×2卡片 + 横滑文章 + 时间线）
 // ═══════════════════════════════════════════════════════
 @Composable
 fun HomeSkeleton() {
@@ -108,27 +108,48 @@ fun HomeSkeleton() {
                     .padding(horizontal = DesignSystem.Spacing.Large),
             )
         }
-        // Hero 卡
+        // 2×2 统计卡片
         item {
-            SkeletonBox(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(DesignSystem.Component.HeroHeight)
-                    .padding(horizontal = DesignSystem.Spacing.Large),
-            )
+            Column(
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)) {
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium)) {
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
+                    SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.StatCardHeight))
+                }
+            }
         }
-        // StatBar
+        // 横滑文章卡片
         item {
-            SkeletonBox(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(DesignSystem.Component.StatBarHeight)
-                    .padding(horizontal = DesignSystem.Spacing.Large),
-            )
+            Row(
+                modifier = Modifier.padding(start = DesignSystem.Spacing.Large),
+                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+            ) {
+                repeat(3) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .size(
+                                width = DesignSystem.Component.ArticleCarouselWidth,
+                                height = DesignSystem.Component.ArticleCarouselHeight,
+                            ),
+                    )
+                }
+            }
         }
-        // 文章卡片 ×3
+        // 时间线 ×3
         items(3) {
-            ArticleCardSkeleton()
+            Row(
+                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+            ) {
+                SkeletonBox(modifier = Modifier.size(8.dp))
+                SkeletonBox(modifier = Modifier.weight(1f).height(14.dp))
+            }
         }
     }
 }

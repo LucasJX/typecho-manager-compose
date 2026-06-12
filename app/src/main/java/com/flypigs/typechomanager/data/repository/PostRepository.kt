@@ -94,6 +94,28 @@ class PostRepository @Inject constructor(
         return result
     }
 
+    /** Update a post's status (e.g. "draft", "publish", "private"). */
+    suspend fun updatePostStatus(cid: Int, newStatus: String): Boolean {
+        val config = configDataStore.getConfig()
+        require(config.endpoint.isNotBlank()) { "Blog endpoint is not configured" }
+
+        val result = xmlRpcClient.editPost(
+            endpoint = config.endpoint,
+            username = config.username,
+            password = config.password,
+            postId = cid.toString(),
+            content = mapOf("post_status" to newStatus)
+        )
+        if (result) {
+            cacheMutex.withLock {
+                cachedPosts = cachedPosts?.map { post ->
+                    if (post.cid == cid) post.copy(status = newStatus) else post
+                }
+            }
+        }
+        return result
+    }
+
     /** Fetch all categories for the blog. */
     suspend fun getCategories(): List<Category> {
         val config = configDataStore.getConfig()

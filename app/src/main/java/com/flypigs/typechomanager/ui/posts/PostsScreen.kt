@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
@@ -20,23 +19,26 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.data.model.Post
@@ -71,8 +73,6 @@ import com.flypigs.typechomanager.ui.components.v3.ArticleCard
 import com.flypigs.typechomanager.ui.components.v3.FilterChipRow
 import com.flypigs.typechomanager.ui.components.v3.FilterItem
 import com.flypigs.typechomanager.ui.components.v3.PostsSkeleton
-import com.flypigs.typechomanager.ui.components.v3.StatBar
-import com.flypigs.typechomanager.ui.components.v3.StatItem
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import kotlinx.coroutines.launch
 
@@ -110,17 +110,6 @@ fun PostsScreen(
         }
     }
 
-    // 统计数据
-    val publishedCount = remember(uiState.posts) {
-        uiState.posts.count { it.status == "publish" }
-    }
-    val draftCount = remember(uiState.posts) {
-        uiState.posts.count { it.status == "draft" }
-    }
-    val privateCount = remember(uiState.posts) {
-        uiState.posts.count { it.status == "private" }
-    }
-
     // 筛选后的文章
     val filteredPosts = remember(uiState.posts, searchQuery, uiState.selectedStatus) {
         uiState.posts.filter { post ->
@@ -149,19 +138,22 @@ fun PostsScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
-                AnimatedVisibility(
-                    visible = fabVisible,
-                    enter = scaleIn() + fadeIn(),
-                    exit = scaleOut() + fadeOut(),
-                ) {
-                    ExtendedFloatingActionButton(
-                        onClick = onWriteClick,
-                        icon = { Icon(Icons.Default.Add, "写文章") },
-                        text = { Text("写文章") },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        shape = DesignSystem.Corner.Fab,
-                    )
+                // 多选模式下隐藏 FAB
+                if (!isMultiSelectMode) {
+                    AnimatedVisibility(
+                        visible = fabVisible,
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut(),
+                    ) {
+                        ExtendedFloatingActionButton(
+                            onClick = onWriteClick,
+                            icon = { Icon(Icons.Default.Add, "写文章") },
+                            text = { Text("写文章") },
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            shape = DesignSystem.Corner.Fab,
+                        )
+                    }
                 }
             },
         ) { paddingValues ->
@@ -171,40 +163,86 @@ fun PostsScreen(
                     .padding(paddingValues),
             ) {
                 // ═══════════════════════════════════════════
-                // 顶部搜索栏
+                // 多选模式顶栏 / 普通模式搜索栏
                 // ═══════════════════════════════════════════
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    onSearch = { isSearchActive = false },
-                    active = isSearchActive,
-                    onActiveChange = { isSearchActive = it },
-                    placeholder = { Text("搜索文章…") },
-                    leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "搜索")
-                    },
-                    trailingIcon = {
-                        // 列表/网格切换
-                        IconButton(onClick = { isListView = !isListView }) {
+                if (isMultiSelectMode) {
+                    // 多选顶栏：已选 N 篇 + 关闭
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "已选 ${selectedPosts.size} 篇",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        IconButton(onClick = {
+                            isMultiSelectMode = false
+                            selectedPosts = emptySet()
+                        }) {
                             Icon(
-                                imageVector = if (isListView) Icons.Default.ViewModule else Icons.Default.ViewList,
-                                contentDescription = if (isListView) "网格模式" else "列表模式",
+                                Icons.Default.Close,
+                                contentDescription = "退出选择",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
-                    },
-                    colors = SearchBarDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.Large)
-                        .height(DesignSystem.Component.SearchBarHeight),
-                    shape = DesignSystem.Corner.Input,
-                ) {
-                    // 搜索建议（可选）
+                    }
+                } else {
+                    // 普通搜索栏
+                    SearchBar(
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
+                        onSearch = { isSearchActive = false },
+                        active = isSearchActive,
+                        onActiveChange = { isSearchActive = it },
+                        placeholder = { Text("搜索文章…") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Search, contentDescription = "搜索")
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { isListView = !isListView }) {
+                                Icon(
+                                    imageVector = if (isListView) Icons.Default.ViewModule else Icons.Default.ViewList,
+                                    contentDescription = if (isListView) "网格模式" else "列表模式",
+                                )
+                            }
+                        },
+                        colors = SearchBarDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = DesignSystem.Spacing.Large)
+                            .height(DesignSystem.Component.SearchBarHeight),
+                        shape = DesignSystem.Corner.Input,
+                    ) {}
                 }
 
                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+
+                // ═══════════════════════════════════════════
+                // 顶部标题行：文章 / 共 N 篇
+                // ═══════════════════════════════════════════
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = DesignSystem.Spacing.Large),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "文章 / 共 ${filteredPosts.size} 篇",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
 
                 // ═══════════════════════════════════════════
                 // FilterChip 组
@@ -212,9 +250,9 @@ fun PostsScreen(
                 FilterChipRow(
                     filters = listOf(
                         FilterItem(id = "all", label = "全部", count = uiState.posts.size),
-                        FilterItem(id = "publish", label = "已发布", count = publishedCount),
-                        FilterItem(id = "draft", label = "草稿", count = draftCount),
-                        FilterItem(id = "private", label = "私密", count = privateCount),
+                        FilterItem(id = "publish", label = "已发布", count = 0),
+                        FilterItem(id = "draft", label = "草稿", count = 0),
+                        FilterItem(id = "private", label = "私密", count = 0),
                     ),
                     selectedFilter = uiState.selectedStatus ?: "all",
                     onFilterSelected = { status ->
@@ -244,13 +282,11 @@ fun PostsScreen(
                             confirmValueChange = { dismissValue ->
                                 when (dismissValue) {
                                     SwipeToDismissBoxValue.EndToStart -> {
-                                        // 左滑删除 — 记住 cid 再弹确认框
                                         pendingDeleteCid = post.cid
                                         showDeleteDialog = true
                                         false
                                     }
                                     SwipeToDismissBoxValue.StartToEnd -> {
-                                        // 右滑编辑
                                         onPostClick(post.cid)
                                         false
                                     }
@@ -295,8 +331,8 @@ fun PostsScreen(
                                     )
                                 }
                             },
-                            enableDismissFromStartToEnd = true,
-                            enableDismissFromEndToStart = true,
+                            enableDismissFromStartToEnd = !isMultiSelectMode,
+                            enableDismissFromEndToStart = !isMultiSelectMode,
                         ) {
                             ArticleCard(
                                 post = post,
@@ -311,58 +347,80 @@ fun PostsScreen(
                                         onPostClick(post.cid)
                                     }
                                 },
+                                isSelected = isMultiSelectMode && post.cid in selectedPosts,
+                                onLongClick = {
+                                    if (!isMultiSelectMode) {
+                                        isMultiSelectMode = true
+                                        selectedPosts = setOf(post.cid)
+                                    }
+                                },
                             )
                         }
                     }
 
-                    // 底部间距
+                    // 底部间距（批量模式时留更多空间给操作栏）
                     item(key = "bottom_spacer") {
-                        Spacer(modifier = Modifier.height(DesignSystem.Component.FabBottomPadding))
+                        val bottomPadding = if (isMultiSelectMode) {
+                            DesignSystem.Component.FabBottomPadding + 48.dp
+                        } else {
+                            DesignSystem.Component.FabBottomPadding
+                        }
+                        Spacer(modifier = Modifier.height(bottomPadding))
                     }
                 }
             }
 
-            // 批量操作栏（多选模式）
+            // ═══════════════════════════════════════════
+            // 底部批量操作栏
+            // ═══════════════════════════════════════════
             AnimatedVisibility(
                 visible = isMultiSelectMode && selectedPosts.isNotEmpty(),
-                enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                modifier = Modifier.align(Alignment.BottomCenter),
             ) {
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .padding(DesignSystem.Spacing.Medium),
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                        .navigationBarsPadding()
+                        .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "已选择 ${selectedPosts.size} 篇",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                        Row {
-                            TextButton(
-                                onClick = {
-                                    // TODO: 批量删除
-                                    showDeleteDialog = true
-                                },
-                            ) {
-                                Text("删除", color = MaterialTheme.colorScheme.error)
+                    // 删除
+                    BatchActionButton(
+                        icon = Icons.Default.Delete,
+                        label = "删除",
+                        tint = MaterialTheme.colorScheme.error,
+                        onClick = { showDeleteDialog = true },
+                    )
+                    // 移动分类
+                    BatchActionButton(
+                        icon = Icons.Default.FolderOpen,
+                        label = "移动分类",
+                        tint = MaterialTheme.colorScheme.primary,
+                        onClick = {
+                            // TODO: 弹出分类选择对话框
+                            scope.launch {
+                                snackbarHostState.showSnackbar("移动分类功能开发中")
                             }
-                            TextButton(
-                                onClick = {
-                                    isMultiSelectMode = false
-                                    selectedPosts = emptySet()
-                                },
-                            ) {
-                                Text("取消")
+                        },
+                    )
+                    // 设为草稿
+                    BatchActionButton(
+                        icon = Icons.Default.Edit,
+                        label = "设为草稿",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        onClick = {
+                            selectedPosts.forEach { cid -> viewModel.updatePostStatus(cid, "draft") }
+                            scope.launch {
+                                snackbarHostState.showSnackbar("已将 ${selectedPosts.size} 篇设为草稿")
                             }
-                        }
-                    }
+                            isMultiSelectMode = false
+                            selectedPosts = emptySet()
+                        },
+                    )
                 }
             }
         }
@@ -413,6 +471,29 @@ fun PostsScreen(
                     Text("取消")
                 }
             },
+        )
+    }
+}
+
+@Composable
+private fun BatchActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    tint: Color,
+    onClick: () -> Unit,
+) {
+    FilledTonalButton(onClick = onClick) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = tint,
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = tint,
         )
     }
 }

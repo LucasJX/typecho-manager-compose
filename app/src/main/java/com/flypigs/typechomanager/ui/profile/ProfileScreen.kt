@@ -1,4 +1,4 @@
-package com.flypigs.typechomanager.ui.settings
+package com.flypigs.typechomanager.ui.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,17 +18,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
@@ -49,18 +43,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.flypigs.typechomanager.ui.components.v3.rememberCountUpState
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SettingsScreen(
-    viewModel: SettingsViewModel = hiltViewModel(),
+fun ProfileScreen(
+    viewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToChangelog: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -80,29 +73,49 @@ fun SettingsScreen(
             // ═══════════════════════════════════════════
             item(key = "page_title") {
                 Text(
-                    text = "设置",
+                    text = "我的",
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = DesignSystem.Spacing.Small),
                 )
             }
+
             // ═══════════════════════════════════════════
-            // Hero 卡片（160dp，圆角 28dp，背景渐变）
+            // 用户信息区：头像 + Flypigs + Blogga
             // ═══════════════════════════════════════════
-            item(key = "hero") {
-                HeroCard(
-                    blogName = uiState.blogName,
-                    blogUrl = uiState.blogUrl,
+            item(key = "user_info") {
+                UserInfoSection(
                     username = uiState.username,
+                    blogName = uiState.blogName,
                 )
             }
 
             // ═══════════════════════════════════════════
-            // 账号组
+            // 数据概览：文章 / 分类 / 附件（一行三列）
             // ═══════════════════════════════════════════
-            item(key = "account_header") {
-                SectionHeader(title = "账号")
+            item(key = "data_overview") {
+                DataOverviewRow(
+                    postCount = uiState.postCount,
+                    categoryCount = uiState.categoryCount,
+                    attachmentCount = uiState.attachmentCount,
+                )
+            }
+
+            // ═══════════════════════════════════════════
+            // 写作热力图（GitHub 风格）
+            // ═══════════════════════════════════════════
+            item(key = "heatmap") {
+                WritingHeatmap(
+                    data = uiState.heatmapData,
+                )
+            }
+
+            // ═══════════════════════════════════════════
+            // 我的博客
+            // ═══════════════════════════════════════════
+            item(key = "my_blog_header") {
+                SectionHeader(title = "我的博客")
             }
 
             item(key = "blog_url") {
@@ -110,15 +123,6 @@ fun SettingsScreen(
                     icon = Icons.Default.Language,
                     title = "博客地址",
                     subtitle = uiState.blogUrl,
-                    onClick = { /* TODO: 编辑 */ },
-                )
-            }
-
-            item(key = "username") {
-                SettingsItem(
-                    icon = Icons.Default.AccountCircle,
-                    title = "用户名",
-                    subtitle = uiState.username,
                     onClick = { /* TODO: 编辑 */ },
                 )
             }
@@ -133,83 +137,22 @@ fun SettingsScreen(
             }
 
             // ═══════════════════════════════════════════
-            // 内容管理组
-            // ═══════════════════════════════════════════
-            item(key = "content_header") {
-                SectionHeader(title = "内容管理")
-            }
-
-            item(key = "post_count") {
-                SettingsItem(
-                    icon = Icons.Default.Description,
-                    title = "文章数",
-                    subtitle = "${uiState.postCount} 篇",
-                    onClick = null,
-                )
-            }
-
-            item(key = "category_count") {
-                SettingsItem(
-                    icon = Icons.Default.Category,
-                    title = "分类数",
-                    subtitle = "${uiState.categoryCount} 个",
-                    onClick = null,
-                )
-            }
-
-            item(key = "attachment_count") {
-                SettingsItem(
-                    icon = Icons.Default.AttachFile,
-                    title = "附件数",
-                    subtitle = "${uiState.attachmentCount} 个",
-                    onClick = null,
-                )
-            }
-
-            item(key = "cache_size") {
-                SettingsItem(
-                    icon = Icons.Default.Refresh,
-                    title = "缓存大小",
-                    subtitle = uiState.cacheSize,
-                    onClick = { viewModel.clearCache() },
-                )
-            }
-
-            // ═══════════════════════════════════════════
-            // 写作热力图（新增亮点）
-            // ═══════════════════════════════════════════
-            item(key = "heatmap") {
-                WritingHeatmap(
-                    data = uiState.heatmapData,
-                )
-            }
-
-            // ═══════════════════════════════════════════
-            // 应用组
+            // 应用设置
             // ═══════════════════════════════════════════
             item(key = "app_header") {
-                SectionHeader(title = "应用")
+                SectionHeader(title = "应用设置")
             }
 
             item(key = "theme") {
                 SettingsItem(
                     icon = Icons.Default.Palette,
                     title = "主题模式",
-                    subtitle = when(uiState.themeMode) {
+                    subtitle = when (uiState.themeMode) {
                         com.flypigs.typechomanager.data.model.ThemeMode.SYSTEM -> "跟随系统"
                         com.flypigs.typechomanager.data.model.ThemeMode.LIGHT -> "浅色"
                         com.flypigs.typechomanager.data.model.ThemeMode.DARK -> "深色"
                     },
                     onClick = { viewModel.toggleThemeMode() },
-                )
-            }
-
-            item(key = "pull_refresh") {
-                SettingsItem(
-                    icon = Icons.Default.Refresh,
-                    title = "下拉刷新",
-                    subtitle = if (uiState.pullToRefreshEnabled) "已开启" else "已关闭",
-                    onClick = { viewModel.togglePullToRefresh() },
                 )
             }
 
@@ -222,8 +165,17 @@ fun SettingsScreen(
                 )
             }
 
+            item(key = "pull_refresh") {
+                SettingsItem(
+                    icon = Icons.Default.Refresh,
+                    title = "下拉刷新",
+                    subtitle = if (uiState.pullToRefreshEnabled) "已开启" else "已关闭",
+                    onClick = { viewModel.togglePullToRefresh() },
+                )
+            }
+
             // ═══════════════════════════════════════════
-            // 关于组
+            // 关于
             // ═══════════════════════════════════════════
             item(key = "about_header") {
                 SectionHeader(title = "关于")
@@ -256,15 +208,6 @@ fun SettingsScreen(
                 )
             }
 
-            item(key = "license") {
-                SettingsItem(
-                    icon = Icons.Default.Description,
-                    title = "许可证",
-                    subtitle = "MIT License",
-                    onClick = null,
-                )
-            }
-
             // 底部间距
             item(key = "bottom_spacer") {
                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
@@ -274,68 +217,118 @@ fun SettingsScreen(
 }
 
 // ═══════════════════════════════════════════════════════
-// Hero 卡片
+// 用户信息区
 // ═══════════════════════════════════════════════════════
 @Composable
-private fun HeroCard(
+private fun UserInfoSection(
+    username: String,
     blogName: String,
-    blogUrl: String,
-    username: String = "",
 ) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp),
-        shape = DesignSystem.Corner.Hero,
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+            .padding(vertical = DesignSystem.Spacing.Large),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
     ) {
+        // 头像（首字母）
+        val initial = username.firstOrNull()?.uppercase()
+            ?: blogName.firstOrNull()?.uppercase()
+            ?: "B"
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.surface,
-                        )
-                    )
-                ),
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
         ) {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(DesignSystem.Spacing.Large),
-            ) {
-                // 头像 — 首字母
-                val initial = username.firstOrNull()?.uppercase() ?: blogName.firstOrNull()?.uppercase() ?: "B"
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = initial,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
+            Text(
+                text = initial,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontWeight = FontWeight.Bold,
+            )
+        }
 
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+        Column {
+            Text(
+                text = username.ifEmpty { "Flypigs" },
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = blogName.ifEmpty { "Blogga" },
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
 
-                Text(
-                    text = blogName.ifEmpty { "Blogga" },
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = blogUrl,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
-                )
-            }
+// ═══════════════════════════════════════════════════════
+// 数据概览（一行三列卡片）
+// ═══════════════════════════════════════════════════════
+@Composable
+private fun DataOverviewRow(
+    postCount: Int,
+    categoryCount: Int,
+    attachmentCount: Int,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+    ) {
+        DataCard(
+            label = "文章",
+            count = postCount,
+            modifier = Modifier.weight(1f),
+        )
+        DataCard(
+            label = "分类",
+            count = categoryCount,
+            modifier = Modifier.weight(1f),
+        )
+        DataCard(
+            label = "附件",
+            count = attachmentCount,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun DataCard(
+    label: String,
+    count: Int,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.height(88.dp),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(DesignSystem.Spacing.Medium),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "${rememberCountUpState(count)}",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -412,7 +405,7 @@ private fun SettingsItem(
 }
 
 // ═══════════════════════════════════════════════════════
-// 写作热力图（模仿 GitHub 贡献图）
+// 写作热力图（GitHub 贡献图风格）
 // ═══════════════════════════════════════════════════════
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -433,7 +426,7 @@ private fun WritingHeatmap(
 
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
-        // 热力图网格（简化版：显示过去 12 周）
+        // 热力图网格（过去 12 周）
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -444,7 +437,7 @@ private fun WritingHeatmap(
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .padding(DesignSystem.Spacing.Small),
         ) {
-            data.take(84).forEach { day -> // 12 周 * 7 天
+            data.take(84).forEach { day ->
                 val alpha = (day.count.coerceIn(0, 4) / 4f).coerceIn(0.1f, 1f)
                 Box(
                     modifier = Modifier

@@ -4,17 +4,21 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateIntOffsetAsState
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Attachment
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Attachment
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -42,8 +46,9 @@ private data class NavItem(
 private val navItems = listOf(
     NavItem(Screen.Home.route, "首页", Icons.Filled.Home, Icons.Outlined.Home),
     NavItem(Screen.Posts.route, "文章", Icons.Filled.Article, Icons.Outlined.Article),
-    NavItem(Screen.Attachments.route, "附件", Icons.Filled.Attachment, Icons.Outlined.Attachment),
-    NavItem(Screen.Settings.route, "设置", Icons.Filled.Settings, Icons.Outlined.Settings),
+    NavItem(Screen.Creator.route, "创作", Icons.Filled.Edit, Icons.Outlined.Edit),
+    NavItem(Screen.Attachments.route, "素材", Icons.Filled.Attachment, Icons.Outlined.Attachment),
+    NavItem(Screen.Profile.route, "我的", Icons.Filled.Person, Icons.Outlined.Person),
 )
 
 @Composable

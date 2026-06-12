@@ -16,7 +16,7 @@ import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 /**
  * FilterChip 组 - 水平排列，高度 36dp，圆角 20dp
- * 格式："全部 5"、"已发布 5"、"草稿 0"、"私密 0"
+ * 筛选标签不显示统计数字，仅显示中文标签
  */
 @Composable
 fun FilterChipRow(
@@ -37,7 +37,7 @@ fun FilterChipRow(
                 onClick = { onFilterSelected(filter.id) },
                 label = {
                     Text(
-                        text = "${filter.label} ${filter.count}",
+                        text = filter.label,
                         style = MaterialTheme.typography.labelLarge,
                     )
                 },

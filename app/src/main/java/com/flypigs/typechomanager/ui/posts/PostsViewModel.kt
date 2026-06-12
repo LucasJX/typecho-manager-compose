@@ -88,4 +88,22 @@ class PostsViewModel @Inject constructor(
     fun filterByStatus(status: String?) {
         _uiState.value = _uiState.value.copy(selectedStatus = status)
     }
+
+    /** Update a post's status and refresh the local list. */
+    fun updatePostStatus(cid: Int, newStatus: String) {
+        viewModelScope.launch {
+            try {
+                postRepository.updatePostStatus(cid, newStatus)
+                _uiState.value = _uiState.value.copy(
+                    posts = _uiState.value.posts.map { post ->
+                        if (post.cid == cid) post.copy(status = newStatus) else post
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Status update failed"
+                )
+            }
+        }
+    }
 }
