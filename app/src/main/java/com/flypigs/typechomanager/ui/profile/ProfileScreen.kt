@@ -132,9 +132,9 @@ fun ProfileScreen(
             item(key = "header") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500)) + slideInVertically(
-                        tween(500),
-                        initialOffsetY = { -it / 2 },
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration),
+                        initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
                     ),
                 ) {
                     Row(
@@ -195,8 +195,8 @@ fun ProfileScreen(
             item(key = "user_info") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 100)) + slideInVertically(
-                        tween(500, delayMillis = 100),
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
@@ -214,8 +214,8 @@ fun ProfileScreen(
             item(key = "data_overview") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 200)) + slideInVertically(
-                        tween(500, delayMillis = 200),
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
@@ -234,8 +234,8 @@ fun ProfileScreen(
             item(key = "heatmap") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 300)) + slideInVertically(
-                        tween(500, delayMillis = 300),
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
@@ -254,8 +254,8 @@ fun ProfileScreen(
             item(key = "settings_account") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 400)) + slideInVertically(
-                        tween(500, delayMillis = 400),
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
@@ -288,8 +288,8 @@ fun ProfileScreen(
             item(key = "settings_preference") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 500)) + slideInVertically(
-                        tween(500, delayMillis = 500),
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 5)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 5),
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
@@ -338,8 +338,8 @@ fun ProfileScreen(
             item(key = "settings_about") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 600)) + slideInVertically(
-                        tween(500, delayMillis = 600),
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 6)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 6),
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
@@ -389,8 +389,8 @@ fun ProfileScreen(
             item(key = "logout") {
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 700)) + slideInVertically(
-                        tween(500, delayMillis = 700),
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 7)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 7),
                         initialOffsetY = { it / 4 },
                     ),
                 ) {

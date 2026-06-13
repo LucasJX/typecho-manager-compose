@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewModule
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -218,73 +219,67 @@ fun PostsScreen(
                             }
                         }
                     } else {
-                        // 大标题（与素材库/我的页一致：渐变图标徽章 + headlineMedium）
+                        // 搜索激活时：只显示搜索栏 | 非搜索时：显示大标题 + 搜索栏
                         AnimatedVisibility(
-                            visibleState = enterState,
+                            visible = !searchActive,
                             enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
                                 slideInVertically(
                                     tween(DesignSystem.Entrance.SectionDuration),
                                     initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
                                 ),
+                            exit = fadeOut(tween(200)),
                         ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.ExtraSmall)
-                                .padding(horizontal = DesignSystem.Spacing.Large),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            // 渐变圆形图标徽章
-                            Box(
+                            // 大标题（与素材库/我的页一致：渐变图标徽章 + headlineMedium）
+                            Row(
                                 modifier = Modifier
-                                    .size(56.dp)
-                                    .background(
-                                        Brush.linearGradient(
-                                            colors = listOf(
-                                                DesignSystem.BrandColors.Primary,
-                                                DesignSystem.BrandColors.Tertiary,
-                                            )
-                                        ),
-                                        CircleShape,
-                                    ),
-                                contentAlignment = Alignment.Center,
+                                    .fillMaxWidth()
+                                    .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.ExtraSmall)
+                                    .padding(horizontal = DesignSystem.Spacing.Large),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ViewList,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp),
-                                    tint = Color.White,
-                                )
-                            }
-    
-                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
-    
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "文章",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                                Text(
-                                    text = "共 ${filteredPosts.size} 篇",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            // 视图切换按钮
-                            IconButton(onClick = { isListView = !isListView }) {
-                                Icon(
-                                    imageVector = if (isListView) Icons.Default.ViewModule else Icons.AutoMirrored.Filled.ViewList,
-                                    contentDescription = if (isListView) "网格模式" else "列表模式",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(DesignSystem.GradientBadge.TitleSize)
+                                        .background(
+                                            Brush.linearGradient(DesignSystem.GradientBadge.defaultBrush()),
+                                            CircleShape,
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ViewList,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(DesignSystem.GradientBadge.TitleIconSize),
+                                        tint = Color.White,
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "文章",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Text(
+                                        text = "共 ${filteredPosts.size} 篇",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                IconButton(onClick = { isListView = !isListView }) {
+                                    Icon(
+                                        imageVector = if (isListView) Icons.Default.ViewModule else Icons.AutoMirrored.Filled.ViewList,
+                                        contentDescription = if (isListView) "网格模式" else "列表模式",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
-                        // DockedSearchBar
+                        // 搜索栏（始终显示）
                         DockedSearchBar(
                             inputField = {
                                 SearchBarDefaults.InputField(
@@ -295,7 +290,16 @@ fun PostsScreen(
                                     onExpandedChange = { searchActive = it },
                                     placeholder = { Text("搜索文章…") },
                                     leadingIcon = {
-                                        Icon(Icons.Default.Search, contentDescription = "搜索")
+                                        if (searchActive) {
+                                            IconButton(onClick = {
+                                                searchActive = false
+                                                searchQuery = ""
+                                            }) {
+                                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                                            }
+                                        } else {
+                                            Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                                        }
                                     },
                                     trailingIcon = {
                                         if (searchQuery.isNotEmpty()) {
@@ -316,7 +320,6 @@ fun PostsScreen(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                             ),
                         ) {
-                            // 搜索建议（展开时显示匹配结果）
                             LazyColumn {
                                 items(
                                     filteredPosts.take(5),
@@ -345,7 +348,6 @@ fun PostsScreen(
                             }
                         }
                     }
-                    } // AnimatedVisibility (header + search)
 
                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
 
