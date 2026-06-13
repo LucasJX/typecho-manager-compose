@@ -180,9 +180,9 @@ fun HomeScreen(
                 item(key = "greeting") {
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(DesignSystem.Animation.SectionDuration)) +
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
                             slideInVertically(
-                                tween(DesignSystem.Animation.SectionDuration),
+                                tween(DesignSystem.Entrance.SectionDuration),
                                 initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
                             ),
                     ) {
@@ -198,9 +198,9 @@ fun HomeScreen(
                 item(key = "stats") {
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) +
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) +
                             slideInVertically(
-                                tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
                                 initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                             ),
                     ) {
@@ -219,9 +219,9 @@ fun HomeScreen(
                     item(key = "hero_pager") {
                         AnimatedVisibility(
                             visibleState = enterState,
-                            enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) +
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) +
                                 slideInVertically(
-                                    tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
+                                    tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
                                     initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                                 ),
                         ) {
@@ -239,9 +239,9 @@ fun HomeScreen(
                     item(key = "activity_header") {
                         AnimatedVisibility(
                             visibleState = enterState,
-                            enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) +
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) +
                                 slideInVertically(
-                                    tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
+                                    tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
                                     initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                                 ),
                         ) {
@@ -297,9 +297,9 @@ fun HomeScreen(
                 item(key = "quick_actions") {
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) +
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) +
                             slideInVertically(
-                                tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
                                 initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                             ),
                     ) {
