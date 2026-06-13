@@ -126,7 +126,7 @@ fun CreatorScreen(
                 verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
             ) {
                 // ═══════════════════════════════════════════
-                // 1. 标题区 — "创作中心" + 渐变图标
+                // 1. 标题区 — "创作中心" + 渐变图标徽章（与其他页面统一）
                 // ═══════════════════════════════════════════
                 item(key = "header") {
                     Row(
@@ -140,10 +140,10 @@ fun CreatorScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                     ) {
-                        // 渐变圆形图标徽章
+                        // 渐变圆形图标徽章（56dp，与其他页面统一）
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
+                                .size(56.dp)
                                 .clip(CircleShape)
                                 .background(
                                     Brush.linearGradient(
@@ -158,24 +158,20 @@ fun CreatorScreen(
                             Icon(
                                 imageVector = Icons.Default.Create,
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(28.dp),
                                 tint = Color.White,
                             )
                         }
                         Column {
                             Text(
                                 text = "创作中心",
-                                style = MaterialTheme.typography.headlineLarge.copy(
-                                    fontSize = DesignSystem.Typography.Display,
-                                ),
+                                style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = "今天写点什么？",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontSize = DesignSystem.Typography.Body,
-                                ),
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
