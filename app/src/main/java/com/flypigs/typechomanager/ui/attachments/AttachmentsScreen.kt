@@ -297,7 +297,7 @@ fun AttachmentsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = DesignSystem.Spacing.Medium),
+                            .padding(top = DesignSystem.Spacing.Small),
                         verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                     ) {
                         StatCard(
@@ -372,7 +372,7 @@ fun AttachmentsScreen(
                     onExpandedChange = { searchExpanded = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = DesignSystem.Spacing.Small),
+                        .padding(horizontal = DesignSystem.Spacing.Large),
                     shape = DesignSystem.Corner.Input,
                     colors = SearchBarDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
