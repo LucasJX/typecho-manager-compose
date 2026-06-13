@@ -47,7 +47,6 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.InsertDriveFile
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -60,8 +59,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -136,9 +133,6 @@ fun AttachmentsScreen(
     var showContextMenu by remember { mutableStateOf(false) }
     var contextMenuTarget by remember { mutableStateOf<Attachment?>(null) }
 
-    // 搜索栏展开状态
-    var searchExpanded by remember { mutableStateOf(false) }
-
     // 筛选类型
     var filterType by remember { mutableStateOf(FilterType.ALL) }
 
@@ -184,13 +178,8 @@ fun AttachmentsScreen(
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
+        modifier = Modifier.fillMaxSize(),
     ) {
-        // 骨架屏
-        if (uiState.isLoading && uiState.attachments.isEmpty()) {
-            AttachmentsSkeleton()
-            return@PullToRefreshBox
-        }
-
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             floatingActionButton = {
@@ -210,6 +199,11 @@ fun AttachmentsScreen(
                 }
             },
         ) { paddingValues ->
+            // 骨架屏
+            if (uiState.isLoading && uiState.attachments.isEmpty()) {
+                AttachmentsSkeleton()
+                return@Scaffold
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -322,88 +316,6 @@ fun AttachmentsScreen(
                 }
 
                 // ═══════════════════════════════════════════
-                // 搜索栏 — DockedSearchBar
-                // ═══════════════════════════════════════════
-                SearchBar(
-                    inputField = {
-                        SearchBarDefaults.InputField(
-                            query = uiState.searchQuery,
-                            onQueryChange = { viewModel.updateSearchQuery(it) },
-                            onSearch = { searchExpanded = false },
-                            expanded = searchExpanded,
-                            onExpandedChange = { searchExpanded = it },
-                            placeholder = {
-                                Text(
-                                    "搜索素材...",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            },
-                            leadingIcon = {
-                                if (searchExpanded) {
-                                    IconButton(onClick = { searchExpanded = false }) {
-                                        Icon(
-                                            Icons.AutoMirrored.Filled.ArrowBack,
-                                            contentDescription = "返回",
-                                        )
-                                    }
-                                } else {
-                                    Icon(
-                                        Icons.Default.Search,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            },
-                            trailingIcon = {
-                                if (uiState.searchQuery.isNotEmpty()) {
-                                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                                        Icon(
-                                            Icons.Default.FilterList,
-                                            contentDescription = "清除",
-                                        )
-                                    }
-                                }
-                            },
-                        )
-                    },
-                    expanded = searchExpanded,
-                    onExpandedChange = { searchExpanded = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = DesignSystem.Spacing.Large),
-                    shape = DesignSystem.Corner.Input,
-                    colors = SearchBarDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                    ),
-                ) {
-                    // 搜索建议
-                    val suggestions = remember(uiState.searchQuery, uiState.attachments) {
-                        if (uiState.searchQuery.length >= 2) {
-                            uiState.attachments
-                                .filter { it.name.contains(uiState.searchQuery, ignoreCase = true) }
-                                .take(5)
-                        } else emptyList()
-                    }
-                    suggestions.forEach { attachment ->
-                        DropdownMenuItem(
-                            text = { Text(attachment.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            onClick = {
-                                viewModel.updateSearchQuery(attachment.name)
-                                searchExpanded = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    if (attachment.mime.startsWith("image/")) Icons.Default.Image
-                                    else Icons.Default.InsertDriveFile,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            },
-                        )
-                    }
-                }
-
-                // ═══════════════════════════════════════════
                 // 筛选 Chips
                 // ═══════════════════════════════════════════
                 Row(
@@ -441,28 +353,7 @@ fun AttachmentsScreen(
                 // ═══════════════════════════════════════════
                 // 内容区 — 根据视图模式切换
                 // ═══════════════════════════════════════════
-                if (displayAttachments.isEmpty() && uiState.searchQuery.isNotEmpty()) {
-                    // 搜索无结果
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            )
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
-                            Text(
-                                text = "没有找到匹配的素材",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                } else if (displayAttachments.isEmpty() && filterType != FilterType.ALL) {
+                if (displayAttachments.isEmpty() && filterType != FilterType.ALL) {
                     // 筛选无结果
                     Box(
                         modifier = Modifier.fillMaxSize(),

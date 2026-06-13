@@ -123,16 +123,16 @@ fun CreatorScreen(
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
+        modifier = Modifier.fillMaxSize(),
     ) {
-        // 骨架屏
-        if (uiState.isLoadingDrafts && uiState.recentDrafts.isEmpty()) {
-            CreatorSkeleton()
-            return@PullToRefreshBox
-        }
-
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { paddingValues ->
+            // 骨架屏
+            if (uiState.isLoadingDrafts && uiState.recentDrafts.isEmpty()) {
+                CreatorSkeleton()
+                return@Scaffold
+            }
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()

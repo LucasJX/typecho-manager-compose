@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -142,13 +141,8 @@ fun HomeScreen(
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
+        modifier = Modifier.fillMaxSize(),
     ) {
-        // 骨架屏
-        if (uiState.isLoading && uiState.allPosts.isEmpty()) {
-            HomeSkeleton()
-            return@PullToRefreshBox
-        }
-
         // 数据加载完成后触发入场动画
         LaunchedEffect(uiState.allPosts) {
             if (uiState.allPosts.isNotEmpty() && !enterState.currentState) {
@@ -158,7 +152,6 @@ fun HomeScreen(
 
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
                 MorphingFab(
                     extended = fabExtended,
@@ -166,6 +159,11 @@ fun HomeScreen(
                 )
             },
         ) { paddingValues ->
+            // 骨架屏
+            if (uiState.isLoading && uiState.allPosts.isEmpty()) {
+                HomeSkeleton()
+                return@Scaffold
+            }
             LazyColumn(
                 state = listState,
                 modifier = Modifier
