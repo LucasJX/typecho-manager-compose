@@ -107,7 +107,7 @@ enum class FilterType(val label: String) {
     ALL("全部"), IMAGE("图片"), VIDEO("视频"), DOCUMENT("文档")
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AttachmentsScreen(
     onBack: () -> Unit,
@@ -148,9 +148,9 @@ fun AttachmentsScreen(
     val fabVisible by remember {
         derivedStateOf {
             if (uiState.viewMode == ViewMode.GRID) {
-                gridState.firstVisibleItemIndex < 4
+                gridState.firstVisibleItemIndex < 6
             } else {
-                listState.firstVisibleItemIndex < 4
+                listState.firstVisibleItemIndex < 6
             }
         }
     }
@@ -201,242 +201,168 @@ fun AttachmentsScreen(
         ) { paddingValues ->
             // 骨架屏
             if (uiState.isLoading && uiState.attachments.isEmpty()) {
-                AttachmentsSkeleton()
+                Box(modifier = Modifier.padding(paddingValues).padding(horizontal = DesignSystem.Spacing.Large)) {
+                    AttachmentsSkeleton()
+                }
                 return@Scaffold
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = DesignSystem.Spacing.Large),
-            ) {
-                // ═══════════════════════════════════════════
-                // 标题区：渐变图标徽章 + 标题 + 副标题
-                // ═══════════════════════════════════════════
-                AnimatedVisibility(
-                    visibleState = enterState,
-                    enter = fadeIn(tween(500)) + slideInVertically(
-                        tween(500),
-                        initialOffsetY = { -it / 2 }
-                    ),
+            // ═══════════════════════════════════════════
+            // 内容区 — 根据视图模式切换
+            // header / stats / filters 都在可滚动内容里
+            // ═══════════════════════════════════════════
+            if (displayAttachments.isEmpty() && filterType != FilterType.ALL) {
+                // 筛选无结果 — 仍然显示 header/stats/filter 然后空状态提示
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(bottom = DesignSystem.Component.FabBottomPadding),
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.Small),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        // 渐变圆形图标徽章
+                    // 标题
+                    item(key = "header") { HeaderTitle(enterState, uiState, viewModel) }
+                    // 统计
+                    item(key = "stats") { StatsSection(enterState, uiState, recentUploadText) }
+                    // 筛选 Chips（sticky）
+                    stickyHeader(key = "filters") {
+                        FilterChipRow(filterType, Modifier.padding(horizontal = DesignSystem.Spacing.Large)) { filterType = it }
+                    }
+                    // 空状态
+                    item(key = "empty_filter") {
                         Box(
                             modifier = Modifier
-                                .size(56.dp)
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            DesignSystem.BrandColors.Primary,
-                                            DesignSystem.BrandColors.Tertiary,
-                                        )
-                                    ),
-                                    CircleShape,
-                                ),
+                                .fillMaxWidth()
+                                .padding(horizontal = DesignSystem.Spacing.Large)
+                                .height(300.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Archive,
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = Color.White,
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "素材库",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = "管理你的媒体资源",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-
-                        // 视图切换按钮
-                        IconButton(onClick = { viewModel.toggleViewMode() }) {
-                            Icon(
-                                imageVector = if (uiState.viewMode == ViewMode.GRID)
-                                    Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                                contentDescription = if (uiState.viewMode == ViewMode.GRID) "列表视图" else "网格视图",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    Icons.Default.FilterList,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                )
+                                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                                Text(
+                                    text = "没有${filterType.label}类型的素材",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 }
-
-                // ═══════════════════════════════════════════
-                // 统计卡片：渐变图标徽章 + 大号数字 + 标签
-                // ═══════════════════════════════════════════
-                AnimatedVisibility(
-                    visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 100)) + slideInVertically(
-                        tween(500, delayMillis = 100),
-                        initialOffsetY = { it / 4 }
-                    ),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
-                    ) {
-                        StatCard(
-                            value = uiState.attachments.size.toString(),
-                            label = "文件",
-                            icon = Icons.Default.Archive,
-                            accentColor = DesignSystem.BrandColors.Primary,
-                        )
-                        StatCard(
-                            value = formatFileSize(uiState.totalSize),
-                            label = "总大小",
-                            icon = Icons.Default.InsertDriveFile,
-                            accentColor = DesignSystem.BrandColors.Secondary,
-                        )
-                        if (recentUploadText.isNotEmpty()) {
-                            StatCard(
-                                value = recentUploadText,
-                                label = "最近",
-                                icon = Icons.Default.Image,
-                                accentColor = DesignSystem.BrandColors.Tertiary,
-                            )
-                        }
-                    }
-                }
-
-                // ═══════════════════════════════════════════
-                // 筛选 Chips
-                // ═══════════════════════════════════════════
-                Row(
+            } else if (uiState.viewMode == ViewMode.GRID) {
+                // ── 网格视图 ──
+                LazyVerticalGrid(
+                    state = gridState,
+                    columns = GridCells.Fixed(DesignSystem.Component.AttachmentGridColumns),
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = DesignSystem.Spacing.Small),
-                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(bottom = DesignSystem.Component.FabBottomPadding),
+                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                 ) {
-                    FilterType.entries.forEach { type ->
-                        FilterChip(
-                            selected = filterType == type,
-                            onClick = { filterType = type },
-                            label = { Text(type.label, style = MaterialTheme.typography.labelMedium) },
-                            shape = DesignSystem.Corner.Chip,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
+                    // 标题（full span）
+                    item(key = "header", span = { GridItemSpan(maxLineSpan) }) {
+                        HeaderTitle(enterState, uiState, viewModel)
+                    }
+                    // 统计（full span）
+                    item(key = "stats", span = { GridItemSpan(maxLineSpan) }) {
+                        StatsSection(enterState, uiState, recentUploadText)
+                    }
+                    // 筛选 Chips（full span，网格模式不支持 stickyHeader）
+                    item(key = "filters", span = { GridItemSpan(maxLineSpan) }) {
+                        FilterChipRow(filterType, Modifier.padding(horizontal = DesignSystem.Spacing.Large)) { filterType = it }
+                    }
+                    // 错误提示（full span）
+                    if (uiState.error != null) {
+                        item(key = "error", span = { GridItemSpan(maxLineSpan) }) {
+                            Text(
+                                text = "⚠ ${uiState.error}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(
+                                    horizontal = DesignSystem.Spacing.Large,
+                                    vertical = DesignSystem.Spacing.Small,
+                                ),
+                            )
+                        }
+                    }
+                    // 附件网格
+                    items(
+                        items = displayAttachments,
+                        key = { it.cid },
+                    ) { attachment ->
+                        AttachmentGridItem(
+                            attachment = attachment,
+                            onClick = {
+                                previewIndex = displayAttachments.indexOf(attachment)
+                                showPreview = true
+                            },
+                            onLongClick = {
+                                contextMenuTarget = attachment
+                                showContextMenu = true
+                            },
                         )
                     }
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+                    }
                 }
-
-                // ═══════════════════════════════════════════
-                // 错误提示
-                // ═══════════════════════════════════════════
-                if (uiState.error != null) {
-                    Text(
-                        text = "⚠ ${uiState.error}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(vertical = DesignSystem.Spacing.Small),
-                    )
-                }
-
-                // ═══════════════════════════════════════════
-                // 内容区 — 根据视图模式切换
-                // ═══════════════════════════════════════════
-                if (displayAttachments.isEmpty() && filterType != FilterType.ALL) {
-                    // 筛选无结果
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Default.FilterList,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            )
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+            } else {
+                // ── 列表视图 ──
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(bottom = DesignSystem.Component.FabBottomPadding),
+                    verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                ) {
+                    // 标题
+                    item(key = "header") { HeaderTitle(enterState, uiState, viewModel) }
+                    // 统计
+                    item(key = "stats") { StatsSection(enterState, uiState, recentUploadText) }
+                    // 筛选 Chips（sticky）
+                    stickyHeader(key = "filters") {
+                        FilterChipRow(filterType, Modifier.padding(horizontal = DesignSystem.Spacing.Large)) { filterType = it }
+                    }
+                    // 错误提示
+                    if (uiState.error != null) {
+                        item(key = "error") {
                             Text(
-                                text = "没有${filterType.label}类型的素材",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "⚠ ${uiState.error}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(
+                                    horizontal = DesignSystem.Spacing.Large,
+                                    vertical = DesignSystem.Spacing.Small,
+                                ),
                             )
                         }
                     }
-                } else if (uiState.viewMode == ViewMode.GRID) {
-                    // ── 网格视图 ──
-                    LazyVerticalGrid(
-                        state = gridState,
-                        columns = GridCells.Fixed(DesignSystem.Component.AttachmentGridColumns),
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            top = DesignSystem.Spacing.Small,
-                            bottom = DesignSystem.Component.FabBottomPadding,
-                        ),
-                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-                    ) {
-                        items(
-                            items = displayAttachments,
-                            key = { it.cid },
-                        ) { attachment ->
-                            AttachmentGridItem(
-                                attachment = attachment,
-                                onClick = {
-                                    previewIndex = displayAttachments.indexOf(attachment)
-                                    showPreview = true
-                                },
-                                onLongClick = {
-                                    contextMenuTarget = attachment
-                                    showContextMenu = true
-                                },
-                            )
-                        }
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
-                        }
+                    // 附件列表
+                    items(
+                        items = displayAttachments,
+                        key = { it.cid },
+                    ) { attachment ->
+                        AttachmentListItem(
+                            attachment = attachment,
+                            onClick = {
+                                previewIndex = displayAttachments.indexOf(attachment)
+                                showPreview = true
+                            },
+                            onLongClick = {
+                                contextMenuTarget = attachment
+                                showContextMenu = true
+                            },
+                        )
                     }
-                } else {
-                    // ── 列表视图 ──
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            top = DesignSystem.Spacing.Small,
-                            bottom = DesignSystem.Component.FabBottomPadding,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
-                    ) {
-                        items(
-                            items = displayAttachments,
-                            key = { it.cid },
-                        ) { attachment ->
-                            AttachmentListItem(
-                                attachment = attachment,
-                                onClick = {
-                                    previewIndex = displayAttachments.indexOf(attachment)
-                                    showPreview = true
-                                },
-                                onLongClick = {
-                                    contextMenuTarget = attachment
-                                    showContextMenu = true
-                                },
-                            )
-                        }
-                        item {
-                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
-                        }
+                    item {
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
                     }
                 }
             }
@@ -582,6 +508,162 @@ fun AttachmentsScreen(
                 }
             },
         )
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// 标题区 — 渐变图标徽章 + 标题 + 视图切换
+// ═══════════════════════════════════════════════════════
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HeaderTitle(
+    enterState: MutableTransitionState<Boolean>,
+    uiState: AttachmentsUiState,
+    viewModel: AttachmentsViewModel,
+) {
+    AnimatedVisibility(
+        visibleState = enterState,
+        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) + slideInVertically(
+            tween(DesignSystem.Entrance.SectionDuration),
+            initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset }
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = DesignSystem.Spacing.Large,
+                    end = DesignSystem.Spacing.Large,
+                    top = DesignSystem.Spacing.Large,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 渐变圆形图标徽章
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                DesignSystem.BrandColors.Primary,
+                                DesignSystem.BrandColors.Tertiary,
+                            )
+                        ),
+                        CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Archive,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = Color.White,
+                )
+            }
+
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "素材库",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "管理你的媒体资源",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // 视图切换按钮
+            IconButton(onClick = { viewModel.toggleViewMode() }) {
+                Icon(
+                    imageVector = if (uiState.viewMode == ViewMode.GRID)
+                        Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
+                    contentDescription = if (uiState.viewMode == ViewMode.GRID) "列表视图" else "网格视图",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// 统计区 — 3 个 StatCard
+// ═══════════════════════════════════════════════════════
+@Composable
+private fun StatsSection(
+    enterState: MutableTransitionState<Boolean>,
+    uiState: AttachmentsUiState,
+    recentUploadText: String,
+) {
+    AnimatedVisibility(
+        visibleState = enterState,
+        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
+            tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+            initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset }
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = DesignSystem.Spacing.Large),
+            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+        ) {
+            StatCard(
+                value = uiState.attachments.size.toString(),
+                label = "文件",
+                icon = Icons.Default.Archive,
+                accentColor = DesignSystem.BrandColors.Primary,
+            )
+            StatCard(
+                value = formatFileSize(uiState.totalSize),
+                label = "总大小",
+                icon = Icons.Default.InsertDriveFile,
+                accentColor = DesignSystem.BrandColors.Secondary,
+            )
+            if (recentUploadText.isNotEmpty()) {
+                StatCard(
+                    value = recentUploadText,
+                    label = "最近",
+                    icon = Icons.Default.Image,
+                    accentColor = DesignSystem.BrandColors.Tertiary,
+                )
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// 筛选 Chips 行
+// ═══════════════════════════════════════════════════════
+@Composable
+private fun FilterChipRow(
+    filterType: FilterType,
+    modifier: Modifier = Modifier,
+    onFilterSelected: (FilterType) -> Unit = {},
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(vertical = DesignSystem.Spacing.Small),
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+    ) {
+        FilterType.entries.forEach { type ->
+            FilterChip(
+                selected = filterType == type,
+                onClick = { onFilterSelected(type) },
+                label = { Text(type.label, style = MaterialTheme.typography.labelMedium) },
+                shape = DesignSystem.Corner.Chip,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            )
+        }
     }
 }
 

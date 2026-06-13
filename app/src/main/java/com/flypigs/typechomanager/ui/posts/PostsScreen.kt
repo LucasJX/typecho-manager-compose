@@ -10,10 +10,10 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +79,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -92,7 +93,7 @@ import com.flypigs.typechomanager.ui.components.v3.PostsSkeleton
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PostsScreen(
     onPostClick: (Int) -> Unit,
@@ -150,6 +151,8 @@ fun PostsScreen(
         }
     }
 
+    val focusManager = LocalFocusManager.current
+
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
@@ -189,300 +192,466 @@ fun PostsScreen(
                     .padding(paddingValues),
             ) {
                 // ═══════════════════════════════════════════
-                // 多选模式顶栏 / 普通模式搜索栏
+                // 多选模式顶栏（始终固定在顶部）
                 // ═══════════════════════════════════════════
-                    if (isMultiSelectMode) {
-                        // 多选顶栏：已选 N 篇 + 关闭
+                if (isMultiSelectMode) {
+                    // 多选顶栏：已选 N 篇 + 关闭
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "已选 ${selectedPosts.size} 篇",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        IconButton(onClick = {
+                            isMultiSelectMode = false
+                            selectedPosts = emptySet()
+                        }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "退出选择",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    }
+                }
+
+                // ═══════════════════════════════════════════
+                // 列表模式：单个 LazyColumn（标题、搜索、筛选、文章一起滚动）
+                // 网格模式：Column 结构（标题、搜索、筛选固定，网格滚动）
+                // ═══════════════════════════════════════════
+                if (isListView) {
+                    LazyColumn(
+                        state = listState,
+                        contentPadding = PaddingValues(
+                            horizontal = DesignSystem.Spacing.Large,
+                            vertical = DesignSystem.Spacing.Small,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                    ) {
+                        // ── 大标题（可滚动）──
+                        item(key = "header") {
+                            AnimatedVisibility(
+                                visible = !searchActive && !isMultiSelectMode,
+                                enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
+                                    slideInVertically(
+                                        tween(DesignSystem.Entrance.SectionDuration),
+                                        initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
+                                    ),
+                                exit = fadeOut(tween(200)),
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.ExtraSmall),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(DesignSystem.GradientBadge.TitleSize)
+                                            .background(
+                                                Brush.linearGradient(DesignSystem.GradientBadge.defaultBrush()),
+                                                CircleShape,
+                                            ),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ViewList,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(DesignSystem.GradientBadge.TitleIconSize),
+                                            tint = Color.White,
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "文章",
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                        Text(
+                                            text = "共 ${filteredPosts.size} 篇",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    IconButton(onClick = { isListView = !isListView }) {
+                                        Icon(
+                                            imageVector = if (isListView) Icons.Default.ViewModule else Icons.AutoMirrored.Filled.ViewList,
+                                            contentDescription = if (isListView) "网格模式" else "列表模式",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // ── 搜索栏（可滚动）──
+                        item(key = "search") {
+                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                            DockedSearchBar(
+                                inputField = {
+                                    SearchBarDefaults.InputField(
+                                        query = searchQuery,
+                                        onQueryChange = { searchQuery = it },
+                                        onSearch = {
+                                            searchActive = false
+                                            focusManager.clearFocus()
+                                        },
+                                        expanded = searchActive,
+                                        onExpandedChange = { searchActive = it },
+                                        placeholder = { Text("搜索文章…") },
+                                        leadingIcon = {
+                                            if (searchActive) {
+                                                IconButton(onClick = {
+                                                    searchActive = false
+                                                    searchQuery = ""
+                                                }) {
+                                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                                                }
+                                            } else {
+                                                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                                            }
+                                        },
+                                        trailingIcon = {
+                                            if (searchQuery.isNotEmpty()) {
+                                                IconButton(onClick = { searchQuery = "" }) {
+                                                    Icon(Icons.Default.Close, contentDescription = "清除")
+                                                }
+                                            }
+                                        },
+                                    )
+                                },
+                                expanded = searchActive,
+                                onExpandedChange = { searchActive = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = DesignSystem.Corner.Input,
+                                colors = SearchBarDefaults.colors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                ),
+                            ) {
+                                LazyColumn {
+                                    items(
+                                        filteredPosts.take(5),
+                                        key = { "search_${it.cid}" },
+                                    ) { post ->
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Search,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                            Text(
+                                                text = post.title,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // ── FilterChip 组（stickyHeader，滚动时吸顶）──
+                        stickyHeader(key = "filters") {
+                            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+                            AnimatedVisibility(
+                                visibleState = enterState,
+                                enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
+                                    tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                                    initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                                ),
+                            ) {
+                                FilterChipRow(
+                                    filters = listOf(
+                                        FilterItem(id = "all", label = "全部", count = uiState.posts.size),
+                                        FilterItem(id = "publish", label = "已发布", count = 0),
+                                        FilterItem(id = "draft", label = "草稿", count = 0),
+                                        FilterItem(id = "private", label = "私密", count = 0),
+                                    ),
+                                    selectedFilter = uiState.selectedStatus ?: "all",
+                                    onFilterSelected = { status ->
+                                        viewModel.filterByStatus(if (status == "all") null else status)
+                                    },
+                                )
+                            }
+                        }
+
+                        // ── 文章列表 ──
+                        items(
+                            items = filteredPosts,
+                            key = { it.cid },
+                        ) { post ->
+                            val dismissState = rememberSwipeToDismissBoxState(
+                                confirmValueChange = { dismissValue ->
+                                    when (dismissValue) {
+                                        SwipeToDismissBoxValue.EndToStart -> {
+                                            pendingDeleteCid = post.cid
+                                            showDeleteDialog = true
+                                            false
+                                        }
+                                        SwipeToDismissBoxValue.StartToEnd -> {
+                                            onPostClick(post.cid)
+                                            false
+                                        }
+                                        else -> false
+                                    }
+                                }
+                            )
+
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                backgroundContent = {
+                                    val direction = dismissState.dismissDirection
+                                    val color = when (direction) {
+                                        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
+                                        SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primary
+                                        else -> Color.Transparent
+                                    }
+                                    val icon = when (direction) {
+                                        SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
+                                        SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Edit
+                                        else -> Icons.Default.Edit
+                                    }
+                                    val alignment = when (direction) {
+                                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                                        else -> Alignment.Center
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(DesignSystem.Corner.Card)
+                                            .background(color)
+                                            .padding(horizontal = DesignSystem.Spacing.Large),
+                                        contentAlignment = alignment,
+                                    ) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                    }
+                                },
+                                content = {
+                                    ArticleCard(
+                                        post = post,
+                                        onClick = { onPostClick(post.cid) },
+                                        onLongClick = {
+                                            if (!isMultiSelectMode) {
+                                                isMultiSelectMode = true
+                                                selectedPosts = setOf(post.cid)
+                                            }
+                                        },
+                                        isSelected = post.cid in selectedPosts,
+                                    )
+                                },
+                                enableDismissFromStartToEnd = !isMultiSelectMode,
+                                enableDismissFromEndToStart = !isMultiSelectMode,
+                            )
+                        }
+
+                        // 底部间距
+                        item(key = "bottom_spacer") {
+                            val bottomPadding = if (isMultiSelectMode) {
+                                DesignSystem.Component.FabBottomPadding + 48.dp
+                            } else {
+                                DesignSystem.Component.FabBottomPadding
+                            }
+                            Spacer(modifier = Modifier.height(bottomPadding))
+                        }
+                    }
+                } else {
+                    // ═══════════════════════════════════════════
+                    // 网格模式：Column 结构（标题/搜索/筛选固定，网格可滚动）
+                    // ═══════════════════════════════════════════
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+
+                    // 大标题（不滚动）
+                    AnimatedVisibility(
+                        visible = !isMultiSelectMode,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration),
+                                initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                        exit = fadeOut(tween(200)),
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.primaryContainer)
-                                .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                                .padding(bottom = DesignSystem.Spacing.ExtraSmall)
+                                .padding(horizontal = DesignSystem.Spacing.Large),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = "已选 ${selectedPosts.size} 篇",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                            IconButton(onClick = {
-                                isMultiSelectMode = false
-                                selectedPosts = emptySet()
-                            }) {
+                            Box(
+                                modifier = Modifier
+                                    .size(DesignSystem.GradientBadge.TitleSize)
+                                    .background(
+                                        Brush.linearGradient(DesignSystem.GradientBadge.defaultBrush()),
+                                        CircleShape,
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
                                 Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "退出选择",
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    imageVector = Icons.AutoMirrored.Filled.ViewList,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(DesignSystem.GradientBadge.TitleIconSize),
+                                    tint = Color.White,
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "文章",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = "共 ${filteredPosts.size} 篇",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            IconButton(onClick = { isListView = !isListView }) {
+                                Icon(
+                                    imageVector = if (isListView) Icons.Default.ViewModule else Icons.AutoMirrored.Filled.ViewList,
+                                    contentDescription = if (isListView) "网格模式" else "列表模式",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
-                    } else {
-                        // 搜索激活时：只显示搜索栏 | 非搜索时：显示大标题 + 搜索栏
-                        AnimatedVisibility(
-                            visible = !searchActive,
-                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
-                                slideInVertically(
-                                    tween(DesignSystem.Entrance.SectionDuration),
-                                    initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
-                                ),
-                            exit = fadeOut(tween(200)),
-                        ) {
-                            // 大标题（与素材库/我的页一致：渐变图标徽章 + headlineMedium）
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.ExtraSmall)
-                                    .padding(horizontal = DesignSystem.Spacing.Large),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Box(
+                    }
+
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+
+                    // 搜索栏（不滚动）
+                    DockedSearchBar(
+                        inputField = {
+                            SearchBarDefaults.InputField(
+                                query = searchQuery,
+                                onQueryChange = { searchQuery = it },
+                                onSearch = {
+                                    searchActive = false
+                                    focusManager.clearFocus()
+                                },
+                                expanded = searchActive,
+                                onExpandedChange = { searchActive = it },
+                                placeholder = { Text("搜索文章…") },
+                                leadingIcon = {
+                                    if (searchActive) {
+                                        IconButton(onClick = {
+                                            searchActive = false
+                                            searchQuery = ""
+                                        }) {
+                                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                                        }
+                                    } else {
+                                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                                    }
+                                },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = { searchQuery = "" }) {
+                                            Icon(Icons.Default.Close, contentDescription = "清除")
+                                        }
+                                    }
+                                },
+                            )
+                        },
+                        expanded = searchActive,
+                        onExpandedChange = { searchActive = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = DesignSystem.Spacing.Large),
+                        shape = DesignSystem.Corner.Input,
+                        colors = SearchBarDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ),
+                    ) {
+                        LazyColumn {
+                            items(
+                                filteredPosts.take(5),
+                                key = { "search_${it.cid}" },
+                            ) { post ->
+                                Row(
                                     modifier = Modifier
-                                        .size(DesignSystem.GradientBadge.TitleSize)
-                                        .background(
-                                            Brush.linearGradient(DesignSystem.GradientBadge.defaultBrush()),
-                                            CircleShape,
-                                        ),
-                                    contentAlignment = Alignment.Center,
+                                        .fillMaxWidth()
+                                        .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                                 ) {
                                     Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ViewList,
+                                        Icons.Default.Search,
                                         contentDescription = null,
-                                        modifier = Modifier.size(DesignSystem.GradientBadge.TitleIconSize),
-                                        tint = Color.White,
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "文章",
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                    )
-                                    Text(
-                                        text = "共 ${filteredPosts.size} 篇",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                                IconButton(onClick = { isListView = !isListView }) {
-                                    Icon(
-                                        imageVector = if (isListView) Icons.Default.ViewModule else Icons.AutoMirrored.Filled.ViewList,
-                                        contentDescription = if (isListView) "网格模式" else "列表模式",
+                                        modifier = Modifier.size(16.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
-
-                        // 搜索栏（始终显示）
-                        DockedSearchBar(
-                            inputField = {
-                                SearchBarDefaults.InputField(
-                                    query = searchQuery,
-                                    onQueryChange = { searchQuery = it },
-                                    onSearch = { searchActive = false },
-                                    expanded = searchActive,
-                                    onExpandedChange = { searchActive = it },
-                                    placeholder = { Text("搜索文章…") },
-                                    leadingIcon = {
-                                        if (searchActive) {
-                                            IconButton(onClick = {
-                                                searchActive = false
-                                                searchQuery = ""
-                                            }) {
-                                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                                            }
-                                        } else {
-                                            Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                                        }
-                                    },
-                                    trailingIcon = {
-                                        if (searchQuery.isNotEmpty()) {
-                                            IconButton(onClick = { searchQuery = "" }) {
-                                                Icon(Icons.Default.Close, contentDescription = "清除")
-                                            }
-                                        }
-                                    },
-                                )
-                            },
-                            expanded = searchActive,
-                            onExpandedChange = { searchActive = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = DesignSystem.Spacing.Large),
-                            shape = DesignSystem.Corner.Input,
-                            colors = SearchBarDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            ),
-                        ) {
-                            LazyColumn {
-                                items(
-                                    filteredPosts.take(5),
-                                    key = { "search_${it.cid}" },
-                                ) { post ->
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Search,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text(
-                                            text = post.title,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                        )
-                                    }
+                                    Text(
+                                        text = post.title,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
                                 }
                             }
                         }
                     }
 
-                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
 
-                AnimatedVisibility(
-                    visibleState = enterState,
-                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
-                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
-                        initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
-                    ),
-                ) {
-                    // ═══════════════════════════════════════════
-                    // FilterChip 组
-                    // ═══════════════════════════════════════════
-                    FilterChipRow(
-                        filters = listOf(
-                            FilterItem(id = "all", label = "全部", count = uiState.posts.size),
-                            FilterItem(id = "publish", label = "已发布", count = 0),
-                            FilterItem(id = "draft", label = "草稿", count = 0),
-                            FilterItem(id = "private", label = "私密", count = 0),
+                    // FilterChipRow（不滚动）
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
+                            tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                            initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                         ),
-                        selectedFilter = uiState.selectedStatus ?: "all",
-                        onFilterSelected = { status ->
-                            viewModel.filterByStatus(if (status == "all") null else status)
-                        },
-                    )
-                }
-
-                AnimatedVisibility(
-                    visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 200)) + slideInVertically(
-                        tween(500, delayMillis = 200),
-                        initialOffsetY = { it / 4 },
-                    ),
-                ) {
-                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
-    
-                    // ═══════════════════════════════════════════
-                    // 文章列表 / 网格
-                    // ═══════════════════════════════════════════
-                    if (isListView) {
-                        LazyColumn(
-                            state = listState,
-                            contentPadding = PaddingValues(
-                                horizontal = DesignSystem.Spacing.Large,
-                                vertical = DesignSystem.Spacing.Small,
+                    ) {
+                        FilterChipRow(
+                            filters = listOf(
+                                FilterItem(id = "all", label = "全部", count = uiState.posts.size),
+                                FilterItem(id = "publish", label = "已发布", count = 0),
+                                FilterItem(id = "draft", label = "草稿", count = 0),
+                                FilterItem(id = "private", label = "私密", count = 0),
                             ),
-                            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            items(
-                                items = filteredPosts,
-                                key = { it.cid },
-                            ) { post ->
-                                val dismissState = rememberSwipeToDismissBoxState(
-                                    confirmValueChange = { dismissValue ->
-                                        when (dismissValue) {
-                                            SwipeToDismissBoxValue.EndToStart -> {
-                                                pendingDeleteCid = post.cid
-                                                showDeleteDialog = true
-                                                false
-                                            }
-                                            SwipeToDismissBoxValue.StartToEnd -> {
-                                                onPostClick(post.cid)
-                                                false
-                                            }
-                                            else -> false
-                                        }
-                                    }
-                                )
+                            selectedFilter = uiState.selectedStatus ?: "all",
+                            onFilterSelected = { status ->
+                                viewModel.filterByStatus(if (status == "all") null else status)
+                            },
+                        )
+                    }
 
-                                SwipeToDismissBox(
-                                    state = dismissState,
-                                    backgroundContent = {
-                                        val direction = dismissState.dismissDirection
-                                        val color = when (direction) {
-                                            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
-                                            SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primary
-                                            else -> Color.Transparent
-                                        }
-                                        val icon = when (direction) {
-                                            SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
-                                            SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Edit
-                                            else -> Icons.Default.Edit
-                                        }
-                                        val alignment = when (direction) {
-                                            SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-                                            SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
-                                            else -> Alignment.Center
-                                        }
+                    // 文章网格（可滚动）
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(500, delayMillis = 200)) + slideInVertically(
+                            tween(500, delayMillis = 200),
+                            initialOffsetY = { it / 4 },
+                        ),
+                    ) {
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(DesignSystem.Corner.Card)
-                                                .background(color)
-                                                .padding(horizontal = DesignSystem.Spacing.Large),
-                                            contentAlignment = alignment,
-                                        ) {
-                                            Icon(
-                                                imageVector = icon,
-                                                contentDescription = null,
-                                                tint = Color.White,
-                                                modifier = Modifier.size(24.dp),
-                                            )
-                                        }
-                                    },
-                                    content = {
-                                        ArticleCard(
-                                            post = post,
-                                            onClick = { onPostClick(post.cid) },
-                                            onLongClick = {
-                                                if (!isMultiSelectMode) {
-                                                    isMultiSelectMode = true
-                                                    selectedPosts = setOf(post.cid)
-                                                }
-                                            },
-                                            isSelected = post.cid in selectedPosts,
-                                        )
-                                    },
-                                    enableDismissFromStartToEnd = !isMultiSelectMode,
-                                    enableDismissFromEndToStart = !isMultiSelectMode,
-                                )
-                            }
-                            // 底部间距
-                            item(key = "bottom_spacer") {
-                                val bottomPadding = if (isMultiSelectMode) {
-                                    DesignSystem.Component.FabBottomPadding + 48.dp
-                                } else {
-                                    DesignSystem.Component.FabBottomPadding
-                                }
-                                Spacer(modifier = Modifier.height(bottomPadding))
-                            }
-                        }
-                    } else {
-                        // 网格视图
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
                             contentPadding = PaddingValues(
