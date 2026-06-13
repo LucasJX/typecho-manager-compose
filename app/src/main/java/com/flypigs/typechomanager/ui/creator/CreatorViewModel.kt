@@ -24,6 +24,7 @@ data class CreatorUiState(
     val isLoadingDrafts: Boolean = false,
     val isRefreshing: Boolean = false,
     val totalWordCount: Int = 0,
+    val publishedCount: Int = 0,
 )
 
 @HiltViewModel
@@ -51,11 +52,13 @@ class CreatorViewModel @Inject constructor(
                     .sortedByDescending { it.modified }
                     .take(5)
                 val totalWords = posts.sumOf { it.text.length }
+                val publishedCount = posts.count { it.status == Post.Companion.Status.PUBLISH.value }
                 _uiState.value = _uiState.value.copy(
                     recentDrafts = drafts,
                     isRefreshing = false,
                     isLoadingDrafts = false,
                     totalWordCount = totalWords,
+                    publishedCount = publishedCount,
                 )
             } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(isRefreshing = false)
@@ -73,10 +76,12 @@ class CreatorViewModel @Inject constructor(
                     .sortedByDescending { it.modified }
                     .take(5)
                 val totalWords = posts.sumOf { it.text.length }
+                val publishedCount = posts.count { it.status == Post.Companion.Status.PUBLISH.value }
                 _uiState.value = _uiState.value.copy(
                     recentDrafts = drafts,
                     isLoadingDrafts = false,
                     totalWordCount = totalWords,
+                    publishedCount = publishedCount,
                 )
             } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(isLoadingDrafts = false)

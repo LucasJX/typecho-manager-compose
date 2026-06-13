@@ -345,7 +345,7 @@ fun PostsScreen(
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
-                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
     
                     // ═══════════════════════════════════════════
                     // FilterChip 组

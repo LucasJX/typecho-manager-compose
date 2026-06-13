@@ -1,6 +1,8 @@
 package com.flypigs.typechomanager.ui.profile
 
 import androidx.activity.compose.BackHandler
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
@@ -57,6 +59,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -353,6 +356,7 @@ fun ProfileScreen(
                             onClick = onNavigateToChangelog,
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Medium))
+                        val context = LocalContext.current
                         SettingsItem(
                             icon = Icons.Default.Code,
                             iconGradient = Brush.linearGradient(
@@ -361,6 +365,11 @@ fun ProfileScreen(
                             label = "GitHub",
                             value = "查看源码",
                             showArrow = true,
+                            onClick = {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LucasJX/typecho-manager-compose"))
+                                )
+                            },
                         )
                     }
                 }

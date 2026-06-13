@@ -176,9 +176,6 @@ fun NavGraph(
                     onNewDraft = {
                         navController.navigate(Screen.Editor.createRoute())
                     },
-                    onAIClick = {
-                        // TODO: AI辅助写作
-                    },
                     onDraftClick = { cid ->
                         navController.navigate(Screen.Editor.createRoute(cid.toString()))
                     },

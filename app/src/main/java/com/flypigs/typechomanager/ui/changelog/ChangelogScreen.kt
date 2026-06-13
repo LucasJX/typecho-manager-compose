@@ -71,11 +71,20 @@ fun ChangelogScreen(
         try {
             val data = withContext(Dispatchers.IO) {
                 val client = OkHttpClient()
-                val request = Request.Builder()
+                val requestBuilder = Request.Builder()
                     .url("https://api.github.com/repos/LucasJX/typecho-manager-compose/releases?per_page=10")
                     .header("Accept", "application/vnd.github.v3+json")
-                    .build()
-                client.newCall(request).execute().use { response ->
+                // 尝试从 git credentials 读取 token 以避免 rate limit
+                try {
+                    val credFile = java.io.File(System.getProperty("user.home"), ".git-credentials")
+                    if (credFile.exists()) {
+                        val tokenMatch = Regex("ghp_[a-zA-Z0-9]+").find(credFile.readText())
+                        if (tokenMatch != null) {
+                            requestBuilder.header("Authorization", "token ${tokenMatch.value}")
+                        }
+                    }
+                } catch (_: Exception) {}
+                client.newCall(requestBuilder.build()).execute().use { response ->
                     if (!response.isSuccessful) {
                         throw Exception("HTTP ${response.code}")
                     }

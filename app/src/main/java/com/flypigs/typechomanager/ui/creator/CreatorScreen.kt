@@ -32,7 +32,9 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,6 +62,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.components.v3.CreatorSkeleton
@@ -69,13 +72,14 @@ import java.util.Date
 import java.util.Locale
 
 // ═══════════════════════════════════════════════════════════════
-// CreatorScreen — Blogga V3 创作中心
+// CreatorScreen — Blogga V3 创作中心（重设计）
 //
 // 布局 (LazyColumn):
-//   1. 标题区 — "创作中心" + "今天写点什么？" + 渐变图标
-//   2. 创作统计条（总字数 + 草稿数）
-//   3. 操作按钮区 — 2×2 网格（渐变图标徽章）
-//   4. 最近草稿（标题 + 草稿卡片 ×5）
+//   1. 标题区 — "创作中心" + 渐变图标徽章
+//   2. 英雄卡 — 渐变背景大卡片 + 创作灵感 CTA
+//   3. 统计行 — 已发布 / 草稿 / 总字数（3列卡片）
+//   4. 快捷操作 — 写文章 / 新建草稿 / 上传图片（3列）
+//   5. 最近草稿（标题 + 草稿卡片 ×5）
 // ═══════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +87,6 @@ import java.util.Locale
 fun CreatorScreen(
     onWriteArticle: () -> Unit = {},
     onNewDraft: () -> Unit = {},
-    onAIClick: () -> Unit = {},
     onDraftClick: (Int) -> Unit = {},
     onBack: () -> Unit = {},
     viewModel: CreatorViewModel = hiltViewModel(),
@@ -137,153 +140,162 @@ fun CreatorScreen(
                 contentPadding = PaddingValues(bottom = DesignSystem.Spacing.Large),
                 verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
             ) {
-                // ═══════════════════════════════════════════
-                // 1. 标题区 — "创作中心" + 渐变图标徽章（与其他页面统一）
-                // ═══════════════════════════════════════════
+                // ─── 1. 标题区 ───
                 item(key = "header") {
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(500)) + slideInVertically(
-                            tween(500),
-                            initialOffsetY = { -it / 2 },
-                        ),
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration),
+                                initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
+                            ),
                     ) {
                         Row(
-                            modifier = Modifier
-                                .padding(
-                                    start = DesignSystem.Spacing.Large,
-                                    top = DesignSystem.Spacing.Large,
-                                    end = DesignSystem.Spacing.Large,
-                                ),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-                    ) {
-                        // 渐变圆形图标徽章（56dp，与其他页面统一）
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            DesignSystem.BrandColors.Primary,
-                                            DesignSystem.BrandColors.Tertiary,
-                                        )
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Create,
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = Color.White,
-                            )
-                        }
-                        Column {
-                            Text(
-                                text = "创作中心",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = "今天写点什么？",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    }
-                }
-
-                // ═══════════════════════════════════════════
-                // 2. 创作统计条（总字数 + 草稿数）
-                // ═══════════════════════════════════════════
-                item(key = "creator_stats") {
-                    AnimatedVisibility(
-                        visibleState = enterState,
-                        enter = fadeIn(tween(500, delayMillis = 100)) + slideInVertically(
-                            tween(500, delayMillis = 100),
-                            initialOffsetY = { it / 4 },
-                        ),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = DesignSystem.Spacing.Large)
-                                .clip(DesignSystem.Corner.StatBar)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                                .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CreatorStatItem(
-                            icon = Icons.Default.TextFields,
-                            value = formatWordCount(uiState.totalWordCount),
-                            label = "总字数",
-                        )
-                        CreatorStatItem(
-                            icon = Icons.Default.Description,
-                            value = uiState.recentDrafts.size.toString(),
-                            label = "草稿",
-                        )
-                    }
-                    }
-                }
-
-                // ═══════════════════════════════════════════
-                // 3. 操作按钮区 — 2×2 网格（渐变图标徽章）
-                // ═══════════════════════════════════════════
-                item(key = "action_grid") {
-                    AnimatedVisibility(
-                        visibleState = enterState,
-                        enter = fadeIn(tween(500, delayMillis = 200)) + slideInVertically(
-                            tween(500, delayMillis = 200),
-                            initialOffsetY = { it / 4 },
-                        ),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
-                            ) {
-                                BigActionButton(
-                                    label = "写文章",
-                                    icon = Icons.Default.Create,
-                                    gradient = Brush.linearGradient(
-                                        colors = listOf(
-                                            DesignSystem.BrandColors.Primary,
-                                            DesignSystem.BrandColors.Secondary,
-                                        )
-                                    ),
-                                    onClick = onWriteArticle,
-                                    modifier = Modifier
-                                        .weight(1f),
-                                )
-                                BigActionButton(
-                                    label = "AI辅助",
-                                    icon = Icons.Default.AutoAwesome,
-                                    gradient = Brush.linearGradient(
-                                        colors = listOf(
-                                            DesignSystem.BrandColors.Tertiary,
-                                            DesignSystem.BrandColors.Primary,
-                                        )
-                                    ),
-                                    onClick = onAIClick,
-                                    modifier = Modifier
-                                        .weight(1f),
-                                )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.padding(
+                                start = DesignSystem.Spacing.Large,
+                                top = DesignSystem.Spacing.Large,
+                                end = DesignSystem.Spacing.Large,
+                            ),
+                            verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                         ) {
-                            BigActionButton(
-                                label = "新建草稿",
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .background(
+                                        Brush.linearGradient(
+                                            colors = listOf(
+                                                DesignSystem.BrandColors.Primary,
+                                                DesignSystem.BrandColors.Tertiary,
+                                            )
+                                        ),
+                                        CircleShape,
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Create,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = Color.White,
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = "创作中心",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = "今天写点什么？",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ─── 2. 英雄卡 — 渐变背景 CTA ───
+                item(key = "hero") {
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
+                        HeroCreateCard(
+                            onWriteClick = onWriteArticle,
+                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                        )
+                    }
+                }
+
+                // ─── 3. 统计行 — 3 列卡片 ───
+                item(key = "stats") {
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                        ) {
+                            CreatorStatCard(
+                                icon = Icons.Default.Visibility,
+                                value = uiState.publishedCount.toString(),
+                                label = "已发布",
+                                gradient = Brush.linearGradient(
+                                    colors = listOf(
+                                        DesignSystem.BrandColors.Primary,
+                                        DesignSystem.BrandColors.Primary.copy(alpha = 0.7f),
+                                    )
+                                ),
+                                modifier = Modifier.weight(1f),
+                            )
+                            CreatorStatCard(
+                                icon = Icons.Default.Description,
+                                value = uiState.recentDrafts.size.toString(),
+                                label = "草稿",
+                                gradient = Brush.linearGradient(
+                                    colors = listOf(
+                                        DesignSystem.SemanticColors.Warning,
+                                        DesignSystem.SemanticColors.Warning.copy(alpha = 0.7f),
+                                    )
+                                ),
+                                modifier = Modifier.weight(1f),
+                            )
+                            CreatorStatCard(
+                                icon = Icons.Default.TextFields,
+                                value = formatWordCount(uiState.totalWordCount),
+                                label = "总字数",
+                                gradient = Brush.linearGradient(
+                                    colors = listOf(
+                                        DesignSystem.SemanticColors.Success,
+                                        DesignSystem.SemanticColors.Success.copy(alpha = 0.7f),
+                                    )
+                                ),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+
+                // ─── 4. 快捷操作 — 3 列 ───
+                item(key = "actions") {
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                        ) {
+                            QuickActionCard(
+                                label = "写文章",
+                                icon = Icons.Default.Create,
+                                gradient = Brush.linearGradient(
+                                    colors = listOf(
+                                        DesignSystem.BrandColors.Primary,
+                                        DesignSystem.BrandColors.Secondary,
+                                    )
+                                ),
+                                onClick = onWriteArticle,
+                                modifier = Modifier.weight(1f),
+                            )
+                            QuickActionCard(
+                                label = "新草稿",
                                 icon = Icons.Default.Description,
                                 gradient = Brush.linearGradient(
                                     colors = listOf(
@@ -292,11 +304,10 @@ fun CreatorScreen(
                                     )
                                 ),
                                 onClick = onNewDraft,
-                                modifier = Modifier
-                                    .weight(1f),
+                                modifier = Modifier.weight(1f),
                             )
-                            BigActionButton(
-                                label = "上传图片",
+                            QuickActionCard(
+                                label = "传图片",
                                 icon = if (uiState.isUploading) null else Icons.Default.CloudUpload,
                                 gradient = Brush.linearGradient(
                                     colors = listOf(
@@ -305,36 +316,57 @@ fun CreatorScreen(
                                     )
                                 ),
                                 onClick = { if (!uiState.isUploading) imagePickerLauncher.launch("image/*") },
-                                modifier = Modifier
-                                    .weight(1f),
+                                modifier = Modifier.weight(1f),
                                 isLoading = uiState.isUploading,
                             )
                         }
                     }
-                    }
                 }
 
-                // ═══════════════════════════════════════════
-                // 4. 最近草稿
-                // ═══════════════════════════════════════════
+                // ─── 5. 最近草稿 ───
                 if (uiState.recentDrafts.isNotEmpty()) {
                     item(key = "drafts_header") {
                         AnimatedVisibility(
                             visibleState = enterState,
-                            enter = fadeIn(tween(500, delayMillis = 300)) + slideInVertically(
-                                tween(500, delayMillis = 300),
-                                initialOffsetY = { it / 4 },
-                            ),
-                        ) {
-                            Text(
-                                text = "最近草稿",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontSize = DesignSystem.Typography.Title,
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) +
+                                slideInVertically(
+                                    tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
+                                    initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                                 ),
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier
-                                    .padding(horizontal = DesignSystem.Spacing.Large),
-                            )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(
+                                            Brush.linearGradient(
+                                                colors = listOf(
+                                                    DesignSystem.BrandColors.Primary,
+                                                    DesignSystem.BrandColors.Tertiary,
+                                                )
+                                            ),
+                                            CircleShape,
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LocalFireDepartment,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = Color.White,
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+                                Text(
+                                    text = "最近草稿",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
                         }
                     }
 
@@ -344,16 +376,16 @@ fun CreatorScreen(
                     ) { index, draft ->
                         AnimatedVisibility(
                             visibleState = enterState,
-                            enter = fadeIn(tween(500, delayMillis = 400 + index * 100)) + slideInVertically(
-                                tween(500, delayMillis = 400 + index * 100),
-                                initialOffsetY = { it / 4 },
-                            ),
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 5 + index * 60)) +
+                                slideInVertically(
+                                    tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 5 + index * 60),
+                                    initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                                ),
                         ) {
                             DraftListItem(
                                 draft = draft,
                                 onClick = { onDraftClick(draft.cid) },
-                                modifier = Modifier
-                                    .padding(horizontal = DesignSystem.Spacing.Large),
+                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                             )
                         }
                     }
@@ -364,48 +396,141 @@ fun CreatorScreen(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 统计项组件
+// 英雄卡 — 渐变背景 + CTA
 // ═══════════════════════════════════════════════════════════════
 @Composable
-private fun CreatorStatItem(
-    icon: ImageVector,
-    value: String,
-    label: String,
+private fun HeroCreateCard(
+    onWriteClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
+    Card(
+        onClick = onWriteClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent,
+        ),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.ExtraSmall),
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            DesignSystem.BrandColors.Primary,
+                            DesignSystem.BrandColors.Tertiary,
+                        )
+                    )
+                )
+                .padding(DesignSystem.Spacing.Large),
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "✨ 开始创作",
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp),
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "把灵感变成文字",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(
+                            Color.White.copy(alpha = 0.2f),
+                            CircleShape,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                        tint = Color.White,
+                    )
+                }
+            }
         }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 大按钮 — 渐变图标徽章 + 按压缩放
+// 统计卡片（与首页/素材库统一风格）
 // ═══════════════════════════════════════════════════════════════
 @Composable
-private fun BigActionButton(
+private fun CreatorStatCard(
+    icon: ImageVector,
+    value: String,
+    label: String,
+    gradient: Brush,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.height(88.dp),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = DesignSystem.Spacing.Medium),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(gradient, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = Color.White,
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontSize = DesignSystem.Typography.Title,
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = DesignSystem.Typography.Label,
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 快捷操作卡片
+// ═══════════════════════════════════════════════════════════════
+@Composable
+private fun QuickActionCard(
     label: String,
     icon: ImageVector?,
     gradient: Brush,
@@ -413,52 +538,58 @@ private fun BigActionButton(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
 ) {
-    FilledTonalButton(
+    Card(
         onClick = onClick,
-        modifier = modifier.height(DesignSystem.Component.QuickActionHeight),
-        shape = DesignSystem.Corner.Button,
+        modifier = modifier.height(100.dp),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(DesignSystem.Spacing.Medium),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(28.dp),
+                    color = DesignSystem.BrandColors.Primary,
                     strokeWidth = 2.dp,
                 )
             } else if (icon != null) {
-                // 渐变圆形图标徽章
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(gradient),
+                        .size(40.dp)
+                        .background(gradient, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(20.dp),
                         tint = Color.White,
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = if (isLoading) "上传中..." else label,
-                style = MaterialTheme.typography.labelSmall.copy(
+                style = MaterialTheme.typography.labelMedium.copy(
                     fontSize = DesignSystem.Typography.Label,
                 ),
-                modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 草稿列表项 — 紧凑卡片 + 字数 + 箭头
+// 草稿列表项
 // ═══════════════════════════════════════════════════════════════
 @Composable
 private fun DraftListItem(

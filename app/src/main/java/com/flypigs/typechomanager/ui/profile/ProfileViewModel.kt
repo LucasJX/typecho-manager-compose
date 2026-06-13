@@ -2,6 +2,7 @@ package com.flypigs.typechomanager.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flypigs.typechomanager.BuildConfig
 import com.flypigs.typechomanager.data.local.ConfigDataStore
 import com.flypigs.typechomanager.data.model.ThemeMode
 import com.flypigs.typechomanager.data.repository.PostRepository
@@ -37,7 +38,7 @@ data class ProfileUiState(
     val isLoadingStats: Boolean = false,
     val pullToRefreshEnabled: Boolean = true,
     val imageQuality: String = "高质量",
-    val versionName: String = "1.0.2",
+    val versionName: String = BuildConfig.VERSION_NAME,
     val heatmapData: List<HeatmapDay> = emptyList(),
 )
 
