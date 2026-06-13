@@ -126,6 +126,7 @@ fun CreatorScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { paddingValues ->
             // 骨架屏

@@ -159,7 +159,8 @@ fun PostsScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
             floatingActionButton = {
                 // 多选模式下隐藏 FAB
                 if (!isMultiSelectMode) {

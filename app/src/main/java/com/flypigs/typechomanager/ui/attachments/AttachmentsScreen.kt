@@ -181,6 +181,7 @@ fun AttachmentsScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             snackbarHost = { SnackbarHost(snackbarHostState) },
             floatingActionButton = {
                 AnimatedVisibility(
