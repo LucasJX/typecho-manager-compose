@@ -153,7 +153,7 @@ fun HomeScreen(
 
         Scaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            bottomBar = {
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             floatingActionButton = {
                 MorphingFab(
                     extended = fabExtended,

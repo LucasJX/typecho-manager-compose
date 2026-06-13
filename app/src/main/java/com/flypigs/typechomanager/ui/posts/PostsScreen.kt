@@ -160,7 +160,7 @@ fun PostsScreen(
     ) {
         Scaffold(
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            bottomBar = {
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             floatingActionButton = {
                 // 多选模式下隐藏 FAB
                 if (!isMultiSelectMode) {
