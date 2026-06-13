@@ -351,8 +351,12 @@ private fun BlogTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
-        placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+        placeholder = {
+            Text(
+                placeholder,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            )
+        },
         leadingIcon = {
             Icon(
                 imageVector = icon,

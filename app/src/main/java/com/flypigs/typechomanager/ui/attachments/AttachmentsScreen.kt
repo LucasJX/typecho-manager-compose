@@ -230,7 +230,7 @@ fun AttachmentsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.Medium),
+                            .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.Small),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         // 渐变圆形图标徽章
@@ -296,8 +296,7 @@ fun AttachmentsScreen(
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = DesignSystem.Spacing.Small),
+                            .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                     ) {
                         StatCard(
