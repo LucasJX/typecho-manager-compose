@@ -1,8 +1,10 @@
 package com.flypigs.typechomanager.ui.designsystem
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,30 +62,37 @@ object DesignSystem {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 品牌色
+    // 品牌色（@Composable，自动适配暗色模式）
     // ═══════════════════════════════════════════════════════
     object BrandColors {
-        val Primary = Color(0xFF5B6EFF)       // 品牌主色
-        val Secondary = Color(0xFF5CC8FF)     // 辅助色
-        val Tertiary = Color(0xFFB388FF)      // 点缀色
-        val Background = Color(0xFFF6F7FB)    // 页面背景
-        val Surface = Color(0xFFFFFFFF)       // 卡片背景
+        val Primary: Color @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.primary
+        val Secondary: Color @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.secondary
+        val Tertiary: Color @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.tertiary
+        val Background: Color @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.background
+        val Surface: Color @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.surface
     }
 
-    // 语义色
+    // 语义色（@Composable，自动适配暗色模式）
     object SemanticColors {
-        val Success = Color(0xFF4CAF50)
-        val Warning = Color(0xFFFFB020)
-        val Error = Color(0xFFFF5252)
+        val Success: Color @Composable @ReadOnlyComposable get() =
+            if (isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF4CAF50)
+        val Warning: Color @Composable @ReadOnlyComposable get() =
+            if (isSystemInDarkTheme()) Color(0xFFFFD54F) else Color(0xFFFFB020)
+        val Error: Color @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.error
     }
 
-    // 分类专属色
+    // 分类专属色（亮色/暗色自适应）
     object CategoryColors {
-        val Life = Color(0xFF66BB6A)
-        val Tech = Color(0xFF42A5F5)
-        val AI = Color(0xFFAB47BC)
-        val Tools = Color(0xFFFF7043)
-        val Travel = Color(0xFF26C6DA)
+        val Life: Color @Composable @ReadOnlyComposable get() =
+            if (isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF66BB6A)
+        val Tech: Color @Composable @ReadOnlyComposable get() =
+            if (isSystemInDarkTheme()) Color(0xFF90CAF9) else Color(0xFF42A5F5)
+        val AI: Color @Composable @ReadOnlyComposable get() =
+            if (isSystemInDarkTheme()) Color(0xFFCE93D8) else Color(0xFFAB47BC)
+        val Tools: Color @Composable @ReadOnlyComposable get() =
+            if (isSystemInDarkTheme()) Color(0xFFFFAB91) else Color(0xFFFF7043)
+        val Travel: Color @Composable @ReadOnlyComposable get() =
+            if (isSystemInDarkTheme()) Color(0xFF80DEEA) else Color(0xFF26C6DA)
     }
 
     // ═══════════════════════════════════════════════════════
@@ -186,12 +195,20 @@ object DesignSystem {
             MaterialTheme.colorScheme.tertiary,
         )
 
-        // FAB/操作按钮独立渐变色
+        // FAB/操作按钮独立渐变色（暗色自适应）
         object ActionColors {
-            val Write = listOf(Color(0xFF5B6EFF), Color(0xFF7C8FFF))     // 蓝
-            val AI = listOf(Color(0xFF9B65D6), Color(0xFFB388FF))        // 紫
-            val Draft = listOf(Color(0xFFFF9800), Color(0xFFFFB74D))     // 橙
-            val Upload = listOf(Color(0xFF4CAF50), Color(0xFF81C784))    // 绿
+            val Write: List<Color> @Composable @ReadOnlyComposable get() =
+                if (isSystemInDarkTheme()) listOf(Color(0xFF8B9AFF), Color(0xFF9EAAFF))
+                else listOf(Color(0xFF5B6EFF), Color(0xFF7C8FFF))
+            val AI: List<Color> @Composable @ReadOnlyComposable get() =
+                if (isSystemInDarkTheme()) listOf(Color(0xFFB48AE8), Color(0xFFCAAAFF))
+                else listOf(Color(0xFF9B65D6), Color(0xFFB388FF))
+            val Draft: List<Color> @Composable @ReadOnlyComposable get() =
+                if (isSystemInDarkTheme()) listOf(Color(0xFFFFB74D), Color(0xFFFFCC80))
+                else listOf(Color(0xFFFF9800), Color(0xFFFFB74D))
+            val Upload: List<Color> @Composable @ReadOnlyComposable get() =
+                if (isSystemInDarkTheme()) listOf(Color(0xFF81C784), Color(0xFFA5D6A7))
+                else listOf(Color(0xFF4CAF50), Color(0xFF81C784))
         }
     }
 

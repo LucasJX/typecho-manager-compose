@@ -260,7 +260,7 @@ fun StatsScreen(
                                 icon = Icons.Default.LocalFireDepartment,
                                 label = "最长连续",
                                 value = "${uiState.longestStreak} 天",
-                                color = Color(0xFFFF6B35),
+                                color = DesignSystem.SemanticColors.Warning,
                                 modifier = Modifier.weight(1f),
                             )
                             InsightCard(

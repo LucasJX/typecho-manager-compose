@@ -152,16 +152,10 @@ fun PostsScreen(
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
+        modifier = Modifier.fillMaxSize(),
     ) {
-        // 骨架屏
-        if (uiState.isLoading && uiState.posts.isEmpty()) {
-            PostsSkeleton()
-            return@PullToRefreshBox
-        }
-
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
                 // 多选模式下隐藏 FAB
                 if (!isMultiSelectMode) {
@@ -182,6 +176,12 @@ fun PostsScreen(
                 }
             },
         ) { paddingValues ->
+            // 骨架屏
+            if (uiState.isLoading && uiState.posts.isEmpty()) {
+                PostsSkeleton()
+                return@Scaffold
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -219,10 +219,18 @@ fun PostsScreen(
                         }
                     } else {
                         // 大标题（与素材库/我的页一致：渐变图标徽章 + headlineMedium）
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
+                                slideInVertically(
+                                    tween(DesignSystem.Entrance.SectionDuration),
+                                    initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
+                                ),
+                        ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall)
+                                .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.ExtraSmall)
                                 .padding(horizontal = DesignSystem.Spacing.Large),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -337,14 +345,15 @@ fun PostsScreen(
                             }
                         }
                     }
+                    } // AnimatedVisibility (header + search)
 
                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
 
                 AnimatedVisibility(
                     visibleState = enterState,
-                    enter = fadeIn(tween(500, delayMillis = 100)) + slideInVertically(
-                        tween(500, delayMillis = 100),
-                        initialOffsetY = { it / 4 },
+                    enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
+                        tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                        initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                     ),
                 ) {
                     // ═══════════════════════════════════════════

@@ -292,6 +292,7 @@ private fun ThumbnailImage(
     }
 }
 
+@Composable
 private fun getCategoryColor(category: String): Color {
     return when (category.lowercase()) {
         "生活", "生活杂谈" -> DesignSystem.CategoryColors.Life

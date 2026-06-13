@@ -3,6 +3,7 @@ package com.flypigs.typechomanager.ui.editor
 import android.widget.TextView
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ fun MarkdownPreview(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val linkColor = MaterialTheme.colorScheme.primary.hashCode()
     val markwon = remember {
         Markwon.builder(context)
             .usePlugin(HtmlPlugin.create())
@@ -37,7 +39,7 @@ fun MarkdownPreview(
                 textSize = 16f
                 lineHeight = (textSize * 1.6f).toInt()
                 // 链接颜色跟随主题
-                setLinkTextColor(0xFF7C8CFF.toInt())
+                setLinkTextColor(linkColor)
             }
         },
         update = { textView ->
