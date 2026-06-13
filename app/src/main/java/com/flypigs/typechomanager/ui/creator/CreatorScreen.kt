@@ -225,30 +225,27 @@ fun CreatorScreen(
                                 initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                             ),
                     ) {
-                        Row(
+                        Column(
                             modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                         ) {
                             CreatorStatCard(
                                 icon = Icons.Default.Visibility,
                                 value = uiState.publishedCount.toString(),
                                 label = "已发布",
                                 accentColor = DesignSystem.BrandColors.Primary,
-                                modifier = Modifier.weight(1f),
                             )
                             CreatorStatCard(
                                 icon = Icons.Default.Description,
                                 value = uiState.recentDrafts.size.toString(),
                                 label = "草稿",
                                 accentColor = DesignSystem.SemanticColors.Warning,
-                                modifier = Modifier.weight(1f),
                             )
                             CreatorStatCard(
                                 icon = Icons.Default.TextFields,
                                 value = formatWordCount(uiState.totalWordCount),
                                 label = "总字数",
                                 accentColor = DesignSystem.SemanticColors.Success,
-                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
@@ -461,58 +458,49 @@ private fun CreatorStatCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier,
-        shape = DesignSystem.Corner.Card,
+        modifier = modifier.fillMaxWidth(),
+        shape = DesignSystem.Corner.Medium,
         colors = CardDefaults.cardColors(
-            containerColor = accentColor.copy(alpha = 0.08f),
+            containerColor = accentColor.copy(alpha = 0.06f),
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Medium),
+                .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small + 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // 顶部彩色条纹
+            // 左侧彩色竖条
             Box(
                 modifier = Modifier
-                    .width(24.dp)
-                    .height(3.dp)
+                    .width(3.dp)
+                    .height(20.dp)
                     .background(accentColor, RoundedCornerShape(2.dp))
             )
-            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
+            // 图标
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = accentColor,
+            )
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
+            // 标签
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.weight(1f))
             // 数字
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontSize = DesignSystem.Typography.Headline,
-                ),
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
-            // 标签 + 图标
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(12.dp),
-                    tint = accentColor,
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = DesignSystem.Typography.Label,
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
     }
 }
