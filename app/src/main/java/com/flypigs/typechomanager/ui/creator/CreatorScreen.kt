@@ -4,6 +4,11 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,7 +63,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.components.v3.CreatorSkeleton
-import com.flypigs.typechomanager.ui.components.v3.itemEnterAnimation
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -104,6 +108,14 @@ fun CreatorScreen(
         }
     }
 
+    // 入场动画状态
+    val enterState = remember { MutableTransitionState(false) }
+    LaunchedEffect(uiState.isLoadingDrafts) {
+        if (!uiState.isLoadingDrafts) {
+            enterState.targetState = true
+        }
+    }
+
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() },
@@ -129,14 +141,20 @@ fun CreatorScreen(
                 // 1. 标题区 — "创作中心" + 渐变图标徽章（与其他页面统一）
                 // ═══════════════════════════════════════════
                 item(key = "header") {
-                    Row(
-                        modifier = Modifier
-                            .padding(
-                                start = DesignSystem.Spacing.Large,
-                                top = DesignSystem.Spacing.Large,
-                                end = DesignSystem.Spacing.Large,
-                            )
-                            .itemEnterAnimation(0),
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(500)) + slideInVertically(
+                            tween(500),
+                            initialOffsetY = { -it / 2 },
+                        ),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(
+                                    start = DesignSystem.Spacing.Large,
+                                    top = DesignSystem.Spacing.Large,
+                                    end = DesignSystem.Spacing.Large,
+                                ),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                     ) {
@@ -176,20 +194,27 @@ fun CreatorScreen(
                             )
                         }
                     }
+                    }
                 }
 
                 // ═══════════════════════════════════════════
                 // 2. 创作统计条（总字数 + 草稿数）
                 // ═══════════════════════════════════════════
                 item(key = "creator_stats") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = DesignSystem.Spacing.Large)
-                            .clip(DesignSystem.Corner.StatBar)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium)
-                            .itemEnterAnimation(1),
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(500, delayMillis = 100)) + slideInVertically(
+                            tween(500, delayMillis = 100),
+                            initialOffsetY = { it / 4 },
+                        ),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = DesignSystem.Spacing.Large)
+                                .clip(DesignSystem.Corner.StatBar)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -204,48 +229,54 @@ fun CreatorScreen(
                             label = "草稿",
                         )
                     }
+                    }
                 }
 
                 // ═══════════════════════════════════════════
                 // 3. 操作按钮区 — 2×2 网格（渐变图标徽章）
                 // ═══════════════════════════════════════════
                 item(key = "action_grid") {
-                    Column(
-                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(500, delayMillis = 200)) + slideInVertically(
+                            tween(500, delayMillis = 200),
+                            initialOffsetY = { it / 4 },
+                        ),
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                        Column(
+                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                         ) {
-                            BigActionButton(
-                                label = "写文章",
-                                icon = Icons.Default.Create,
-                                gradient = Brush.linearGradient(
-                                    colors = listOf(
-                                        DesignSystem.BrandColors.Primary,
-                                        DesignSystem.BrandColors.Secondary,
-                                    )
-                                ),
-                                onClick = onWriteArticle,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .itemEnterAnimation(2),
-                            )
-                            BigActionButton(
-                                label = "AI辅助",
-                                icon = Icons.Default.AutoAwesome,
-                                gradient = Brush.linearGradient(
-                                    colors = listOf(
-                                        DesignSystem.BrandColors.Tertiary,
-                                        DesignSystem.BrandColors.Primary,
-                                    )
-                                ),
-                                onClick = onAIClick,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .itemEnterAnimation(3),
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                            ) {
+                                BigActionButton(
+                                    label = "写文章",
+                                    icon = Icons.Default.Create,
+                                    gradient = Brush.linearGradient(
+                                        colors = listOf(
+                                            DesignSystem.BrandColors.Primary,
+                                            DesignSystem.BrandColors.Secondary,
+                                        )
+                                    ),
+                                    onClick = onWriteArticle,
+                                    modifier = Modifier
+                                        .weight(1f),
+                                )
+                                BigActionButton(
+                                    label = "AI辅助",
+                                    icon = Icons.Default.AutoAwesome,
+                                    gradient = Brush.linearGradient(
+                                        colors = listOf(
+                                            DesignSystem.BrandColors.Tertiary,
+                                            DesignSystem.BrandColors.Primary,
+                                        )
+                                    ),
+                                    onClick = onAIClick,
+                                    modifier = Modifier
+                                        .weight(1f),
+                                )
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -262,8 +293,7 @@ fun CreatorScreen(
                                 ),
                                 onClick = onNewDraft,
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .itemEnterAnimation(4),
+                                    .weight(1f),
                             )
                             BigActionButton(
                                 label = "上传图片",
@@ -276,11 +306,11 @@ fun CreatorScreen(
                                 ),
                                 onClick = { if (!uiState.isUploading) imagePickerLauncher.launch("image/*") },
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .itemEnterAnimation(5),
+                                    .weight(1f),
                                 isLoading = uiState.isUploading,
                             )
                         }
+                    }
                     }
                 }
 
@@ -289,29 +319,43 @@ fun CreatorScreen(
                 // ═══════════════════════════════════════════
                 if (uiState.recentDrafts.isNotEmpty()) {
                     item(key = "drafts_header") {
-                        Text(
-                            text = "最近草稿",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontSize = DesignSystem.Typography.Title,
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(500, delayMillis = 300)) + slideInVertically(
+                                tween(500, delayMillis = 300),
+                                initialOffsetY = { it / 4 },
                             ),
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                                .padding(horizontal = DesignSystem.Spacing.Large)
-                                .itemEnterAnimation(6),
-                        )
+                        ) {
+                            Text(
+                                text = "最近草稿",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontSize = DesignSystem.Typography.Title,
+                                ),
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier
+                                    .padding(horizontal = DesignSystem.Spacing.Large),
+                            )
+                        }
                     }
 
                     itemsIndexed(
                         items = uiState.recentDrafts,
                         key = { _, draft -> "draft_${draft.cid}" },
                     ) { index, draft ->
-                        DraftListItem(
-                            draft = draft,
-                            onClick = { onDraftClick(draft.cid) },
-                            modifier = Modifier
-                                .padding(horizontal = DesignSystem.Spacing.Large)
-                                .itemEnterAnimation(7 + index),
-                        )
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(500, delayMillis = 400 + index * 100)) + slideInVertically(
+                                tween(500, delayMillis = 400 + index * 100),
+                                initialOffsetY = { it / 4 },
+                            ),
+                        ) {
+                            DraftListItem(
+                                draft = draft,
+                                onClick = { onDraftClick(draft.cid) },
+                                modifier = Modifier
+                                    .padding(horizontal = DesignSystem.Spacing.Large),
+                            )
+                        }
                     }
                 }
             }
