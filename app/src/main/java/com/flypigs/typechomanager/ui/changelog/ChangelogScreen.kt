@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -48,22 +47,6 @@ import okhttp3.Request
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-@Serializable
-private data class GitHubCompare(
-    val commits: List<GitHubCommit> = emptyList(),
-)
-
-@Serializable
-private data class GitHubCommit(
-    val sha: String = "",
-    val commit: CommitDetail = CommitDetail(),
-)
-
-@Serializable
-private data class CommitDetail(
-    val message: String = "",
-)
 
 @Serializable
 private data class GitHubRelease(
@@ -174,7 +157,7 @@ fun ChangelogScreen(
                         verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
                     ) {
                         items(releases) { release ->
-                            ReleaseCard(release, releases)
+                            ReleaseCard(release)
                         }
                         item { Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large)) }
                     }
@@ -185,7 +168,7 @@ fun ChangelogScreen(
 }
 
 @Composable
-private fun ReleaseCard(release: GitHubRelease, releases: List<GitHubRelease>) {
+private fun ReleaseCard(release: GitHubRelease) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = DesignSystem.Corner.Card,
@@ -228,77 +211,25 @@ private fun ReleaseCard(release: GitHubRelease, releases: List<GitHubRelease>) {
                     modifier = Modifier.fillMaxWidth(),
                 )
             } else {
-                // Body 太短，尝试从 compare API 获取 commit 列表
-                var commits by remember { mutableStateOf<List<String>>(emptyList()) }
-                var isLoadingCommits by remember { mutableStateOf(true) }
-                
-                LaunchedEffect(release.tag_name) {
-                    try {
-                        val data = withContext(Dispatchers.IO) {
-                            val client = OkHttpClient()
-                            val tagIndex = releases.indexOf(release)
-                            val prevTag = if (tagIndex < releases.size - 1) releases[tagIndex + 1].tag_name else null
-                            if (prevTag != null) {
-                                val req = Request.Builder()
-                                    .url("https://api.github.com/repos/LucasJX/typecho-manager-compose/compare/$prevTag...${release.tag_name}")
-                                    .header("Accept", "application/vnd.github.v3+json")
-                                try {
-                                    val credFile = java.io.File(System.getProperty("user.home"), ".git-credentials")
-                                    if (credFile.exists()) {
-                                        val tokenMatch = Regex("ghp_[a-zA-Z0-9]+").find(credFile.readText())
-                                        if (tokenMatch != null) req.header("Authorization", "token ${tokenMatch.value}")
-                                    }
-                                } catch (_: Exception) {}
-                                client.newCall(req.build()).execute().use { resp ->
-                                    if (resp.isSuccessful) {
-                                        val body = resp.body?.string() ?: "{}"
-                                        val compare = Json { ignoreUnknownKeys = true }.decodeFromString<GitHubCompare>(body)
-                                        compare.commits.map { it.commit.message.lineSequence().first() }
-                                    } else emptyList()
-                                }
-                            } else emptyList()
-                        }
-                        commits = data
-                    } catch (_: Exception) {} finally {
-                        isLoadingCommits = false
-                    }
-                }
-                
-                if (isLoadingCommits) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                        Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
-                        Text("加载更新内容…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                } else if (commits.isNotEmpty()) {
-                    // 渲染 commit 列表为 Markdown
-                    val markdown = buildString {
-                        appendLine("### 更新内容")
-                        for (msg in commits) {
-                            val cleaned = msg.replace(Regex("^\w+\(.*?\):\s*"), "").replace(Regex("^\w+:\s*"), "")
-                            if (cleaned.isNotBlank() && !cleaned.startsWith("Merge")) {
-                                appendLine("- $cleaned")
-                            }
-                        }
-                    }
-                    MarkdownPreview(
-                        markdown = markdown,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                } else {
+                Text(
+                    text = "版本 ${release.name.ifEmpty { release.tag_name }} 发布",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "包含功能优化和问题修复，详见 GitHub 更新日志。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
+                )
+                if (release.html_url.isNotBlank()) {
                     Text(
-                        text = "版本 ${release.name.ifEmpty { release.tag_name }} 发布，包含功能优化和问题修复。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = "查看完整更新说明 →",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
                     )
-                    if (release.html_url.isNotBlank()) {
-                        Text(
-                            text = "查看完整更新说明 →",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
-                        )
-                    }
                 }
             }
         }
