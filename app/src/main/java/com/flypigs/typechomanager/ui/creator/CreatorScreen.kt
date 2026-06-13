@@ -70,6 +70,7 @@ import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 // ═══════════════════════════════════════════════════════════════
 // CreatorScreen — Blogga V3 创作中心（重设计）
@@ -232,36 +233,21 @@ fun CreatorScreen(
                                 icon = Icons.Default.Visibility,
                                 value = uiState.publishedCount.toString(),
                                 label = "已发布",
-                                gradient = Brush.linearGradient(
-                                    colors = listOf(
-                                        DesignSystem.BrandColors.Primary,
-                                        DesignSystem.BrandColors.Primary.copy(alpha = 0.7f),
-                                    )
-                                ),
+                                accentColor = DesignSystem.BrandColors.Primary,
                                 modifier = Modifier.weight(1f),
                             )
                             CreatorStatCard(
                                 icon = Icons.Default.Description,
                                 value = uiState.recentDrafts.size.toString(),
                                 label = "草稿",
-                                gradient = Brush.linearGradient(
-                                    colors = listOf(
-                                        DesignSystem.SemanticColors.Warning,
-                                        DesignSystem.SemanticColors.Warning.copy(alpha = 0.7f),
-                                    )
-                                ),
+                                accentColor = DesignSystem.SemanticColors.Warning,
                                 modifier = Modifier.weight(1f),
                             )
                             CreatorStatCard(
                                 icon = Icons.Default.TextFields,
                                 value = formatWordCount(uiState.totalWordCount),
                                 label = "总字数",
-                                gradient = Brush.linearGradient(
-                                    colors = listOf(
-                                        DesignSystem.SemanticColors.Success,
-                                        DesignSystem.SemanticColors.Success.copy(alpha = 0.7f),
-                                    )
-                                ),
+                                accentColor = DesignSystem.SemanticColors.Success,
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -471,48 +457,51 @@ private fun CreatorStatCard(
     icon: ImageVector,
     value: String,
     label: String,
-    gradient: Brush,
+    accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(88.dp),
+        modifier = modifier,
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = accentColor.copy(alpha = 0.08f),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = DesignSystem.Spacing.Medium),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                .fillMaxWidth()
+                .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Medium),
         ) {
+            // 顶部彩色条纹
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(gradient, CircleShape),
-                contentAlignment = Alignment.Center,
+                    .width(24.dp)
+                    .height(3.dp)
+                    .background(accentColor, RoundedCornerShape(2.dp))
+            )
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+            // 数字
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontSize = DesignSystem.Typography.Headline,
+                ),
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            // 标签 + 图标
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = Color.White,
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontSize = DesignSystem.Typography.Title,
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(12.dp),
+                    tint = accentColor,
                 )
                 Text(
                     text = label,
@@ -520,6 +509,8 @@ private fun CreatorStatCard(
                         fontSize = DesignSystem.Typography.Label,
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

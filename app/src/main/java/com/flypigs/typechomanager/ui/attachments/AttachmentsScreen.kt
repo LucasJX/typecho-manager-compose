@@ -103,6 +103,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 /** 素材筛选类型 */
 enum class FilterType(val label: String) {
@@ -303,14 +304,14 @@ fun AttachmentsScreen(
                             value = uiState.attachments.size.toString(),
                             label = "文件",
                             icon = Icons.Default.Archive,
-                            gradient = Brush.linearGradient(listOf(DesignSystem.BrandColors.Primary, DesignSystem.BrandColors.Secondary)),
+                            accentColor = DesignSystem.BrandColors.Primary,
                             modifier = Modifier.weight(1f),
                         )
                         StatCard(
                             value = formatFileSize(uiState.totalSize),
                             label = "总大小",
                             icon = Icons.Default.InsertDriveFile,
-                            gradient = Brush.linearGradient(listOf(DesignSystem.BrandColors.Secondary, DesignSystem.BrandColors.Tertiary)),
+                            accentColor = DesignSystem.BrandColors.Secondary,
                             modifier = Modifier.weight(1f),
                         )
                         if (recentUploadText.isNotEmpty()) {
@@ -318,7 +319,7 @@ fun AttachmentsScreen(
                                 value = recentUploadText,
                                 label = "最近",
                                 icon = Icons.Default.Image,
-                                gradient = Brush.linearGradient(listOf(DesignSystem.BrandColors.Tertiary, DesignSystem.BrandColors.Primary)),
+                                accentColor = DesignSystem.BrandColors.Tertiary,
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -706,50 +707,51 @@ private fun StatCard(
     value: String,
     label: String,
     icon: ImageVector,
-    gradient: Brush,
+    accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(88.dp),
+        modifier = modifier,
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = accentColor.copy(alpha = 0.08f),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = DesignSystem.Spacing.Medium),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                .fillMaxWidth()
+                .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Medium),
         ) {
-            // 渐变圆形图标徽章
+            // 顶部彩色条纹
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(gradient, CircleShape),
-                contentAlignment = Alignment.Center,
+                    .width(24.dp)
+                    .height(3.dp)
+                    .background(accentColor, RoundedCornerShape(2.dp))
+            )
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
+            // 数字
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontSize = DesignSystem.Typography.Headline,
+                ),
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            // 标签 + 图标
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = Color.White,
-                )
-            }
-            // 数字 + 标签
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontSize = DesignSystem.Typography.Title,
-                    ),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(12.dp),
+                    tint = accentColor,
                 )
                 Text(
                     text = label,
@@ -757,6 +759,8 @@ private fun StatCard(
                         fontSize = DesignSystem.Typography.Label,
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
