@@ -219,7 +219,7 @@ fun PostsScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.Medium)
+                                .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall)
                                 .padding(horizontal = DesignSystem.Spacing.Large),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {

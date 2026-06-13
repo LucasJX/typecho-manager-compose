@@ -298,7 +298,7 @@ fun PostDetailScreen(
                         ),
                     ) {
                         MarkdownPreview(
-                            markdown = removeFirstImage(p.text),
+                            markdown = removeCoverImage(p.text, coverUrl),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = DesignSystem.Spacing.Medium),
@@ -491,21 +491,27 @@ private fun ArticleDetailSkeleton() {
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * 从 markdown 中移除第一张图片（避免与封面 Hero 重复）
- * 支持 markdown 图片 ![alt](url) 和 HTML img 标签
+ * 从 markdown 中移除包含指定 URL 的图片（避免与封面 Hero 重复）
+ * 支持: ![alt](url), <img src="url">, 纯 URL
  */
-private fun removeFirstImage(markdown: String): String {
-    // 先尝试匹配 markdown 图片 ![alt](url)
-    val mdRegex = Regex("!\\[.*?\\]\\(.*?\\)")
-    val mdMatch = mdRegex.find(markdown)
-    // 再尝试匹配 HTML img 标签
-    val htmlRegex = Regex("<img[^>]+>")
-    val htmlMatch = htmlRegex.find(markdown)
-    // 取位置靠前的那个
-    val match = listOfNotNull(mdMatch, htmlMatch).minByOrNull { it.range.first } ?: return markdown
-    val before = markdown.substring(0, match.range.first)
-    val after = markdown.substring(match.range.last + 1)
-    return (before.trimEnd() + "\n" + after.trimStart()).trim()
+private fun removeCoverImage(markdown: String, coverUrl: String?): String {
+    if (coverUrl.isNullOrBlank()) return markdown
+    val escaped = Regex.escape(coverUrl)
+    // Try markdown image: ![...](...coverUrl...)
+    val mdRegex = Regex("!\\[.*?\\]\\([^)]*" + escaped + "[^)]*\\)")
+    mdRegex.find(markdown)?.let { match ->
+        val before = markdown.substring(0, match.range.first)
+        val after = markdown.substring(match.range.last + 1)
+        return (before.trimEnd() + "\n" + after.trimStart()).trim()
+    }
+    // Try HTML img: <img ...coverUrl...>
+    val htmlRegex = Regex("<img[^>]*" + escaped + "[^>]*>")
+    htmlRegex.find(markdown)?.let { match ->
+        val before = markdown.substring(0, match.range.first)
+        val after = markdown.substring(match.range.last + 1)
+        return (before.trimEnd() + "\n" + after.trimStart()).trim()
+    }
+    return markdown
 }
 
 private fun formatTimestamp(timestamp: Long): String {
