@@ -395,7 +395,6 @@ private fun BlogTextField(
             errorLeadingIconColor = MaterialTheme.colorScheme.error,
         ),
         modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
+            .fillMaxWidth(),
     )
 }

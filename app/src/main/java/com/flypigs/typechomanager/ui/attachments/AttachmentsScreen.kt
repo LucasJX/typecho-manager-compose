@@ -193,7 +193,6 @@ fun AttachmentsScreen(
 
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             floatingActionButton = {
                 AnimatedVisibility(
                     visible = fabVisible,
