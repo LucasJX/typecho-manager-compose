@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -85,10 +86,10 @@ import java.util.Locale
 // HomeScreen — Blogga V3 首页
 //
 // 布局 (LazyColumn):
-//   1. 问候语 + 博客名
+//   1. 标题区 — 渐变图标徽章 + "首页" + 问候语 + 博客名
 //   2. 数据概览（4格紧凑横向行）
 //   3. 最新文章 HorizontalPager（5篇轮播 + 圆点指示器）
-//   4. 最近动态（标题 + 时间线 ×5）
+//   4. 最近动态（渐变徽章标题 + 时间线 ×5）
 //   5. 快捷操作（2×2 网格）
 // ═══════════════════════════════════════════════════════════════
 
@@ -188,14 +189,40 @@ fun HomeScreen(
                 // ─── 4. 最近动态（标题 + 时间线）───
                 if (recentActivity.isNotEmpty()) {
                     item(key = "activity_header") {
-                        Text(
-                            text = "最近动态",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontSize = DesignSystem.Typography.Title,
-                            ),
-                            fontWeight = FontWeight.SemiBold,
+                        Row(
                             modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                        )
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // 渐变圆形图标徽章
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(
+                                        Brush.linearGradient(
+                                            colors = listOf(
+                                                DesignSystem.SemanticColors.Success,
+                                                DesignSystem.SemanticColors.Success.copy(alpha = 0.7f),
+                                            )
+                                        ),
+                                        CircleShape,
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Update,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Color.White,
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+                            Text(
+                                text = "最近动态",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
                     items(
                         items = recentActivity,
@@ -324,8 +351,51 @@ private fun GreetingSection(
     val greeting = remember { getGreeting() }
 
     Column(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // 渐变圆形图标徽章（与我的/素材库一致）
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                DesignSystem.BrandColors.Primary,
+                                DesignSystem.BrandColors.Tertiary,
+                            )
+                        ),
+                        CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lightbulb,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = Color.White,
+                )
+            }
+
+            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+
+            Column {
+                Text(
+                    text = "首页",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "欢迎回来，$userName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+
         Text(
-            text = "$greeting 👋 $userName",
+            text = "$greeting 👋",
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontSize = DesignSystem.Typography.Display, // 36sp
             ),
@@ -516,7 +586,7 @@ private fun ArticleHeroPager(
                     val isSelected = pagerState.currentPage == index
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 3.dp)
+                            .padding(horizontal = DesignSystem.Spacing.ExtraSmall)
                             .size(if (isSelected) 8.dp else 6.dp)
                             .clip(CircleShape)
                             .background(
