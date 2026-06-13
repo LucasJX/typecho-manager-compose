@@ -186,7 +186,11 @@ fun HomeScreen(
                         GreetingSection(
                             userName = uiState.userName,
                             blogName = uiState.blogName,
-                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                            modifier = Modifier.padding(
+                                start = DesignSystem.Spacing.Large,
+                                end = DesignSystem.Spacing.Large,
+                                top = DesignSystem.Spacing.Large,
+                            ),
                         )
                     }
                 }

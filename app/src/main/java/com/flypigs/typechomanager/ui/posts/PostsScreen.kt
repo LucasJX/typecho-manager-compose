@@ -219,7 +219,7 @@ fun PostsScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall)
+                                .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.Medium)
                                 .padding(horizontal = DesignSystem.Spacing.Large),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -270,7 +270,9 @@ fun PostsScreen(
                                 )
                             }
                         }
-    
+
+                        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
+
                         // DockedSearchBar
                         DockedSearchBar(
                             inputField = {

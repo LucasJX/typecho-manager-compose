@@ -159,7 +159,7 @@ fun PostDetailScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall)
+                                    .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.Medium)
                                     .padding(horizontal = DesignSystem.Spacing.Large),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -492,10 +492,17 @@ private fun ArticleDetailSkeleton() {
 
 /**
  * 从 markdown 中移除第一张图片（避免与封面 Hero 重复）
+ * 支持 markdown 图片 ![alt](url) 和 HTML img 标签
  */
 private fun removeFirstImage(markdown: String): String {
-    val imgRegex = Regex("!\\[.*?\\]\\(.*?\\)")
-    val match = imgRegex.find(markdown) ?: return markdown
+    // 先尝试匹配 markdown 图片 ![alt](url)
+    val mdRegex = Regex("!\\[.*?\\]\\(.*?\\)")
+    val mdMatch = mdRegex.find(markdown)
+    // 再尝试匹配 HTML img 标签
+    val htmlRegex = Regex("<img[^>]+>")
+    val htmlMatch = htmlRegex.find(markdown)
+    // 取位置靠前的那个
+    val match = listOfNotNull(mdMatch, htmlMatch).minByOrNull { it.range.first } ?: return markdown
     val before = markdown.substring(0, match.range.first)
     val after = markdown.substring(match.range.last + 1)
     return (before.trimEnd() + "\n" + after.trimStart()).trim()
