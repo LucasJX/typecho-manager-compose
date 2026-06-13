@@ -149,9 +149,9 @@ fun PostDetailScreen(
                 item(key = "header") {
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(500)) + slideInVertically(
-                            tween(500, delayMillis = 0),
-                            initialOffsetY = { -it / 2 },
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) + slideInVertically(
+                            tween(DesignSystem.Entrance.SectionDuration),
+                            initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
                         ),
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -261,9 +261,9 @@ fun PostDetailScreen(
                     item(key = "cover") {
                         AnimatedVisibility(
                             visibleState = enterState,
-                            enter = fadeIn(tween(500)) + slideInVertically(
-                                tween(500, delayMillis = 100),
-                                initialOffsetY = { it / 4 },
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                             ),
                         ) {
                             Box(
@@ -292,9 +292,9 @@ fun PostDetailScreen(
                 item(key = "content") {
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(500)) + slideInVertically(
-                            tween(500, delayMillis = 200),
-                            initialOffsetY = { it / 2 },
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) + slideInVertically(
+                            tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
+                            initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                         ),
                     ) {
                         MarkdownPreview(
@@ -310,9 +310,9 @@ fun PostDetailScreen(
                 item(key = "stats") {
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(500)) + slideInVertically(
-                            tween(500, delayMillis = 300),
-                            initialOffsetY = { it / 2 },
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) + slideInVertically(
+                            tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
+                            initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                         ),
                     ) {
                         Row(
@@ -346,9 +346,9 @@ fun PostDetailScreen(
                     item(key = "publish_action") {
                         AnimatedVisibility(
                             visibleState = enterState,
-                            enter = fadeIn(tween(500)) + slideInVertically(
-                                tween(500, delayMillis = 400),
-                                initialOffsetY = { it / 2 },
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) + slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                             ),
                         ) {
                             FilledTonalButton(

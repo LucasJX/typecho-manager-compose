@@ -242,14 +242,14 @@ fun PostsScreen(
                     ) {
                         // ── 大标题（可滚动）──
                         item(key = "header") {
+                            if (!searchActive && !isMultiSelectMode) {
                             AnimatedVisibility(
-                                visible = !searchActive && !isMultiSelectMode,
+                                visibleState = enterState,
                                 enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
                                     slideInVertically(
                                         tween(DesignSystem.Entrance.SectionDuration),
                                         initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
                                     ),
-                                exit = fadeOut(tween(200)),
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -368,6 +368,7 @@ fun PostsScreen(
                                         }
                                     }
                                 }
+                            }
                             }
                         }
 
@@ -489,14 +490,14 @@ fun PostsScreen(
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
                     // 大标题（不滚动）
+                    if (!isMultiSelectMode) {
                     AnimatedVisibility(
-                        visible = !isMultiSelectMode,
+                        visibleState = enterState,
                         enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
                             slideInVertically(
                                 tween(DesignSystem.Entrance.SectionDuration),
                                 initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
                             ),
-                        exit = fadeOut(tween(200)),
                     ) {
                         Row(
                             modifier = Modifier
@@ -543,6 +544,7 @@ fun PostsScreen(
                                 )
                             }
                         }
+                    }
                     }
 
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
@@ -646,9 +648,9 @@ fun PostsScreen(
                     // 文章网格（可滚动）
                     AnimatedVisibility(
                         visibleState = enterState,
-                        enter = fadeIn(tween(500, delayMillis = 200)) + slideInVertically(
-                            tween(500, delayMillis = 200),
-                            initialOffsetY = { it / 4 },
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) + slideInVertically(
+                            tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
+                            initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                         ),
                     ) {
                         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
