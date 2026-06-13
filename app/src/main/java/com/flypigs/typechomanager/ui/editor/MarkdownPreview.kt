@@ -2,13 +2,11 @@ package com.flypigs.typechomanager.ui.editor
 
 import android.widget.TextView
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
 import io.noties.markwon.ext.tables.TablePlugin
@@ -21,6 +19,7 @@ fun MarkdownPreview(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val textColor = MaterialTheme.colorScheme.onSurface.hashCode()
     val linkColor = MaterialTheme.colorScheme.primary.hashCode()
     val markwon = remember {
         Markwon.builder(context)
@@ -34,15 +33,15 @@ fun MarkdownPreview(
         factory = { ctx ->
             TextView(ctx).apply {
                 val density = ctx.resources.displayMetrics.density
-                // 只保留上下内边距，水平由外层控制
                 setPadding(0, (8 * density).toInt(), 0, (8 * density).toInt())
                 textSize = 16f
                 lineHeight = (textSize * 1.6f).toInt()
-                // 链接颜色跟随主题
+                setTextColor(textColor)
                 setLinkTextColor(linkColor)
             }
         },
         update = { textView ->
+            textView.setTextColor(textColor)
             markwon.setMarkdown(textView, markdown)
         },
         modifier = modifier
