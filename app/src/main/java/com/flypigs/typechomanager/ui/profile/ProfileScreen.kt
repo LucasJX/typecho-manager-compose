@@ -524,14 +524,14 @@ private fun ProfileStatCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Small + 2.dp),
+                .padding(horizontal = DesignSystem.Spacing.Medium, vertical = DesignSystem.Spacing.Medium),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // 左侧彩色竖条
             Box(
                 modifier = Modifier
                     .width(3.dp)
-                    .height(20.dp)
+                    .height(28.dp)
                     .background(accentColor, RoundedCornerShape(2.dp))
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
