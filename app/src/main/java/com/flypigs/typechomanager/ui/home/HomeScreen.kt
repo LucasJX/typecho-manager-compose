@@ -133,14 +133,9 @@ fun HomeScreen(
         uiState.allPosts.sortedByDescending { it.created }.take(5)
     }
 
-    // 最近动态（优先排除 Hero 已展示的文章；不足则 fallback 全部）
-    val heroCids = remember(recentPosts) { recentPosts.map { it.cid }.toSet() }
-    val recentActivity = remember(uiState.allPosts, heroCids) {
-        val nonHero = uiState.allPosts
-            .sortedByDescending { it.created }
-            .filter { it.cid !in heroCids }
-        if (nonHero.isNotEmpty()) nonHero.take(5)
-        else uiState.allPosts.sortedByDescending { it.created }.take(5)
+    // 最近动态（不排除 Hero，始终显示全部文章的时间线）
+    val recentActivity = remember(uiState.allPosts) {
+        uiState.allPosts.sortedByDescending { it.created }.take(5)
     }
 
     PullToRefreshBox(
