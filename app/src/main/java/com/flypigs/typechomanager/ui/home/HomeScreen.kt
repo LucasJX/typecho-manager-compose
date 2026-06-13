@@ -1,5 +1,10 @@
 package com.flypigs.typechomanager.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -51,6 +57,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -117,14 +124,21 @@ fun HomeScreen(
     var showInspirationSheet by remember { mutableStateOf(false) }
     var inspirationText by remember { mutableStateOf("") }
 
+    // 入场动画状态
+    val enterState = remember { MutableTransitionState(false) }
+
     // 最新文章（取前 5 篇作为 HorizontalPager 页面）
     val recentPosts = remember(uiState.allPosts) {
         uiState.allPosts.sortedByDescending { it.created }.take(5)
     }
 
-    // 最近动态（按创建时间倒序取前 5 篇）
-    val recentActivity = remember(uiState.allPosts) {
-        uiState.allPosts.sortedByDescending { it.created }.take(5)
+    // 最近动态（排除 Hero 已展示的文章，避免图片重复）
+    val heroCids = remember(recentPosts) { recentPosts.map { it.cid }.toSet() }
+    val recentActivity = remember(uiState.allPosts, heroCids) {
+        uiState.allPosts
+            .sortedByDescending { it.created }
+            .filter { it.cid !in heroCids }
+            .take(5)
     }
 
     PullToRefreshBox(
@@ -135,6 +149,13 @@ fun HomeScreen(
         if (uiState.isLoading && uiState.allPosts.isEmpty()) {
             HomeSkeleton()
             return@PullToRefreshBox
+        }
+
+        // 数据加载完成后触发入场动画
+        LaunchedEffect(uiState.allPosts) {
+            if (uiState.allPosts.isNotEmpty() && !enterState.currentState) {
+                enterState.targetState = true
+            }
         }
 
         Scaffold(
@@ -155,73 +176,109 @@ fun HomeScreen(
                 contentPadding = PaddingValues(bottom = DesignSystem.Component.FabBottomPadding),
                 verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.SectionGap),
             ) {
-                // ─── 1. 问候语 + 博客名 ───
+                // ─── 1. 问候语 + 博客名（入场动画）───
                 item(key = "greeting") {
-                    GreetingSection(
-                        userName = uiState.userName,
-                        blogName = uiState.blogName,
-                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                    )
-                }
-
-                // ─── 2. 数据概览（4 格紧凑横向）───
-                item(key = "stats") {
-                    StatsRow(
-                        publishedCount = uiState.allPosts.count { it.status == "publish" },
-                        draftCount = uiState.draftCount,
-                        categoryCount = uiState.categories.size,
-                        attachmentCount = uiState.attachmentCount,
-                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                    )
-                }
-
-                // ─── 3. 最新文章 HorizontalPager ───
-                if (recentPosts.isNotEmpty()) {
-                    item(key = "hero_pager") {
-                        ArticleHeroPager(
-                            posts = recentPosts,
-                            onPostClick = { cid -> onPostClick(cid) },
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Animation.SectionDuration)) +
+                            slideInVertically(
+                                tween(DesignSystem.Animation.SectionDuration),
+                                initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
+                        GreetingSection(
+                            userName = uiState.userName,
+                            blogName = uiState.blogName,
                             modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                         )
                     }
                 }
 
-                // ─── 4. 最近动态（标题 + 时间线）───
+                // ─── 2. 数据概览（入场动画 + 延迟）───
+                item(key = "stats") {
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) +
+                            slideInVertically(
+                                tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
+                        StatsRow(
+                            publishedCount = uiState.allPosts.count { it.status == "publish" },
+                            draftCount = uiState.draftCount,
+                            categoryCount = uiState.categories.size,
+                            attachmentCount = uiState.attachmentCount,
+                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                        )
+                    }
+                }
+
+                // ─── 3. 最新文章 HorizontalPager（入场动画 + 延迟）───
+                if (recentPosts.isNotEmpty()) {
+                    item(key = "hero_pager") {
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) +
+                                slideInVertically(
+                                    tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
+                                    initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                                ),
+                        ) {
+                            ArticleHeroPager(
+                                posts = recentPosts,
+                                onPostClick = { cid -> onPostClick(cid) },
+                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                            )
+                        }
+                    }
+                }
+
+                // ─── 4. 最近动态（标题 + 时间线，入场动画 + 延迟）───
                 if (recentActivity.isNotEmpty()) {
                     item(key = "activity_header") {
-                        Row(
-                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                            verticalAlignment = Alignment.CenterVertically,
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) +
+                                slideInVertically(
+                                    tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
+                                    initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                                ),
                         ) {
-                            // 渐变圆形图标徽章
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .background(
-                                        Brush.linearGradient(
-                                            colors = listOf(
-                                                DesignSystem.SemanticColors.Success,
-                                                DesignSystem.SemanticColors.Success.copy(alpha = 0.7f),
-                                            )
-                                        ),
-                                        CircleShape,
-                                    ),
-                                contentAlignment = Alignment.Center,
+                            Row(
+                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Update,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                    tint = Color.White,
+                                // 渐变圆形图标徽章
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(
+                                            Brush.linearGradient(
+                                                colors = listOf(
+                                                    DesignSystem.SemanticColors.Success,
+                                                    DesignSystem.SemanticColors.Success.copy(alpha = 0.7f),
+                                                )
+                                            ),
+                                            CircleShape,
+                                        ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Update,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = Color.White,
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
+                                Text(
+                                    text = "最近动态",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
-                            Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
-                            Text(
-                                text = "最近动态",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
                         }
                     }
                     items(
@@ -236,15 +293,24 @@ fun HomeScreen(
                     }
                 }
 
-                // ─── 5. 快捷操作（2×2 网格）───
+                // ─── 5. 快捷操作（2×2 网格，入场动画 + 延迟）───
                 item(key = "quick_actions") {
-                    QuickActionsGrid(
-                        onWriteClick = onWriteClick,
-                        onNewDraftClick = onNewDraftClick,
-                        onUploadImageClick = onUploadImageClick,
-                        onViewStatsClick = onViewStatsClick,
-                        modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
-                    )
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) +
+                            slideInVertically(
+                                tween(DesignSystem.Animation.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
+                        QuickActionsGrid(
+                            onWriteClick = onWriteClick,
+                            onNewDraftClick = onNewDraftClick,
+                            onUploadImageClick = onUploadImageClick,
+                            onViewStatsClick = onViewStatsClick,
+                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                        )
+                    }
                 }
 
                 // 底部留白
@@ -340,7 +406,7 @@ fun HomeScreen(
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 1. Greeting — 问候语 + 博客名
+// 1. Greeting — 问候语 + 博客名（紧凑布局：badge+标题行，问候语在下方）
 // ═══════════════════════════════════════════════════════════════
 @Composable
 private fun GreetingSection(
@@ -351,6 +417,7 @@ private fun GreetingSection(
     val greeting = remember { getGreeting() }
 
     Column(modifier = modifier) {
+        // 主行：badge + 标题 + 副标题 + 右侧按钮（与其他页面一致）
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 渐变圆形图标徽章（与我的/素材库一致）
             Box(
@@ -377,7 +444,7 @@ private fun GreetingSection(
 
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Medium))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "首页",
                     style = MaterialTheme.typography.headlineMedium,
@@ -385,23 +452,23 @@ private fun GreetingSection(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = "欢迎回来，$userName",
+                    text = "$greeting 👋 $userName",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+
+            // 右上角按钮（与 PostsScreen/AttachmentsScreen 一致）
+            IconButton(onClick = { /* TODO: 刷新 */ }) {
+                Icon(
+                    imageVector = Icons.Default.Update,
+                    contentDescription = "刷新",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
-
-        Text(
-            text = "$greeting 👋",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontSize = DesignSystem.Typography.Display, // 36sp
-            ),
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        // 博客名（如有）
         if (blogName.isNotBlank()) {
             Text(
                 text = blogName,
@@ -409,7 +476,7 @@ private fun GreetingSection(
                     fontSize = DesignSystem.Typography.Body, // 16sp
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = DesignSystem.Spacing.ExtraSmall),
+                modifier = Modifier.padding(top = DesignSystem.Spacing.Small),
             )
         }
     }
