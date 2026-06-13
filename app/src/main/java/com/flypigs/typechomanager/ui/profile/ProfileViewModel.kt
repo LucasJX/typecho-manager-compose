@@ -37,7 +37,7 @@ data class ProfileUiState(
     val isLoadingStats: Boolean = false,
     val pullToRefreshEnabled: Boolean = true,
     val imageQuality: String = "高质量",
-    val versionName: String = "1.8.0",
+    val versionName: String = "1.0.2",
     val heatmapData: List<HeatmapDay> = emptyList(),
 )
 
