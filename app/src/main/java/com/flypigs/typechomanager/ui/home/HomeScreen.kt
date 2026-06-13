@@ -22,7 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -80,6 +80,7 @@ import coil.request.ImageRequest
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.components.v3.HomeSkeleton
 import com.flypigs.typechomanager.ui.components.v3.MorphingFab
+import com.flypigs.typechomanager.ui.components.v3.itemEnterAnimation
 import com.flypigs.typechomanager.ui.components.v3.rememberCountUpState
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import com.flypigs.typechomanager.util.extractFirstImageUrl
@@ -281,14 +282,16 @@ fun HomeScreen(
                             }
                         }
                     }
-                    items(
+                    itemsIndexed(
                         items = recentActivity,
-                        key = { post -> "activity_${post.cid}" },
-                    ) { post ->
+                        key = { _, post -> "activity_${post.cid}" },
+                    ) { index, post ->
                         ActivityTimelineItem(
                             post = post,
                             onClick = { onPostClick(post.cid) },
-                            modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
+                            modifier = Modifier
+                                .itemEnterAnimation(index)
+                                .padding(horizontal = DesignSystem.Spacing.Large),
                         )
                     }
                 }

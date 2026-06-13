@@ -146,9 +146,10 @@ fun SetupScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = DesignSystem.Spacing.Large),
+                    .padding(horizontal = DesignSystem.Spacing.Large)
+                    .padding(top = DesignSystem.Spacing.ExtraLarge, bottom = DesignSystem.Spacing.Large),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Top,
             ) {
                 // ════════════════════════════════════════════
                 //  Brand — Icon + Brand Name + Tagline

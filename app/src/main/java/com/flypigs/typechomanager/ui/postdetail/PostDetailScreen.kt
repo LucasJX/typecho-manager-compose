@@ -1,6 +1,11 @@
 package com.flypigs.typechomanager.ui.postdetail
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,6 +107,12 @@ fun PostDetailScreen(
     val isDraftOrPrivate = p.status == "draft" || p.status == "private"
     val coverUrl = p.cover.takeIf { it.isNotEmpty() } ?: extractFirstImageUrl(p.text)
 
+    // 入场动画状态
+    val enterState = remember { MutableTransitionState(false) }
+    LaunchedEffect(p) {
+        enterState.targetState = true
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -136,6 +147,14 @@ fun PostDetailScreen(
             ) {
                 // ─── 1. 顶部栏（返回 + 标题）───
                 item(key = "header") {
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration),
+                                initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         // 返回按钮 + 大标题
                         Row(
@@ -235,11 +254,20 @@ fun PostDetailScreen(
                             }
                         }
                     }
+                    } // AnimatedVisibility header
                 }
 
                 // ─── 2. 封面图 Hero 区域（如有）───
                 if (coverUrl != null) {
                     item(key = "cover") {
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) +
+                                slideInVertically(
+                                    tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                                    initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                                ),
+                        ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -258,21 +286,39 @@ fun PostDetailScreen(
                                 contentScale = ContentScale.Crop,
                             )
                         }
+                        } // AnimatedVisibility cover
                     }
                 }
 
                 // ─── 3. 文章内容（Markdown 渲染）───
                 item(key = "content") {
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 2),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
                     MarkdownPreview(
                         markdown = p.text,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = DesignSystem.Spacing.Medium),
                     )
+                    } // AnimatedVisibility content
                 }
 
                 // ─── 4. 数据统计条（阅读数 + 评论数）───
                 item(key = "stats") {
+                    AnimatedVisibility(
+                        visibleState = enterState,
+                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) +
+                            slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                    ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -296,11 +342,20 @@ fun PostDetailScreen(
                             label = "评论",
                         )
                     }
+                    } // AnimatedVisibility stats
                 }
 
                 // ─── 5. 底部操作区（草稿/私密文章显示发布按钮）───
                 if (isDraftOrPrivate) {
                     item(key = "publish_action") {
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) +
+                                slideInVertically(
+                                    tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
+                                    initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                                ),
+                        ) {
                         FilledTonalButton(
                             onClick = { viewModel.publishPost() },
                             enabled = !isUpdating,
@@ -324,9 +379,9 @@ fun PostDetailScreen(
                                 Text("发布文章")
                             }
                         }
+                        } // AnimatedVisibility publish
                     }
                 }
-
                 // 底部间距
                 item(key = "bottom_spacer") {
                     Spacer(modifier = Modifier.height(DesignSystem.Component.FabBottomPadding + DesignSystem.Spacing.Large))

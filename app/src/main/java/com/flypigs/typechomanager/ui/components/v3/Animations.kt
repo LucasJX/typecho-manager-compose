@@ -100,17 +100,17 @@ fun rememberCountUpState(targetValue: Int): Int {
 @Composable
 fun Modifier.itemEnterAnimation(index: Int): Modifier {
     val alpha = remember { Animatable(0f) }
-    val offsetY = remember { Animatable(40f) }
+    val offsetY = remember { Animatable(DesignSystem.Entrance.ItemSlideOffset) }
 
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(index * 50L)
+        kotlinx.coroutines.delay(index * DesignSystem.Entrance.ItemDelay.toLong())
         alpha.animateTo(
             targetValue = 1f,
-            animationSpec = tween(durationMillis = 300)
+            animationSpec = tween(durationMillis = DesignSystem.Entrance.ItemDuration)
         )
         offsetY.animateTo(
             targetValue = 0f,
-            animationSpec = tween(durationMillis = 300)
+            animationSpec = tween(durationMillis = DesignSystem.Entrance.ItemDuration)
         )
     }
 
