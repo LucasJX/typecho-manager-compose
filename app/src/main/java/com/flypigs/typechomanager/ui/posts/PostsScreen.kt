@@ -338,6 +338,8 @@ fun PostsScreen(
                         }
                     }
 
+                Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
+
                 AnimatedVisibility(
                     visibleState = enterState,
                     enter = fadeIn(tween(500, delayMillis = 100)) + slideInVertically(
@@ -345,8 +347,6 @@ fun PostsScreen(
                         initialOffsetY = { it / 4 },
                     ),
                 ) {
-                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
-    
                     // ═══════════════════════════════════════════
                     // FilterChip 组
                     // ═══════════════════════════════════════════

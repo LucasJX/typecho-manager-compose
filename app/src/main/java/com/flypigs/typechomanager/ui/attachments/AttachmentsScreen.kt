@@ -710,43 +710,52 @@ private fun StatCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(96.dp),
+        modifier = modifier.height(88.dp),
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(DesignSystem.Spacing.Medium),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = DesignSystem.Spacing.Medium),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
         ) {
+            // 渐变圆形图标徽章
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(gradient),
+                    .size(40.dp)
+                    .background(gradient, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                     tint = Color.White,
                 )
             }
-            Column {
+            // 数字 + 标签
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 28.sp),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontSize = DesignSystem.Typography.Title,
+                    ),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = DesignSystem.Typography.Label,
+                    ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

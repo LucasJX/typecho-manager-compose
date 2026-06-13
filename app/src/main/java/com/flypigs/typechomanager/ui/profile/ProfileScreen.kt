@@ -522,40 +522,43 @@ private fun ProfileStatCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(DesignSystem.Component.StatCardHeight),
+        modifier = modifier.height(88.dp),
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(DesignSystem.Spacing.Medium),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = DesignSystem.Spacing.Medium),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
         ) {
             // 渐变圆形图标徽章
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(gradient),
+                    .size(40.dp)
+                    .background(gradient, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                     tint = Color.White,
                 )
             }
             // 数字 + 标签
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Text(
                     text = rememberCountUpState(count).toString(),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontSize = DesignSystem.Typography.Headline,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontSize = DesignSystem.Typography.Title,
                     ),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
