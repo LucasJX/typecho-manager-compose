@@ -242,7 +242,6 @@ fun PostsScreen(
                     ) {
                         // ── 大标题（可滚动）──
                         item(key = "header") {
-                            if (!searchActive && !isMultiSelectMode) {
                             AnimatedVisibility(
                                 visibleState = enterState,
                                 enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
@@ -369,7 +368,6 @@ fun PostsScreen(
                                     }
                                 }
                             }
-                            }
                         }
 
                         // ── FilterChip 组（stickyHeader，滚动时吸顶）──
@@ -490,7 +488,6 @@ fun PostsScreen(
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
                     // 大标题（不滚动）
-                    if (!isMultiSelectMode) {
                     AnimatedVisibility(
                         visibleState = enterState,
                         enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) +
@@ -544,7 +541,6 @@ fun PostsScreen(
                                 )
                             }
                         }
-                    }
                     }
 
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
