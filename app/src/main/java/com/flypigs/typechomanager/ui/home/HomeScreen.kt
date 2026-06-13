@@ -186,6 +186,7 @@ fun HomeScreen(
                         GreetingSection(
                             userName = uiState.userName,
                             blogName = uiState.blogName,
+                            onRefresh = { viewModel.refresh() },
                             modifier = Modifier.padding(
                                 start = DesignSystem.Spacing.Large,
                                 end = DesignSystem.Spacing.Large,
@@ -415,6 +416,7 @@ fun HomeScreen(
 private fun GreetingSection(
     userName: String,
     blogName: String,
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val greeting = remember { getGreeting() }
@@ -462,7 +464,7 @@ private fun GreetingSection(
             }
 
             // 右上角按钮（与 PostsScreen/AttachmentsScreen 一致）
-            IconButton(onClick = { /* TODO: 刷新 */ }) {
+            IconButton(onClick = onRefresh) {
                 Icon(
                     imageVector = Icons.Default.Update,
                     contentDescription = "刷新",
@@ -506,63 +508,73 @@ private fun StatsRow(
     attachmentCount: Int,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
     ) {
-        StatItem(
-            label = "文章",
-            value = publishedCount,
-            icon = Icons.Default.Visibility,
-            gradient = Brush.linearGradient(
-                colors = listOf(
-                    DesignSystem.BrandColors.Primary,
-                    DesignSystem.BrandColors.Secondary,
-                )
-            ),
-            modifier = Modifier.weight(1f),
-        )
-        StatItem(
-            label = "草稿",
-            value = draftCount,
-            icon = Icons.Default.VisibilityOff,
-            gradient = Brush.linearGradient(
-                colors = listOf(
-                    DesignSystem.SemanticColors.Warning,
-                    DesignSystem.SemanticColors.Warning.copy(alpha = 0.7f),
-                )
-            ),
-            modifier = Modifier.weight(1f),
-        )
-        StatItem(
-            label = "分类",
-            value = categoryCount,
-            icon = Icons.Default.QueryStats,
-            gradient = Brush.linearGradient(
-                colors = listOf(
-                    DesignSystem.SemanticColors.Success,
-                    DesignSystem.SemanticColors.Success.copy(alpha = 0.7f),
-                )
-            ),
-            modifier = Modifier.weight(1f),
-        )
-        StatItem(
-            label = "附件",
-            value = attachmentCount,
-            icon = Icons.Default.Image,
-            gradient = Brush.linearGradient(
-                colors = listOf(
-                    DesignSystem.BrandColors.Tertiary,
-                    DesignSystem.BrandColors.Primary,
-                )
-            ),
-            modifier = Modifier.weight(1f),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+        ) {
+            HomeStatCard(
+                label = "已发布",
+                value = publishedCount,
+                icon = Icons.Default.Visibility,
+                gradient = Brush.linearGradient(
+                    colors = listOf(
+                        DesignSystem.BrandColors.Primary,
+                        DesignSystem.BrandColors.Primary.copy(alpha = 0.7f),
+                    )
+                ),
+                modifier = Modifier.weight(1f),
+            )
+            HomeStatCard(
+                label = "草稿箱",
+                value = draftCount,
+                icon = Icons.Default.VisibilityOff,
+                gradient = Brush.linearGradient(
+                    colors = listOf(
+                        DesignSystem.SemanticColors.Warning,
+                        DesignSystem.SemanticColors.Warning.copy(alpha = 0.7f),
+                    )
+                ),
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+        ) {
+            HomeStatCard(
+                label = "分类",
+                value = categoryCount,
+                icon = Icons.Default.QueryStats,
+                gradient = Brush.linearGradient(
+                    colors = listOf(
+                        DesignSystem.SemanticColors.Success,
+                        DesignSystem.SemanticColors.Success.copy(alpha = 0.7f),
+                    )
+                ),
+                modifier = Modifier.weight(1f),
+            )
+            HomeStatCard(
+                label = "附件",
+                value = attachmentCount,
+                icon = Icons.Default.Image,
+                gradient = Brush.linearGradient(
+                    colors = listOf(
+                        DesignSystem.BrandColors.Tertiary,
+                        DesignSystem.BrandColors.Tertiary.copy(alpha = 0.7f),
+                    )
+                ),
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
 @Composable
-private fun StatItem(
+private fun HomeStatCard(
     label: String,
     value: Int,
     icon: ImageVector,
@@ -570,40 +582,43 @@ private fun StatItem(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(DesignSystem.Component.StatCardHeight), // 96dp
+        modifier = modifier.height(88.dp),
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(DesignSystem.Spacing.Medium),
-            verticalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = DesignSystem.Spacing.Medium),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
         ) {
             // 渐变圆形图标徽章
             Box(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(gradient),
+                    .size(40.dp)
+                    .background(gradient, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(20.dp),
                     tint = Color.White,
                 )
             }
             // 数字 + 标签
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Text(
                     text = rememberCountUpState(value).toString(),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontSize = DesignSystem.Typography.Headline, // 28sp
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontSize = DesignSystem.Typography.Title, // 20sp
                     ),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,

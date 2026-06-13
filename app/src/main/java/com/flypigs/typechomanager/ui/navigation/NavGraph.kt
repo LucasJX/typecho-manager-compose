@@ -40,6 +40,7 @@ import com.flypigs.typechomanager.ui.posts.PostsScreen
 import com.flypigs.typechomanager.ui.editor.EditorScreen
 import com.flypigs.typechomanager.ui.profile.ProfileScreen
 import com.flypigs.typechomanager.ui.setup.SetupScreen
+import com.flypigs.typechomanager.ui.stats.StatsScreen
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import kotlinx.coroutines.delay
 
@@ -144,7 +145,7 @@ fun NavGraph(
                         navController.navigate(Screen.Editor.createRoute())
                     },
                     onViewStatsClick = {
-                        // TODO: 查看统计
+                        navController.navigate(Screen.Stats.route)
                     },
                 )
             }
@@ -220,6 +221,12 @@ fun NavGraph(
 
             composable(Screen.Changelog.route) {
                 ChangelogScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.Stats.route) {
+                StatsScreen(
                     onBack = { navController.popBackStack() }
                 )
             }

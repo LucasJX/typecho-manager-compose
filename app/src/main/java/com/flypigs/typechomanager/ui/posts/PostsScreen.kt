@@ -11,6 +11,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +29,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -39,6 +45,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ViewModule
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -71,7 +79,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.data.model.Post
 import com.flypigs.typechomanager.ui.components.v3.ArticleCard
@@ -180,13 +190,6 @@ fun PostsScreen(
                 // ═══════════════════════════════════════════
                 // 多选模式顶栏 / 普通模式搜索栏
                 // ═══════════════════════════════════════════
-                AnimatedVisibility(
-                    visibleState = enterState,
-                    enter = fadeIn(tween(500)) + slideInVertically(
-                        tween(500),
-                        initialOffsetY = { -it / 2 },
-                    ),
-                ) {
                     if (isMultiSelectMode) {
                         // 多选顶栏：已选 N 篇 + 关闭
                         Row(
@@ -334,7 +337,6 @@ fun PostsScreen(
                             }
                         }
                     }
-                }
 
                 AnimatedVisibility(
                     visibleState = enterState,
@@ -372,109 +374,132 @@ fun PostsScreen(
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
     
                     // ═══════════════════════════════════════════
-                    // 文章列表
+                    // 文章列表 / 网格
                     // ═══════════════════════════════════════════
-                    LazyColumn(
-                        state = listState,
-                        contentPadding = PaddingValues(
-                            horizontal = DesignSystem.Spacing.Large,
-                            vertical = DesignSystem.Spacing.Small,
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        items(
-                            items = filteredPosts,
-                            key = { it.cid },
-                        ) { post ->
-                            val dismissState = rememberSwipeToDismissBoxState(
-                                confirmValueChange = { dismissValue ->
-                                    when (dismissValue) {
-                                        SwipeToDismissBoxValue.EndToStart -> {
-                                            pendingDeleteCid = post.cid
-                                            showDeleteDialog = true
-                                            false
-                                        }
-                                        SwipeToDismissBoxValue.StartToEnd -> {
-                                            onPostClick(post.cid)
-                                            false
-                                        }
-                                        else -> false
-                                    }
-                                }
-                            )
-    
-                            SwipeToDismissBox(
-                                state = dismissState,
-                                backgroundContent = {
-                                    val direction = dismissState.dismissDirection
-                                    val color = when (direction) {
-                                        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
-                                        SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primary
-                                        else -> Color.Transparent
-                                    }
-                                    val icon = when (direction) {
-                                        SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
-                                        SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Edit
-                                        else -> Icons.Default.Edit
-                                    }
-                                    val alignment = when (direction) {
-                                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-                                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
-                                        else -> Alignment.Center
-                                    }
-    
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(DesignSystem.Corner.Card)
-                                            .background(color)
-                                            .padding(horizontal = DesignSystem.Spacing.Large),
-                                        contentAlignment = alignment,
-                                    ) {
-                                        Icon(
-                                            imageVector = icon,
-                                            contentDescription = null,
-                                            tint = Color.White,
-                                            modifier = Modifier.size(28.dp),
-                                        )
-                                    }
-                                },
-                                enableDismissFromStartToEnd = !isMultiSelectMode,
-                                enableDismissFromEndToStart = !isMultiSelectMode,
-                            ) {
-                                ArticleCard(
-                                    post = post,
-                                    onClick = {
-                                        if (isMultiSelectMode) {
-                                            selectedPosts = if (post.cid in selectedPosts) {
-                                                selectedPosts - post.cid
-                                            } else {
-                                                selectedPosts + post.cid
+                    if (isListView) {
+                        LazyColumn(
+                            state = listState,
+                            contentPadding = PaddingValues(
+                                horizontal = DesignSystem.Spacing.Large,
+                                vertical = DesignSystem.Spacing.Small,
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            items(
+                                items = filteredPosts,
+                                key = { it.cid },
+                            ) { post ->
+                                val dismissState = rememberSwipeToDismissBoxState(
+                                    confirmValueChange = { dismissValue ->
+                                        when (dismissValue) {
+                                            SwipeToDismissBoxValue.EndToStart -> {
+                                                pendingDeleteCid = post.cid
+                                                showDeleteDialog = true
+                                                false
                                             }
-                                        } else {
-                                            onPostClick(post.cid)
+                                            SwipeToDismissBoxValue.StartToEnd -> {
+                                                onPostClick(post.cid)
+                                                false
+                                            }
+                                            else -> false
+                                        }
+                                    }
+                                )
+
+                                SwipeToDismissBox(
+                                    state = dismissState,
+                                    backgroundContent = {
+                                        val direction = dismissState.dismissDirection
+                                        val color = when (direction) {
+                                            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
+                                            SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primary
+                                            else -> Color.Transparent
+                                        }
+                                        val icon = when (direction) {
+                                            SwipeToDismissBoxValue.EndToStart -> Icons.Default.Delete
+                                            SwipeToDismissBoxValue.StartToEnd -> Icons.Default.Edit
+                                            else -> Icons.Default.Edit
+                                        }
+                                        val alignment = when (direction) {
+                                            SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                                            SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                                            else -> Alignment.Center
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(DesignSystem.Corner.Card)
+                                                .background(color)
+                                                .padding(horizontal = DesignSystem.Spacing.Large),
+                                            contentAlignment = alignment,
+                                        ) {
+                                            Icon(
+                                                imageVector = icon,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(24.dp),
+                                            )
                                         }
                                     },
-                                    isSelected = isMultiSelectMode && post.cid in selectedPosts,
+                                    content = {
+                                        ArticleCard(
+                                            post = post,
+                                            onClick = { onPostClick(post.cid) },
+                                            onLongClick = {
+                                                if (!isMultiSelectMode) {
+                                                    isMultiSelectMode = true
+                                                    selectedPosts = setOf(post.cid)
+                                                }
+                                            },
+                                            isSelected = post.cid in selectedPosts,
+                                        )
+                                    },
+                                    enableDismissFromStartToEnd = !isMultiSelectMode,
+                                    enableDismissFromEndToStart = !isMultiSelectMode,
+                                )
+                            }
+                            // 底部间距
+                            item(key = "bottom_spacer") {
+                                val bottomPadding = if (isMultiSelectMode) {
+                                    DesignSystem.Component.FabBottomPadding + 48.dp
+                                } else {
+                                    DesignSystem.Component.FabBottomPadding
+                                }
+                                Spacer(modifier = Modifier.height(bottomPadding))
+                            }
+                        }
+                    } else {
+                        // 网格视图
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            contentPadding = PaddingValues(
+                                start = DesignSystem.Spacing.Large,
+                                end = DesignSystem.Spacing.Large,
+                                top = DesignSystem.Spacing.Small,
+                                bottom = DesignSystem.Component.FabBottomPadding,
+                            ),
+                            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                            verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            items(
+                                items = filteredPosts,
+                                key = { it.cid },
+                            ) { post ->
+                                PostGridItem(
+                                    post = post,
+                                    onClick = { onPostClick(post.cid) },
                                     onLongClick = {
                                         if (!isMultiSelectMode) {
                                             isMultiSelectMode = true
                                             selectedPosts = setOf(post.cid)
                                         }
                                     },
+                                    isSelected = post.cid in selectedPosts,
                                 )
                             }
-                        }
-    
-                        // 底部间距（批量模式时留更多空间给操作栏）
-                        item(key = "bottom_spacer") {
-                            val bottomPadding = if (isMultiSelectMode) {
-                                DesignSystem.Component.FabBottomPadding + 48.dp
-                            } else {
-                                DesignSystem.Component.FabBottomPadding
-                            }
-                            Spacer(modifier = Modifier.height(bottomPadding))
                         }
                     }
                 }
@@ -583,6 +608,97 @@ fun PostsScreen(
             },
         )
     }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun PostGridItem(
+    post: Post,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val borderColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.outlineVariant
+    }
+    val borderWidth = if (isSelected) 2.dp else 1.dp
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(160.dp)
+            .border(borderWidth, borderColor, DesignSystem.Corner.Card)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(DesignSystem.Spacing.Medium),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            // 标题
+            Text(
+                text = post.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            // 底部信息
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                // 分类
+                if (post.categories.isNotEmpty()) {
+                    Text(
+                        text = post.categories.first(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = DesignSystem.BrandColors.Primary,
+                    )
+                }
+
+                // 状态 + 日期
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = if (post.status == "publish") "已发布" else "草稿",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = if (post.status == "publish") {
+                            DesignSystem.SemanticColors.Success
+                        } else {
+                            DesignSystem.SemanticColors.Warning
+                        },
+                    )
+                    Text(
+                        text = formatDate(post.created),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun formatDate(timestamp: Long): String {
+    val sdf = java.text.SimpleDateFormat("MM/dd", java.util.Locale.CHINA)
+    return sdf.format(java.util.Date(timestamp * 1000L))
 }
 
 @Composable

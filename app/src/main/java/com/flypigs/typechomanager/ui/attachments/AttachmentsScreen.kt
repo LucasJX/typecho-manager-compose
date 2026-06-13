@@ -88,6 +88,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -281,7 +284,7 @@ fun AttachmentsScreen(
                 }
 
                 // ═══════════════════════════════════════════
-                // 统计条：大号数字 + 图标
+                // 统计卡片：渐变图标徽章 + 大号数字 + 标签
                 // ═══════════════════════════════════════════
                 AnimatedVisibility(
                     visibleState = enterState,
@@ -293,32 +296,30 @@ fun AttachmentsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = DesignSystem.Spacing.Medium)
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest,
-                                DesignSystem.Corner.StatBar,
-                            )
-                            .padding(
-                                horizontal = DesignSystem.Spacing.Large,
-                                vertical = DesignSystem.Spacing.Medium,
-                            ),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+                            .padding(top = DesignSystem.Spacing.Medium),
+                        horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                     ) {
-                        StatItem(
-                            number = uiState.attachments.size.toString(),
+                        StatCard(
+                            value = uiState.attachments.size.toString(),
                             label = "文件",
                             icon = Icons.Default.Archive,
+                            gradient = Brush.linearGradient(listOf(DesignSystem.BrandColors.Primary, DesignSystem.BrandColors.Secondary)),
+                            modifier = Modifier.weight(1f),
                         )
-                        StatItem(
-                            number = formatFileSize(uiState.totalSize),
+                        StatCard(
+                            value = formatFileSize(uiState.totalSize),
                             label = "总大小",
                             icon = Icons.Default.InsertDriveFile,
+                            gradient = Brush.linearGradient(listOf(DesignSystem.BrandColors.Secondary, DesignSystem.BrandColors.Tertiary)),
+                            modifier = Modifier.weight(1f),
                         )
                         if (recentUploadText.isNotEmpty()) {
-                            StatItem(
-                                number = recentUploadText,
+                            StatCard(
+                                value = recentUploadText,
                                 label = "最近",
                                 icon = Icons.Default.Image,
+                                gradient = Brush.linearGradient(listOf(DesignSystem.BrandColors.Tertiary, DesignSystem.BrandColors.Primary)),
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
@@ -698,35 +699,58 @@ fun AttachmentsScreen(
 }
 
 // ═══════════════════════════════════════════════════════
-// 统计项 — 大号数字 + 图标
+// 统计卡片 — 渐变图标徽章 + 大号数字
 // ═══════════════════════════════════════════════════════
 @Composable
-private fun StatItem(
-    number: String,
+private fun StatCard(
+    value: String,
     label: String,
     icon: ImageVector,
+    gradient: Brush,
+    modifier: Modifier = Modifier,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.width(DesignSystem.Spacing.ExtraSmall))
-            Text(
-                text = number,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+    Card(
+        modifier = modifier.height(96.dp),
+        shape = DesignSystem.Corner.Card,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Card),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(DesignSystem.Spacing.Medium),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(gradient),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = Color.White,
+                )
+            }
+            Column {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 28.sp),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
