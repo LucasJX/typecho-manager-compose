@@ -71,6 +71,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.flypigs.typechomanager.ui.components.v3.ProfileSkeleton
 import com.flypigs.typechomanager.ui.components.v3.rememberCountUpState
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import com.flypigs.typechomanager.MainActivity
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 // ═══════════════════════════════════════════════════════════════
 // ProfileScreen — Blogga V3 我的页面
@@ -370,6 +379,73 @@ fun ProfileScreen(
                                 context.startActivity(
                                     Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/LucasJX/typecho-manager-compose"))
                                 )
+                            },
+                        )
+                    }
+                }
+            }
+
+            // ── 退出登录 ──
+            item(key = "logout") {
+                AnimatedVisibility(
+                    visibleState = enterState,
+                    enter = fadeIn(tween(500, delayMillis = 700)) + slideInVertically(
+                        tween(500, delayMillis = 700),
+                        initialOffsetY = { it / 4 },
+                    ),
+                ) {
+                    val context = LocalContext.current
+                    var showLogoutDialog by remember { mutableStateOf(false) }
+
+                    Button(
+                        onClick = { showLogoutDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = DesignSystem.Spacing.Large),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ),
+                        shape = DesignSystem.Corner.Button,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Logout,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
+                        Text("退出登录")
+                    }
+
+                    if (showLogoutDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showLogoutDialog = false },
+                            title = { Text("确认退出") },
+                            text = { Text("退出后需要重新输入博客地址和密码登录") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showLogoutDialog = false
+                                        viewModel.logout {
+                                            // 跳转到登录页
+                                            context.startActivity(
+                                                Intent(context, MainActivity::class.java).apply {
+                                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                                }
+                                            )
+                                        }
+                                    },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.error,
+                                    ),
+                                ) {
+                                    Text("退出")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showLogoutDialog = false }) {
+                                    Text("取消")
+                                }
                             },
                         )
                     }

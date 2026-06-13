@@ -171,4 +171,11 @@ class ProfileViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(imageQuality = newQuality)
         }
     }
+
+    fun logout(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            configDataStore.clearConfig()
+            onSuccess()
+        }
+    }
 }
