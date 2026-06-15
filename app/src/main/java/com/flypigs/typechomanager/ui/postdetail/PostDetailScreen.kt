@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
@@ -99,6 +100,8 @@ fun PostDetailScreen(
     // 阅读模式状态（默认开启）
     var isReadingMode by remember { mutableStateOf(true) }
     var showMenu by remember { mutableStateOf(false) }
+    var showToc by remember { mutableStateOf(false) }
+    var lightboxImageUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(message) {
         message?.let {
@@ -126,6 +129,9 @@ fun PostDetailScreen(
     val isDraftOrPrivate = p.status == "draft" || p.status == "private"
     val coverUrl = p.cover.takeIf { it.isNotEmpty() } ?: extractFirstImageUrl(p.text)
 
+    // 提取目录
+    val tocEntries = remember(p.text) { extractTocFromMarkdown(p.text) }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -147,6 +153,11 @@ fun PostDetailScreen(
                     }
                 },
                 actions = {
+                    // 目录按钮
+                    IconButton(onClick = { showToc = true }) {
+                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "目录")
+                    }
+
                     // 更多操作菜单
                     Box {
                         IconButton(onClick = { showMenu = true }) {
@@ -360,6 +371,9 @@ fun PostDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = DesignSystem.Spacing.Medium),
+                            onImageClick = { url ->
+                                lightboxImageUrl = url
+                            },
                         )
                     }
                 }
@@ -406,6 +420,33 @@ fun PostDetailScreen(
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
                 }
             }
+
+            // 阅读进度条
+            ReadingProgressBar(
+                listState = scrollState,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        }
+
+        // 目录底部弹窗
+        if (showToc) {
+            TocBottomSheet(
+                tocEntries = tocEntries,
+                onTocClick = { entry ->
+                    showToc = false
+                    // 滚动到对应位置（简化实现：滚动到内容区域）
+                    // TODO: 精确定位到标题位置
+                },
+                onDismiss = { showToc = false },
+            )
+        }
+
+        // 图片灯箱
+        lightboxImageUrl?.let { url ->
+            ImageLightbox(
+                imageUrl = url,
+                onDismiss = { lightboxImageUrl = null },
+            )
         }
     }
 }

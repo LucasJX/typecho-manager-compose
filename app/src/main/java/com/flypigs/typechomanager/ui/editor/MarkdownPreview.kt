@@ -16,7 +16,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 import io.noties.markwon.Markwon
 import io.noties.markwon.core.CorePlugin
-import io.noties.markwon.core.MarkwonTheme
 import io.noties.markwon.core.spans.HeadingSpan
 import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.html.HtmlPlugin
@@ -37,7 +36,8 @@ import io.noties.markwon.image.ImagesPlugin
 @Composable
 fun MarkdownPreview(
     markdown: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onImageClick: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
@@ -46,31 +46,10 @@ fun MarkdownPreview(
     val textColor = colorScheme.onSurface.hashCode()
     val linkColor = colorScheme.primary.hashCode()
     val codeBgColor = colorScheme.surfaceVariant.hashCode()
-    val quoteBorderColor = colorScheme.primary.hashCode()
     val dividerColor = colorScheme.outlineVariant.hashCode()
 
     val markwon = remember(textColor, linkColor, codeBgColor) {
-        val density = context.resources.displayMetrics.density
-
-        // ── MarkwonTheme: 字体 + 代码 + 引用 ──
-        val theme = MarkwonTheme.builder()
-            .textSize((rt.BodySize.value * density).toInt())
-            .headingTextSizeMultipliers(rt.HeadingMultipliers)
-            .codeBlockTextSize((rt.CodeSize.value * density).toInt())
-            .codeBlockBackgroundColor(codeBgColor)
-            .codeBlockMargin((DesignSystem.Spacing.Medium.value * density).toInt())
-            .codeBackgroundColor(codeBgColor)
-            .codeBlockTypeface(Typeface.MONOSPACE)
-            .blockQuoteColor(quoteBorderColor)
-            .blockQuoteWidth((4 * density).toInt())
-            .blockQuoteIndent((16 * density).toInt())
-            .listItemIndent((24 * density).toInt())
-            .linkColor(linkColor)
-            .build()
-
-        val builder = Markwon.builder(context)
-        builder.theme(theme)
-        builder
+        Markwon.builder(context)
             .usePlugin(CorePlugin.create())
             .usePlugin(HtmlPlugin.create())
             .usePlugin(ImagesPlugin.create())
