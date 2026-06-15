@@ -148,14 +148,87 @@ object DesignSystem {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 排版（Display 36, Headline 28, Title 20, Body 16, Label 12）
+    // 排版系统（基础 + 阅读器专用）
     // ═══════════════════════════════════════════════════════
+
+    /** 基础字号（向后兼容） */
     object Typography {
         val Display = 36.sp
         val Headline = 28.sp
         val Title = 20.sp
         val Body = 16.sp
         val Label = 12.sp
+    }
+
+    /**
+     * 阅读器排版系统 — 文章内容专用
+     *
+     * 参考规范 (.specs/task1-typography.md)：
+     * - 正文 16sp / 行高 1.8-2.0 (长文阅读最佳)
+     * - H1 22-24sp bold, H2 20sp bold, H3 18sp w600
+     * - 段落间距 12-16px
+     * - letter-spacing: 0.2
+     * - 代码 14sp / monospace
+     */
+    object ReaderTypography {
+        // ── 正文 ──
+        val BodySize = 16.sp
+        val BodyLineHeight = 29.sp           // 16 * 1.81 ≈ 29（spec: 1.8~2.0）
+        const val BodyLetterSpacing = 0.02f  // spec: 0.2 (Android sp = 0.02em)
+
+        // ── 标题（spec: H1 22-24sp, H2 20sp, H3 18sp）──
+        val H1Size = 24.sp
+        val H1LineHeight = 32.sp             // 24 * 1.33 ≈ 32
+        const val H1LetterSpacing = -0.01f   // 大标题收紧
+
+        val H2Size = 20.sp
+        val H2LineHeight = 28.sp             // 20 * 1.4 = 28
+        const val H2LetterSpacing = -0.01f
+
+        val H3Size = 18.sp
+        val H3LineHeight = 26.sp             // 18 * 1.44 ≈ 26
+        const val H3LetterSpacing = 0f
+
+        val H4Size = 17.sp
+        val H4LineHeight = 24.sp
+        const val H4LetterSpacing = 0f
+
+        val H5Size = 16.sp
+        val H5LineHeight = 24.sp
+        const val H5LetterSpacing = 0.01f
+
+        val H6Size = 14.sp
+        val H6LineHeight = 20.sp
+        const val H6LetterSpacing = 0.01f
+
+        // Markwon headingTextSizeMultipliers (相对 textSize 的倍数)
+        // Index 0=H1 ... Index 5=H6
+        val HeadingMultipliers = floatArrayOf(
+            H1Size.value / BodySize.value,   // 1.50
+            H2Size.value / BodySize.value,   // 1.25
+            H3Size.value / BodySize.value,   // 1.125
+            H4Size.value / BodySize.value,   // 1.0625
+            H5Size.value / BodySize.value,   // 1.0
+            H6Size.value / BodySize.value,   // 0.875
+        )
+
+        // ── 段落间距（spec: 12-16px 上下）──
+        val ParagraphSpacing = 14.sp         // 上下各 7sp
+
+        // ── 代码 ──
+        val CodeSize = 14.sp
+        val CodeLineHeight = 22.sp
+        const val CodeLetterSpacing = 0f
+
+        // ── 引用 ──
+        val BlockquoteSize = 15.sp
+        val BlockquoteLineHeight = 24.sp
+        const val BlockquoteLetterSpacing = 0.01f
+
+        // ── 说明文字 ──
+        val CaptionSize = 13.sp
+        val CaptionLineHeight = 18.sp
+        const val CaptionLetterSpacing = 0.04f
     }
 
     // ═══════════════════════════════════════════════════════
