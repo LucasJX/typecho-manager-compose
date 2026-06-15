@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,11 +26,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Publish
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,14 +40,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -63,15 +69,15 @@ import java.util.Date
 import java.util.Locale
 
 // ═══════════════════════════════════════════════════════════════
-// PostDetailScreen — Blogga V3 文章详情页
+// PostDetailScreen — 文章详情页 (Reader Mode)
 //
 // 布局 (LazyColumn):
-//   1. 顶部栏（返回 + 标题 + 操作按钮）
+//   1. 顶部栏（返回 + 标题 + 操作菜单）
 //   2. 封面图 Hero 区域（如有）
 //   3. 元信息区（分类 + 状态 + 时间）
 //   4. 文章内容（Markdown 渲染）
-//   5. 数据统计条（阅读数 + 评论数）
-//   6. 底部操作栏（编辑 / 发布）
+//   5. 数据统计条（可选，默认隐藏）
+//   6. 底部操作区（编辑/发布，移至菜单）
 // ═══════════════════════════════════════════════════════════════
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,6 +96,10 @@ fun PostDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberLazyListState()
 
+    // 阅读模式状态（默认开启）
+    var isReadingMode by remember { mutableStateOf(true) }
+    var showMenu by remember { mutableStateOf(false) }
+
     LaunchedEffect(message) {
         message?.let {
             snackbarHostState.showSnackbar(it)
@@ -102,6 +112,9 @@ fun PostDetailScreen(
     LaunchedEffect(Unit) {
         enterState.targetState = true
     }
+
+    // 顶部栏滚动行为
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     // 加载中骨架屏
     if (isLoading) {
@@ -116,26 +129,84 @@ fun PostDetailScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        floatingActionButton = {
-            // 编辑 FAB（MorphingFab 不适用，用标准 FAB）
-            Box(
-                modifier = Modifier
-                    .padding(bottom = DesignSystem.Spacing.Large)
-                    .navigationBarsPadding(),
-            ) {
-                FilledTonalButton(
-                    onClick = { onEdit(cid) },
-                    shape = DesignSystem.Corner.Button,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            // 顶部应用栏：简洁阅读模式
+            TopAppBar(
+                title = {
+                    Text(
+                        text = p.title.ifBlank { "(无标题)" },
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.ExtraSmall))
-                    Text("编辑文章")
-                }
-            }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    // 更多操作菜单
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "更多操作")
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                        ) {
+                            // 编辑文章
+                            DropdownMenuItem(
+                                text = { Text("编辑文章") },
+                                onClick = {
+                                    showMenu = false
+                                    onEdit(cid)
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Edit, contentDescription = null)
+                                },
+                            )
+
+                            // 草稿/私密文章显示发布选项
+                            if (isDraftOrPrivate) {
+                                DropdownMenuItem(
+                                    text = { Text("发布文章") },
+                                    onClick = {
+                                        showMenu = false
+                                        viewModel.publishPost()
+                                    },
+                                    leadingIcon = {
+                                        if (isUpdating) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(18.dp),
+                                                strokeWidth = 2.dp,
+                                            )
+                                        } else {
+                                            Icon(Icons.Default.Publish, contentDescription = null)
+                                        }
+                                    },
+                                )
+                            }
+
+                            // 阅读模式切换
+                            DropdownMenuItem(
+                                text = {
+                                    Text(if (isReadingMode) "显示统计信息" else "隐藏统计信息")
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    isReadingMode = !isReadingMode
+                                },
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                ),
+            )
         },
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -145,8 +216,40 @@ fun PostDetailScreen(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
             ) {
-                // ─── 1. 顶部栏（返回 + 标题）───
-                item(key = "header") {
+                // ─── 1. 封面图 Hero 区域（如有）───
+                if (coverUrl != null) {
+                    item(key = "cover") {
+                        AnimatedVisibility(
+                            visibleState = enterState,
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
+                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
+                            ),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(DesignSystem.Component.HeroHeight)
+                                    .padding(horizontal = DesignSystem.Spacing.Large),
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(coverUrl)
+                                        .crossfade(DesignSystem.Animation.CrossfadeDuration)
+                                        .build(),
+                                    contentDescription = p.title,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(DesignSystem.Corner.Hero),
+                                    contentScale = ContentScale.Crop,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ─── 2. 文章标题 + 元信息 ───
+                item(key = "title_meta") {
                     AnimatedVisibility(
                         visibleState = enterState,
                         enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration)) + slideInVertically(
@@ -154,35 +257,23 @@ fun PostDetailScreen(
                             initialOffsetY = { -DesignSystem.Entrance.SectionSlideOffset },
                         ),
                     ) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            // 返回按钮 + 大标题
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = DesignSystem.Spacing.Large, bottom = DesignSystem.Spacing.Medium)
-                                    .padding(horizontal = DesignSystem.Spacing.Large),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = p.title.ifBlank { "(无标题)" },
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        maxLines = 3,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
-                            }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = DesignSystem.Spacing.Large),
+                        ) {
+                            // 文章标题（大号）
+                            Text(
+                                text = p.title.ifBlank { "(无标题)" },
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
 
                             Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
 
                             // 元信息行：分类 + 状态 + 时间
                             Row(
-                                modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                                 horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
@@ -199,7 +290,7 @@ fun PostDetailScreen(
                                     )
                                 }
 
-                                // 状态标签
+                                // 状态标签（仅草稿/私密显示）
                                 if (isDraftOrPrivate) {
                                     val (statusLabel, statusColor) = when (p.status) {
                                         "draft" -> "草稿" to DesignSystem.SemanticColors.Warning
@@ -240,7 +331,6 @@ fun PostDetailScreen(
                             if (p.tags.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
                                 Row(
-                                    modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                                     horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                                 ) {
                                     p.tags.take(5).forEach { tag ->
@@ -251,38 +341,6 @@ fun PostDetailScreen(
                                         )
                                     }
                                 }
-                            }
-                        }
-                    }
-                }
-
-                // ─── 2. 封面图 Hero 区域（如有）───
-                if (coverUrl != null) {
-                    item(key = "cover") {
-                        AnimatedVisibility(
-                            visibleState = enterState,
-                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay)) + slideInVertically(
-                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay),
-                                initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
-                            ),
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(DesignSystem.Component.HeroHeight)
-                                    .padding(horizontal = DesignSystem.Spacing.Large),
-                            ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(coverUrl)
-                                        .crossfade(DesignSystem.Animation.CrossfadeDuration)
-                                        .build(),
-                                    contentDescription = p.title,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(DesignSystem.Corner.Hero),
-                                    contentScale = ContentScale.Crop,
-                                )
                             }
                         }
                     }
@@ -306,80 +364,46 @@ fun PostDetailScreen(
                     }
                 }
 
-                // ─── 4. 数据统计条（阅读数 + 评论数）───
-                item(key = "stats") {
-                    AnimatedVisibility(
-                        visibleState = enterState,
-                        enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) + slideInVertically(
-                            tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
-                            initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
-                        ),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = DesignSystem.Spacing.Large)
-                                .clip(DesignSystem.Corner.StatBar)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                                .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            // 阅读数
-                            StatItem(
-                                icon = Icons.Default.Visibility,
-                                count = p.viewsCount,
-                                label = "阅读",
-                            )
-                            // 评论数
-                            StatItem(
-                                icon = Icons.Default.Comment,
-                                count = p.commentCount,
-                                label = "评论",
-                            )
-                        }
-                    }
-                }
-
-                // ─── 5. 底部操作区（草稿/私密文章显示发布按钮）───
-                if (isDraftOrPrivate) {
-                    item(key = "publish_action") {
+                // ─── 4. 数据统计条（可选，默认隐藏）───
+                if (!isReadingMode) {
+                    item(key = "stats") {
                         AnimatedVisibility(
                             visibleState = enterState,
-                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4)) + slideInVertically(
-                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 4),
+                            enter = fadeIn(tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3)) + slideInVertically(
+                                tween(DesignSystem.Entrance.SectionDuration, delayMillis = DesignSystem.Entrance.SectionDelay * 3),
                                 initialOffsetY = { DesignSystem.Entrance.SectionSlideOffset },
                             ),
                         ) {
-                            FilledTonalButton(
-                                onClick = { viewModel.publishPost() },
-                                enabled = !isUpdating,
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = DesignSystem.Spacing.Large),
-                                shape = DesignSystem.Corner.Button,
+                                    .padding(horizontal = DesignSystem.Spacing.Large)
+                                    .clip(DesignSystem.Corner.StatBar)
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                    .padding(horizontal = DesignSystem.Spacing.Large, vertical = DesignSystem.Spacing.Medium),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                if (isUpdating) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(16.dp),
-                                        strokeWidth = 2.dp,
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Default.Publish,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    Spacer(modifier = Modifier.width(DesignSystem.Spacing.ExtraSmall))
-                                    Text("发布文章")
-                                }
+                                // 阅读数
+                                StatItem(
+                                    icon = Icons.Default.Visibility,
+                                    count = p.viewsCount,
+                                    label = "阅读",
+                                )
+                                // 评论数
+                                StatItem(
+                                    icon = Icons.Default.Comment,
+                                    count = p.commentCount,
+                                    label = "评论",
+                                )
                             }
                         }
                     }
                 }
+
                 // 底部间距
                 item(key = "bottom_spacer") {
-                    Spacer(modifier = Modifier.height(DesignSystem.Component.FabBottomPadding + DesignSystem.Spacing.Large))
+                    Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))
                 }
             }
         }
