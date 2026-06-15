@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 @Composable
@@ -30,7 +29,7 @@ fun EmptyState(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(DesignSystem.Component.EmptyStateIconSize),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         )
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Large))

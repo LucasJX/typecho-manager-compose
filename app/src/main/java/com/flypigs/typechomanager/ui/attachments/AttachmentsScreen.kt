@@ -234,14 +234,14 @@ fun AttachmentsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = DesignSystem.Spacing.Large)
-                                .height(300.dp),
+                                .height(DesignSystem.Component.AttachmentPreviewHeight),
                             contentAlignment = Alignment.Center,
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
                                     Icons.Default.FilterList,
                                     contentDescription = null,
-                                    modifier = Modifier.size(64.dp),
+                                    modifier = Modifier.size(DesignSystem.Component.EmptyStateIconSize),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                                 )
                                 Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
@@ -542,7 +542,7 @@ private fun HeaderTitle(
             // 渐变圆形图标徽章
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(DesignSystem.GradientBadge.TitleSize)
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
@@ -557,7 +557,7 @@ private fun HeaderTitle(
                 Icon(
                     imageVector = Icons.Default.Archive,
                     contentDescription = null,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(DesignSystem.GradientBadge.TitleIconSize),
                     tint = Color.White,
                 )
             }
@@ -685,7 +685,7 @@ private fun StatCard(
         colors = CardDefaults.cardColors(
             containerColor = accentColor.copy(alpha = 0.06f),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Flat),
     ) {
         Row(
             modifier = Modifier
@@ -696,16 +696,16 @@ private fun StatCard(
             // 左侧彩色竖条
             Box(
                 modifier = Modifier
-                    .width(3.dp)
-                    .height(28.dp)
-                    .background(accentColor, RoundedCornerShape(2.dp))
+                    .width(DesignSystem.AccentBar.Width)
+                    .height(DesignSystem.AccentBar.Height)
+                    .background(accentColor, DesignSystem.AccentBar.Corner)
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
             // 图标
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(DesignSystem.Spacing.Medium),
                 tint = accentColor,
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
@@ -781,7 +781,7 @@ private fun AttachmentGridItem(
                     Icon(
                         imageVector = getFileTypeIcon(attachment.mime),
                         contentDescription = null,
-                        modifier = Modifier.size(48.dp),
+                        modifier = Modifier.size(DesignSystem.Component.AttachmentGridIconSize),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(modifier = Modifier.height(DesignSystem.Spacing.Small))
@@ -798,7 +798,7 @@ private fun AttachmentGridItem(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
+                .height(DesignSystem.Component.AttachmentOverlayHeight)
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
@@ -841,7 +841,7 @@ private fun AttachmentGridItem(
                         Color.Black.copy(alpha = 0.5f),
                         DesignSystem.Corner.Chip,
                     )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = DesignSystem.Spacing.Small, vertical = DesignSystem.Spacing.ExtraSmall),
             ) {
                 Text(
                     text = attachment.type.split("/").last().uppercase(),
@@ -885,7 +885,7 @@ private fun AttachmentListItem(
                     .build(),
                 contentDescription = attachment.name,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(DesignSystem.GradientBadge.TitleSize)
                     .clip(DesignSystem.Corner.Thumbnail),
                 contentScale = ContentScale.Crop,
             )
@@ -900,7 +900,7 @@ private fun AttachmentListItem(
                 Icon(
                     imageVector = getFileTypeIcon(attachment.mime),
                     contentDescription = null,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(DesignSystem.GradientBadge.TitleIconSize),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -1021,7 +1021,7 @@ private fun FullScreenPreview(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "上一张",
                     tint = Color.White,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(DesignSystem.Component.GalleryNavIconSize),
                 )
             }
         }
@@ -1037,7 +1037,7 @@ private fun FullScreenPreview(
                     contentDescription = "下一张",
                     tint = Color.White,
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(DesignSystem.Component.GalleryNavIconSize)
                         .graphicsLayer { scaleX = -1f },
                 )
             }

@@ -116,7 +116,7 @@ fun ChangelogScreen(
                     .padding(top = DesignSystem.Spacing.Medium, bottom = DesignSystem.Spacing.ExtraSmall),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                IconButton(onClick = onBack, modifier = Modifier.size(DesignSystem.Component.IconButtonSize)) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                 }
                 Column(modifier = Modifier.weight(1f)) {

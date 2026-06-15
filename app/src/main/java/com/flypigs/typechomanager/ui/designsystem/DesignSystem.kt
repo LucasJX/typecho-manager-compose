@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 object DesignSystem {
 
     // ═══════════════════════════════════════════════════════
-    // 间距系统（只允许 8/16/24/32）
+    // 间距系统（只允许 4/8/16/24/32/48）
     // ═══════════════════════════════════════════════════════
     object Spacing {
         val ExtraSmall = 4.dp      // 最小间距（图标与文字间隙）
@@ -35,6 +35,9 @@ object DesignSystem {
         val CardGap = 8.dp         // 卡片间距
         val SectionGap = 24.dp     // 区块间距
         val PageHorizontal = 16.dp // 页面水平边距
+        val PageHeaderHorizontal = 20.dp // PageHeader 水平边距
+        val PageHeaderVertical = 12.dp   // PageHeader 垂直边距
+        val TitleSubtitleGap = 2.dp      // 标题与副标题间距
     }
 
     // ═══════════════════════════════════════════════════════
@@ -102,6 +105,40 @@ object DesignSystem {
         val Card = 2.dp
         val Floating = 4.dp
         val Navigation = 0.dp
+        val Flat = 0.dp
+        val Subtle = 1.dp
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 彩色竖条（设置项/统计行左侧装饰）
+    // ═══════════════════════════════════════════════════════
+    object AccentBar {
+        val Width = 3.dp
+        val Height = 28.dp
+        val Corner = RoundedCornerShape(2.dp)
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 热力图网格
+    // ═══════════════════════════════════════════════════════
+    object Heatmap {
+        val CellSize = 12.dp
+        val CellCorner = RoundedCornerShape(2.dp)
+        val CellGap = 2.dp
+        val LegendCellSize = 10.dp
+        val LegendCellPadding = 1.dp
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 文章状态徽章（卡片右上角半透明标签）
+    // ═══════════════════════════════════════════════════════
+    object StatusBadge {
+        val Corner = RoundedCornerShape(6.dp)
+        val HorizontalPadding = 5.dp
+        val VerticalPadding = 2.dp
+        val DotSize = 5.dp
+        val DotGap = 3.dp
+        val FontSize = 9.sp
     }
 
     // ═══════════════════════════════════════════════════════
@@ -129,6 +166,10 @@ object DesignSystem {
 
         // 附件网格
         val AttachmentGridColumns = 2
+        val AttachmentGridIconSize = 48.dp
+        val AttachmentOverlayHeight = 72.dp
+        val AttachmentPreviewHeight = 300.dp
+        val GalleryNavIconSize = 36.dp
 
         // Hero 卡片
         val HeroHeight = 200.dp
@@ -145,6 +186,36 @@ object DesignSystem {
 
         // 快速操作按钮
         val QuickActionHeight = 80.dp
+
+        // 头像
+        val ProfileAvatarSize = 72.dp
+
+        // 状态指示点
+        val StatusDotSize = 8.dp
+
+        // 进度条
+        val ProgressHeight = 8.dp
+        val ProgressCorner = RoundedCornerShape(4.dp)
+
+        // 空状态
+        val EmptyStateIconSize = 64.dp
+
+        // IconButton
+        val IconButtonSize = 40.dp
+
+        // 草稿列表项
+        val DraftItemHeight = 64.dp
+
+        // 区块标题高度
+        val SectionTitleHeight = 160.dp
+
+        // 骨架屏 FilterChip 占位
+        val ChipSkeletonWidth = 72.dp
+        val ChipSkeletonHeight = 32.dp
+
+        // 统计数值字号
+        val StatValueFontSize = 22.sp
+        val StatLabelFontSize = 9.sp
     }
 
     // ═══════════════════════════════════════════════════════

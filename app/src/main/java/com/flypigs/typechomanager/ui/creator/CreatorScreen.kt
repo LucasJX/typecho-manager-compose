@@ -463,7 +463,7 @@ private fun CreatorStatCard(
         colors = CardDefaults.cardColors(
             containerColor = accentColor.copy(alpha = 0.06f),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Flat),
     ) {
         Row(
             modifier = Modifier
@@ -474,9 +474,9 @@ private fun CreatorStatCard(
             // 左侧彩色竖条
             Box(
                 modifier = Modifier
-                    .width(3.dp)
-                    .height(28.dp)
-                    .background(accentColor, RoundedCornerShape(2.dp))
+                    .width(DesignSystem.AccentBar.Width)
+                    .height(DesignSystem.AccentBar.Height)
+                    .background(accentColor, DesignSystem.AccentBar.Corner)
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
             // 图标

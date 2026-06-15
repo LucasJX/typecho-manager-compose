@@ -111,7 +111,7 @@ fun ArticleCard(
                 MaterialTheme.colorScheme.surface
             },
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Flat),
     ) {
         Row(
             modifier = Modifier
@@ -235,21 +235,21 @@ private fun StatusBadge(
 
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
+            .clip(DesignSystem.StatusBadge.Corner)
             .background(Color.Black.copy(alpha = 0.55f))
-            .padding(horizontal = 5.dp, vertical = 2.dp),
+            .padding(horizontal = DesignSystem.StatusBadge.HorizontalPadding, vertical = DesignSystem.StatusBadge.VerticalPadding),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(DesignSystem.StatusBadge.DotGap),
     ) {
         Box(
             modifier = Modifier
-                .size(5.dp)
+                .size(DesignSystem.StatusBadge.DotSize)
                 .clip(CircleShape)
                 .background(color),
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = DesignSystem.StatusBadge.FontSize),
             color = Color.White,
             maxLines = 1,
         )

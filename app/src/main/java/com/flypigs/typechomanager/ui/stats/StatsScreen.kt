@@ -129,7 +129,7 @@ fun StatsScreen(
                     Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(DesignSystem.GradientBadge.StatCardSize)
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
@@ -144,7 +144,7 @@ fun StatsScreen(
                         Icon(
                             imageVector = Icons.Default.QueryStats,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(DesignSystem.GradientBadge.StatCardIconSize),
                             tint = Color.White,
                         )
                     }
@@ -433,7 +433,7 @@ private fun StatsOverviewCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier.height(88.dp),
+        modifier = modifier.height(DesignSystem.PageTemplate.StatCardMinHeight),
         shape = DesignSystem.Corner.Card,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -449,20 +449,20 @@ private fun StatsOverviewCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(DesignSystem.GradientBadge.StatCardSize)
                     .background(gradient, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(DesignSystem.GradientBadge.StatCardIconSize),
                     tint = Color.White,
                 )
             }
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(DesignSystem.Heatmap.CellGap),
             ) {
                 Text(
                     text = value,
@@ -505,21 +505,21 @@ private fun InsightCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(DesignSystem.GradientBadge.StatCardSize)
                     .background(color.copy(alpha = 0.12f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(DesignSystem.GradientBadge.StatCardIconSize),
                     tint = color,
                 )
             }
             Column {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp),
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = DesignSystem.Component.StatValueFontSize),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -606,7 +606,7 @@ private fun MonthlyBarChart(
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp),
+                    .height(DesignSystem.Component.SectionTitleHeight),
             ) {
                 val barCount = data.size
                 val totalWidth = size.width
@@ -658,7 +658,7 @@ private fun MonthlyBarChart(
                 data.forEach { item ->
                     Text(
                         text = item.month,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = DesignSystem.Component.StatLabelFontSize),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                     )
@@ -683,11 +683,11 @@ private fun CategoryBar(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = DesignSystem.Corner.Medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Subtle),
     ) {
         Column(
             modifier = Modifier
@@ -716,8 +716,8 @@ private fun CategoryBar(
                 progress = { animatedProgress },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
+                    .height(DesignSystem.Component.ProgressHeight)
+                    .clip(DesignSystem.Component.ProgressCorner),
                 color = DesignSystem.BrandColors.Primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 strokeCap = StrokeCap.Round,
@@ -735,11 +735,11 @@ private fun RecentPostItem(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = DesignSystem.Corner.Medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Subtle),
     ) {
         Row(
             modifier = Modifier
@@ -751,7 +751,7 @@ private fun RecentPostItem(
             // 状态指示器
             Box(
                 modifier = Modifier
-                    .size(8.dp)
+                    .size(DesignSystem.Component.StatusDotSize)
                     .background(
                         color = if (status == "publish") {
                             DesignSystem.SemanticColors.Success

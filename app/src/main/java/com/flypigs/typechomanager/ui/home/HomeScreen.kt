@@ -554,7 +554,7 @@ private fun HomeStatCard(
         colors = CardDefaults.cardColors(
             containerColor = accentColor.copy(alpha = 0.06f),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Flat),
     ) {
         Row(
             modifier = Modifier
@@ -565,16 +565,16 @@ private fun HomeStatCard(
             // 左侧彩色竖条
             Box(
                 modifier = Modifier
-                    .width(3.dp)
-                    .height(28.dp)
-                    .background(accentColor, RoundedCornerShape(2.dp))
+                    .width(DesignSystem.AccentBar.Width)
+                    .height(DesignSystem.AccentBar.Height)
+                    .background(accentColor, DesignSystem.AccentBar.Corner)
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
             // 图标
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(DesignSystem.Spacing.Medium),
                 tint = accentColor,
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
@@ -668,7 +668,7 @@ private fun ArticleHeroCard(
             .height(DesignSystem.Component.HeroHeight) // 200dp
             .clickable(onClick = onClick),
         shape = DesignSystem.Corner.Hero,
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Flat),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // 封面图或渐变占位

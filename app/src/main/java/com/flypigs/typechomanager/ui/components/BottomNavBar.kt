@@ -63,7 +63,7 @@ fun BottomNavBar(navController: NavController) {
     NavigationBar(
         modifier = Modifier.height(DesignSystem.Component.NavBarHeight),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp
+        tonalElevation = DesignSystem.Elevation.Flat
     ) {
         navItems.forEach { item ->
             val selected = currentRoute == item.route

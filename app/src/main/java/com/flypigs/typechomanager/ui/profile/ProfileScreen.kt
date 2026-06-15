@@ -150,7 +150,7 @@ fun ProfileScreen(
                         // 渐变圆形图标徽章
                         Box(
                             modifier = Modifier
-                                .size(56.dp)
+                                .size(DesignSystem.GradientBadge.TitleSize)
                                 .background(
                                     Brush.linearGradient(
                                         colors = listOf(
@@ -165,7 +165,7 @@ fun ProfileScreen(
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                modifier = Modifier.size(28.dp),
+                                modifier = Modifier.size(DesignSystem.GradientBadge.TitleIconSize),
                                 tint = Color.White,
                             )
                         }
@@ -411,7 +411,7 @@ fun ProfileScreen(
                         Icon(
                             imageVector = Icons.Default.Logout,
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(DesignSystem.GradientBadge.ListItemIconSize),
                         )
                         Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
                         Text("退出登录")
@@ -490,7 +490,7 @@ private fun UserInfoCard(
                 ?: "B"
             Box(
                 modifier = Modifier
-                    .size(72.dp)
+                    .size(DesignSystem.Component.ProfileAvatarSize)
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
@@ -530,7 +530,7 @@ private fun UserInfoCard(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(DesignSystem.Component.StatusDotSize)
                             .clip(CircleShape)
                             .background(DesignSystem.SemanticColors.Success),
                     )
@@ -595,7 +595,7 @@ private fun ProfileStatCard(
         colors = CardDefaults.cardColors(
             containerColor = accentColor.copy(alpha = 0.06f),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = DesignSystem.Elevation.Flat),
     ) {
         Row(
             modifier = Modifier
@@ -606,16 +606,16 @@ private fun ProfileStatCard(
             // 左侧彩色竖条
             Box(
                 modifier = Modifier
-                    .width(3.dp)
-                    .height(28.dp)
-                    .background(accentColor, RoundedCornerShape(2.dp))
+                    .width(DesignSystem.AccentBar.Width)
+                    .height(DesignSystem.AccentBar.Height)
+                    .background(accentColor, DesignSystem.AccentBar.Corner)
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
             // 图标
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(DesignSystem.Spacing.Medium),
                 tint = accentColor,
             )
             Spacer(modifier = Modifier.width(DesignSystem.Spacing.Small))
@@ -660,8 +660,8 @@ private fun WritingHeatmap(
 
         // 热力图网格（过去 12 周）
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(DesignSystem.Heatmap.CellGap),
+            verticalArrangement = Arrangement.spacedBy(DesignSystem.Heatmap.CellGap),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(DesignSystem.Component.HeatmapHeight)
@@ -673,8 +673,8 @@ private fun WritingHeatmap(
                 val alpha = (day.count.coerceIn(0, 4) / 4f).coerceIn(0.1f, 1f)
                 Box(
                     modifier = Modifier
-                        .size(12.dp)
-                        .clip(RoundedCornerShape(2.dp))
+                        .size(DesignSystem.Heatmap.CellSize)
+                        .clip(DesignSystem.Heatmap.CellCorner)
                         .background(
                             if (day.count > 0) {
                                 MaterialTheme.colorScheme.primary.copy(alpha = alpha)
@@ -703,9 +703,9 @@ private fun WritingHeatmap(
                 val alpha = ((level + 1) / 5f).coerceIn(0.1f, 1f)
                 Box(
                     modifier = Modifier
-                        .size(10.dp)
-                        .padding(horizontal = 1.dp)
-                        .clip(RoundedCornerShape(2.dp))
+                        .size(DesignSystem.Heatmap.LegendCellSize)
+                        .padding(horizontal = DesignSystem.Heatmap.LegendCellPadding)
+                        .clip(DesignSystem.Heatmap.CellCorner)
                         .background(
                             if (level > 0) {
                                 MaterialTheme.colorScheme.primary.copy(alpha = alpha)
@@ -790,7 +790,7 @@ private fun SettingsItem(
         leadingContent = {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(DesignSystem.GradientBadge.ListItemSize)
                     .clip(CircleShape)
                     .background(iconGradient),
                 contentAlignment = Alignment.Center,
@@ -798,7 +798,7 @@ private fun SettingsItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(DesignSystem.GradientBadge.StatCardIconSize),
                     tint = Color.White,
                 )
             }
@@ -808,7 +808,7 @@ private fun SettingsItem(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(DesignSystem.Spacing.Medium),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

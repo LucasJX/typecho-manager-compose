@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.flypigs.typechomanager.ui.designsystem.DesignSystem
 
 /**
  * Shared page header: status bar padding + large title.
@@ -23,7 +23,7 @@ fun PageHeader(title: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = DesignSystem.Spacing.PageHeaderHorizontal, vertical = DesignSystem.Spacing.PageHeaderVertical)
     ) {
         Text(
             text = title,
@@ -47,7 +47,7 @@ fun PageHeaderWithSubtitle(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = DesignSystem.Spacing.PageHeaderHorizontal, vertical = DesignSystem.Spacing.PageHeaderVertical)
     ) {
         Text(
             text = title,
@@ -56,7 +56,7 @@ fun PageHeaderWithSubtitle(
             color = MaterialTheme.colorScheme.onSurface
         )
         if (!subtitle.isNullOrBlank()) {
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(DesignSystem.Spacing.TitleSubtitleGap))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,

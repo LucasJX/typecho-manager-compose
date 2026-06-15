@@ -154,7 +154,7 @@ fun HomeSkeleton() {
                         horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
                         modifier = Modifier.padding(vertical = DesignSystem.Spacing.Small),
                     ) {
-                        SkeletonBox(modifier = Modifier.size(8.dp))
+                        SkeletonBox(modifier = Modifier.size(DesignSystem.Component.StatusDotSize))
                         SkeletonBox(modifier = Modifier.weight(1f).height(16.dp))
                     }
                 }
@@ -199,7 +199,7 @@ fun PostsSkeleton() {
             horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small),
         ) {
             repeat(4) {
-                SkeletonBox(modifier = Modifier.width(72.dp).height(32.dp))
+                SkeletonBox(modifier = Modifier.width(DesignSystem.Component.ChipSkeletonWidth).height(DesignSystem.Component.ChipSkeletonHeight))
             }
         }
         Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
@@ -293,7 +293,7 @@ fun ProfileSkeleton() {
                 horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SkeletonBox(modifier = Modifier.size(56.dp).clip(CircleShape))
+                SkeletonBox(modifier = Modifier.size(DesignSystem.GradientBadge.TitleSize).clip(CircleShape))
                 Column(verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)) {
                     SkeletonBox(modifier = Modifier.width(80.dp).height(28.dp))
                     SkeletonBox(modifier = Modifier.width(120.dp).height(16.dp))
@@ -307,7 +307,7 @@ fun ProfileSkeleton() {
                 horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Large),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SkeletonBox(modifier = Modifier.size(72.dp).clip(CircleShape))
+                SkeletonBox(modifier = Modifier.size(DesignSystem.Component.ProfileAvatarSize).clip(CircleShape))
                 Column(verticalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Small)) {
                     SkeletonBox(modifier = Modifier.width(120.dp).height(24.dp))
                     SkeletonBox(modifier = Modifier.width(80.dp).height(16.dp))
@@ -395,8 +395,8 @@ fun AttachmentsSkeleton() {
                 modifier = Modifier.padding(horizontal = DesignSystem.Spacing.Large),
                 horizontalArrangement = Arrangement.spacedBy(DesignSystem.Spacing.Medium),
             ) {
-                SkeletonBox(modifier = Modifier.weight(1f).height(160.dp))
-                SkeletonBox(modifier = Modifier.weight(1f).height(160.dp))
+                SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.SectionTitleHeight))
+                SkeletonBox(modifier = Modifier.weight(1f).height(DesignSystem.Component.SectionTitleHeight))
             }
             Spacer(modifier = Modifier.height(DesignSystem.Spacing.Medium))
         }
